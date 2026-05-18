@@ -59,7 +59,7 @@ Focus review on API-agnostic boundaries, configuration completeness, and parity 
 - Q: What should happen when a section.json is missing/invalid or maps to an unknown executor? → A: Render section shell disabled with inline error details and no request execution.
 - Q: How should section.json compatibility be handled as the engine evolves? → A: Require schemaVersion and reject unsupported versions with inline section error.
 - Q: How should section configuration failures be surfaced in observability/debug data? → A: Record as Configuration-category debug error events plus inline section error.
-- Q: What is the migration completeness target for Joke API and JSONPlaceholder custom code? → A: Remove all custom Joke API/JSONPlaceholder source files and replace section definitions with `joke-session.json` and `jsonplaceholder-sesssion.json`.
+- Q: What is the migration completeness target for Joke API and JSONPlaceholder custom code? → A: Remove all custom Joke API/JSONPlaceholder source files and replace section definitions with `joke-session.json` and `jsonplaceholder-session.json`.
 - Q: How much UI change is acceptable before versus after the refactor? → A: UI should remain fairly constant, with no material layout or interaction changes outside required configuration-error states.
 
 ## User Scenarios & Testing
@@ -128,7 +128,7 @@ As a maintainer, I can map each section to its own request executor while the en
 - **FR-007a**: The system MUST treat unsupported `schemaVersion` values as configuration-resolution failures and apply the same disabled inline-error behavior.
 - **FR-008**: The system MUST keep current observability outcomes for migrated sections so request/response/error tracking remains available to users.
 - **FR-008a**: The system MUST emit configuration-resolution failures as `Configuration` category debug error events while also showing inline section error details.
-- **FR-009**: The completed migration MUST remove custom Joke API and JSONPlaceholder source implementation files from the codebase.
+- **FR-009**: The completed migration MUST remove custom Joke API and JSONPlaceholder source implementation files from the codebase. API client files and hook files in `src/api/` and `src/hooks/` are retained as part of the authoritative API layer.
 - **FR-010**: Section behavior for these two integrations MUST be defined via `joke-session.json` and `jsonplaceholder-session.json`, with no section-specific implementation files remaining for Joke API or JSONPlaceholder flows.
 - **FR-011**: The migration MUST preserve existing section layout, control placement, labels, and primary interaction flow so the before/after UI remains materially the same for normal operation.
 - **FR-012**: Any UI differences introduced by this refactor MUST be limited to required configuration-error handling states and must not alter normal successful request workflows.
@@ -162,5 +162,5 @@ As a maintainer, I can map each section to its own request executor while the en
 - **SC-004**: Migrated sections continue to surface error outcomes clearly enough that a user can identify whether a failure is request-related or configuration-related in one interaction attempt.
 - **SC-005**: For 100% of configuration-resolution failures in migrated sections, users see a disabled section state with inline configuration error details and no executable request action.
 - **SC-006**: For 100% of configuration-resolution failures in migrated sections, one `Configuration` category debug error event is recorded and visible with the corresponding section error state.
-- **SC-007**: Repository review confirms 0 remaining custom Joke API/JSONPlaceholder section implementation files, and both flows are driven by `joke-session.json` and `jsonplaceholder-sesssion.json`.
+- **SC-007**: Repository review confirms 0 remaining custom Joke API/JSONPlaceholder section implementation files, and both flows are driven by `joke-session.json` and `jsonplaceholder-session.json`.
 - **SC-008**: For normal (non-error) section operation, a before/after UI parity review confirms no material changes to layout structure, control ordering, or primary user interaction steps for Joke API and JSONPlaceholder flows.

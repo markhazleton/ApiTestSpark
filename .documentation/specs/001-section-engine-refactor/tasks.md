@@ -18,11 +18,13 @@ Create `src/types/section.ts` with:
 
 - `SectionDefinition` interface: `{ schemaVersion: string; id: string; displayName: string; description: string; heroGradient: string; executorKey: string; }`
 - `SectionRuntimeState` type: `'idle' | 'loading' | 'success' | 'error' | 'config-error'`
+- `ExecutorKey` type: `'joke-api' | 'json-placeholder'` — string literal union of registered executor keys (used for runtime membership validation in SectionEngine; `executorKey` field stays `string` since JSON imports resolve to `string`, not a narrowable literal)
 
 **Acceptance**:
 
 - [ ] All fields typed; no `any`
-- [ ] Exported from the file
+- [ ] `SectionDefinition`, `SectionRuntimeState`, and `ExecutorKey` exported from the file
+- [ ] `SectionDefinition.schemaVersion` validation is documented as runtime-only: JSON imports resolve to `string`; no compile-time enforcement is possible
 
 ---
 
@@ -113,6 +115,7 @@ hero/header is removed from this component since the engine renders it from conf
 
 - [ ] Component renders health check, filter controls, fetch button, and results
 - [ ] No hardcoded header/hero div (engine provides the header from config)
+- [ ] Outer `min-h-screen bg-gray-50` wrapper excluded — engine shell owns the page wrapper; executor provides only inner content
 - [ ] No `console.log`; all observability via `useDebugStore`
 - [ ] TypeScript strict — zero errors
 
@@ -132,6 +135,7 @@ approach as T005.
 
 - [ ] Component renders resource selector, ID input, CRUD controls, and results
 - [ ] No hardcoded header/hero div
+- [ ] Outer `min-h-screen bg-gray-50` wrapper excluded — engine shell owns the page wrapper; executor provides only inner content
 - [ ] No `console.log`; all observability via `useDebugStore`
 - [ ] TypeScript strict — zero errors
 
@@ -204,6 +208,7 @@ Behavior:
 
 Shell structure:
 
+- Outer page wrapper: `<div className="min-h-screen bg-gray-50">` (engine-owned; executors do NOT include this wrapper — see T005/T006)
 - Hero div using `config.heroGradient`, `config.displayName`, `config.description`
 - Content area: executor component or error state
 
@@ -211,7 +216,7 @@ Shell structure:
 
 - [ ] Renders hero header using config fields (not hardcoded values)
 - [ ] Invalid/missing schemaVersion → disabled shell with inline error + `addError` with `category: 'Configuration'`
-- [ ] Unknown `executorKey` → disabled shell with inline error + `addError` with `category: 'Configuration'`
+- [ ] Unknown `executorKey` → disabled shell with inline error message that includes the unresolved key value + `addError` with `category: 'Configuration'` and `context: { sectionId: config.id, unknownKey: config.executorKey }`
 - [ ] Valid config → executor component mounted and functional
 - [ ] Engine contains zero API-specific conditional logic (FR-004)
 - [ ] No `console.log`
@@ -257,9 +262,9 @@ Import the JSON config files and the `SectionEngine` component.
 **Dependencies**: T003, T004
 **Files**: `src/components/HomeScreen.tsx` (UPDATE if needed)
 
-Review the `SECTIONS` array in `HomeScreen.tsx`. If nav card labels are hardcoded to match
-the old screen component names, update to match `displayName` values in the JSON config
-files. No structural changes to the SECTIONS array or card layout.
+Update the `SECTIONS` array in `HomeScreen.tsx` to align nav card labels with the `displayName`
+values from `joke-session.json` and `jsonplaceholder-session.json`. No structural changes to
+the SECTIONS array or card layout.
 
 **Acceptance**:
 
