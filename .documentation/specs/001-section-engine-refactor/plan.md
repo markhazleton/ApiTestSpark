@@ -65,37 +65,75 @@ Section JSON files live in `src/config/`. They are imported as static JSON modul
 time (Vite resolves JSON imports natively). No runtime `fetch()` is needed; schema validation
 errors are detectable at section mount rather than at an async load boundary.
 
-Schema shape:
+Schema shape (aligned with OpenAPI `info` object, W3C Web App Manifest, and VS Code extension
+manifest conventions):
 
 ```json
 {
-  "schemaVersion": "1",
+  "$schema": "./section.schema.json",
+  "schemaVersion": "1.0",
   "id": "string",
   "displayName": "string",
   "description": "string",
-  "heroGradient": "string",
-  "executorKey": "string"
+  "icon": "string",
+  "theme": "string",
+  "externalDocs": { "url": "string", "description": "string" },
+  "notice": "string (optional)",
+  "adapter": "string"
 }
 ```
 
+Field rationale vs. original draft:
+
+| Original | Revised | Reason |
+|----------|---------|--------|
+| `heroGradient: "from-yellow-400 to-orange-400"` | `theme: "amber"` | Tailwind class strings in config is a coupling smell — config declares intent; app code owns the CSS mapping via `SECTION_THEME_MAP` (see DD-8) |
+| `executorKey` | `adapter` | Drops redundant "Key" suffix; "adapter" is established plugin-pattern vocabulary |
+| *(absent)* | `icon` | Emoji currently hardcoded in screen `<h1>` JSX; belongs in config |
+| *(absent)* | `externalDocs` | OpenAPI 3.x `externalDocs` pattern `{ url, description }`; URL/link currently hardcoded in screen anchor JSX |
+| *(absent)* | `notice` (optional) | Secondary disclaimer text currently hardcoded only in JSONPlaceholder screen; optional so JokeAPI config omits it |
+
 ### DD-3: Schema Version Strategy
 
-`schemaVersion: "1"` is the initial accepted version. The engine accepts exactly `"1"` and
+`schemaVersion: "1.0"` is the initial accepted version. The engine accepts exactly `"1.0"` and
 renders the disabled error shell for any other value, satisfying FR-002a and FR-007a.
+Using `"1.0"` rather than bare `"1"` aligns with OpenAPI (`"3.1.0"`), npm (`"1.0.0"`), and
+other standard formats that use dotted version strings.
 
-### DD-4: Executor Registry
+### DD-4: Adapter Registry
 
 A static map in `src/executors/registry.ts`:
-`executorRegistry: Record<string, React.ComponentType>` keyed by `executorKey` string.
-Registration is compile-time; any section config referencing an unknown `executorKey` produces
+`adapterRegistry: Record<string, React.ComponentType>` keyed by `adapter` string.
+Registration is compile-time; any section config referencing an unknown `adapter` value produces
 a runtime config-resolution failure rendered as the disabled shell.
+
+> Note: renamed from `executorRegistry`/`executorKey` to `adapterRegistry`/`adapter` to align
+> with established plugin-pattern vocabulary (see DD-2 field rationale).
 
 ### DD-5: Configuration Error Debug Events
 
 When the engine detects a configuration failure (missing required field, unsupported
-schemaVersion, unknown executorKey), it calls `useDebugStore().addError` with
+schemaVersion, unknown `adapter` value), it calls `useDebugStore().addError` with
 `category: 'Configuration'` and includes `sectionId` in the `context` object. This satisfies
 FR-008a alongside the inline section error display required by FR-007.
+
+### DD-8: Theme Registry — Semantic Names to Tailwind Classes
+
+The `theme` field in section config uses a semantic name (e.g., `"amber"`, `"indigo"`).
+The engine resolves it to Tailwind classes via a `SECTION_THEME_MAP` constant defined inside
+`SectionEngine.tsx`:
+
+```typescript
+const SECTION_THEME_MAP: Record<string, { gradient: string; textMuted: string; codeBg: string }> = {
+  amber:  { gradient: 'from-yellow-400 to-orange-400', textMuted: 'text-yellow-100', codeBg: 'bg-yellow-500/40' },
+  indigo: { gradient: 'from-indigo-500 to-purple-600', textMuted: 'text-indigo-100', codeBg: 'bg-indigo-400/40' },
+};
+```
+
+If `config.theme` is not a key in the map, the engine falls back to a neutral default and does
+**not** treat it as a config-resolution failure (theme is cosmetic; a missing theme is not a
+broken section). Tailwind class strings stay exclusively in TypeScript source — never in JSON.
+New themes require only a new entry in `SECTION_THEME_MAP`, not changes to any config file.
 
 ### DD-6: File Naming — `joke-session.json` / `jsonplaceholder-session.json`
 

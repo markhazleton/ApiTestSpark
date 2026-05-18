@@ -118,7 +118,7 @@ As a maintainer, I can map each section to its own request executor while the en
 ### Functional Requirements
 
 - **FR-001**: The system MUST provide one shared section engine that renders section experiences from section configuration input.
-- **FR-002**: The system MUST define section configuration in JSON files that document section identity, display metadata, and execution mapping data required by the engine.
+- **FR-002**: The system MUST define section configuration in JSON files that document section identity, display metadata (including icon, theme, external docs link, and optional notice), and an adapter key that maps to the section's API executor.
 - **FR-002a**: Each section configuration file MUST include a `schemaVersion` field, and the engine MUST validate it before rendering actionable controls.
 - **FR-003**: The system MUST migrate both Joke API and JSONPlaceholder sections to the shared section engine.
 - **FR-004**: The section engine MUST remain API-agnostic and MUST NOT contain API-specific conditional logic tied to Joke API or JSONPlaceholder.
@@ -135,9 +135,9 @@ As a maintainer, I can map each section to its own request executor while the en
 
 ### Key Entities
 
-- **Section Definition**: A configuration record that identifies a section, includes a schemaVersion, and defines presentation metadata plus execution mapping key.
+- **Section Definition**: A configuration record that identifies a section, includes a schemaVersion, and defines presentation metadata (`displayName`, `description`, `icon`, `theme`, `externalDocs`, optional `notice`) plus an `adapter` key for execution mapping.
 - **Section Engine**: The shared renderer/orchestrator that consumes section definitions and produces section UI behavior.
-- **Section Executor Mapping**: A registry or contract that maps section execution keys to API-specific request actions.
+- **Adapter Registry**: A registry (formerly "Section Executor Mapping") that maps section `adapter` keys to API-specific request action components.
 - **Section Runtime State**: The current request lifecycle state for a rendered section, including idle, loading, success, and error outcomes.
 
 ### Assumptions

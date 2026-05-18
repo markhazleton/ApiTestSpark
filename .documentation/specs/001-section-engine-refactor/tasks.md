@@ -16,14 +16,28 @@
 
 Create `src/types/section.ts` with:
 
-- `SectionDefinition` interface: `{ schemaVersion: string; id: string; displayName: string; description: string; heroGradient: string; executorKey: string; }`
+- `SectionDefinition` interface:
+  ```typescript
+  interface SectionDefinition {
+    schemaVersion: string;        // accepted: '1.0'
+    id: string;                   // kebab-case machine identifier
+    displayName: string;          // human-readable label
+    description: string;          // short prose for hero subtitle
+    icon: string;                 // emoji or icon identifier for hero title
+    theme: string;                // semantic theme name resolved by SECTION_THEME_MAP in engine
+    externalDocs: { url: string; description: string }; // OpenAPI externalDocs pattern
+    notice?: string;              // optional secondary hero disclaimer text
+    adapter: string;              // maps to adapterRegistry key (was executorKey)
+  }
+  ```
 - `SectionRuntimeState` type: `'idle' | 'loading' | 'success' | 'error' | 'config-error'`
-- `ExecutorKey` type: `'joke-api' | 'json-placeholder'` — string literal union of registered executor keys (used for runtime membership validation in SectionEngine; `executorKey` field stays `string` since JSON imports resolve to `string`, not a narrowable literal)
+- `AdapterKey` type: `'joke-api' | 'json-placeholder'` — string literal union of registered adapter keys (used for runtime membership validation in SectionEngine; `adapter` field stays `string` since JSON imports resolve to `string`, not a narrowable literal)
 
 **Acceptance**:
 
 - [ ] All fields typed; no `any`
-- [ ] `SectionDefinition`, `SectionRuntimeState`, and `ExecutorKey` exported from the file
+- [ ] `SectionDefinition`, `SectionRuntimeState`, and `AdapterKey` exported from the file
+- [ ] `notice` is typed as `string | undefined` (optional)
 - [ ] `SectionDefinition.schemaVersion` validation is documented as runtime-only: JSON imports resolve to `string`; no compile-time enforcement is possible
 
 ---
@@ -54,20 +68,28 @@ Create the JokeAPI section configuration:
 
 ```json
 {
-  "schemaVersion": "1",
+  "$schema": "./section.schema.json",
+  "schemaVersion": "1.0",
   "id": "joke-api",
   "displayName": "JokeAPI Tester",
   "description": "Sample integration using JokeAPI v2. No API key required.",
-  "heroGradient": "from-yellow-400 to-orange-400",
-  "executorKey": "joke-api"
+  "icon": "\ud83d\ude02",
+  "theme": "amber",
+  "externalDocs": {
+    "url": "https://jokeapi.dev",
+    "description": "JokeAPI v2 Documentation"
+  },
+  "adapter": "joke-api"
 }
 ```
 
 **Acceptance**:
 
 - [ ] File is valid JSON
-- [ ] `schemaVersion` field present
-- [ ] `executorKey` matches the registry key used in T007
+- [ ] `schemaVersion` is `"1.0"`
+- [ ] `$schema` points to `./section.schema.json`
+- [ ] `adapter` value matches the registry key used in T007
+- [ ] No Tailwind class strings in file
 
 ---
 
@@ -81,20 +103,30 @@ Create the JSONPlaceholder section configuration:
 
 ```json
 {
-  "schemaVersion": "1",
+  "$schema": "./section.schema.json",
+  "schemaVersion": "1.0",
   "id": "json-placeholder",
-  "displayName": "JSONPlaceholder API Tester",
+  "displayName": "JSONPlaceholder Tester",
   "description": "Full CRUD demo using JSONPlaceholder. No API key required.",
-  "heroGradient": "from-blue-500 to-indigo-600",
-  "executorKey": "json-placeholder"
+  "icon": "\ud83d\udce6",
+  "theme": "indigo",
+  "externalDocs": {
+    "url": "https://jsonplaceholder.typicode.com",
+    "description": "JSONPlaceholder API"
+  },
+  "notice": "All data is synthetic \u2014 write operations are simulated and not persisted server-side.",
+  "adapter": "json-placeholder"
 }
 ```
 
 **Acceptance**:
 
 - [ ] File is valid JSON
-- [ ] `schemaVersion` field present
-- [ ] `executorKey` matches the registry key used in T008
+- [ ] `schemaVersion` is `"1.0"`
+- [ ] `$schema` points to `./section.schema.json`
+- [ ] `adapter` value matches the registry key used in T008
+- [ ] `notice` field present (used by engine to render optional disclaimer in hero)
+- [ ] No Tailwind class strings in file
 
 ---
 
@@ -141,20 +173,20 @@ approach as T005.
 
 ---
 
-### T007 — Create Executor Registry
+### T007 — Create Adapter Registry
 
 **Effort**: S
 **Dependencies**: T005, T006
 **Files**: `src/executors/registry.ts` (NEW)
 
-Create the static executor registry:
+Create the static adapter registry:
 
 ```typescript
 import type React from 'react';
 import { JokeApiExecutor } from './jokeApiExecutor';
 import { JsonPlaceholderExecutor } from './jsonPlaceholderExecutor';
 
-export const executorRegistry: Record<string, React.ComponentType> = {
+export const adapterRegistry: Record<string, React.ComponentType> = {
   'joke-api': JokeApiExecutor,
   'json-placeholder': JsonPlaceholderExecutor,
 };
@@ -162,8 +194,9 @@ export const executorRegistry: Record<string, React.ComponentType> = {
 
 **Acceptance**:
 
-- [ ] All `executorKey` values from T003/T004 have a corresponding registry entry
+- [ ] All `adapter` values from T003/T004 have a corresponding registry entry
 - [ ] No `any`; `React.ComponentType` typed entries
+- [ ] Export named `adapterRegistry` (not `executorRegistry`)
 
 ---
 
@@ -174,7 +207,7 @@ export const executorRegistry: Record<string, React.ComponentType> = {
 **Files**: `src/executors/index.ts` (NEW)
 
 ```typescript
-export { executorRegistry } from './registry';
+export { adapterRegistry } from './registry';
 export { JokeApiExecutor } from './jokeApiExecutor';
 export { JsonPlaceholderExecutor } from './jsonPlaceholderExecutor';
 ```
@@ -199,25 +232,39 @@ interface SectionEngineProps {
 
 Behavior:
 
-1. On mount, validate `config.schemaVersion === '1'` (FR-002a, FR-007a)
-2. Look up `executorRegistry[config.executorKey]` (FR-005)
-3. If validation fails or executor not found:
+1. On mount, validate `config.schemaVersion === '1.0'` (FR-002a, FR-007a)
+2. Look up `adapterRegistry[config.adapter]` (FR-005)
+3. If validation fails or adapter not found:
    - Call `useDebugStore().addError({ category: 'Configuration', message: ..., context: { sectionId: config.id } })` (FR-008a)
    - Render disabled section shell with inline error message (FR-007)
-4. If valid: render section shell with hero from config and mount executor component (FR-001, FR-004)
+4. If valid: render section shell with hero from config and mount adapter component (FR-001, FR-004)
 
 Shell structure:
 
 - Outer page wrapper: `<div className="min-h-screen bg-gray-50">` (engine-owned; executors do NOT include this wrapper — see T005/T006)
-- Hero div using `config.heroGradient`, `config.displayName`, `config.description`
-- Content area: executor component or error state
+- Hero div: resolve `config.theme` via `SECTION_THEME_MAP` for gradient CSS classes (see plan DD-8); render `config.icon` + `config.displayName` in `<h1>`, `config.description` in subtitle, `config.externalDocs` as an anchor link, and `config.notice` (if present) as a secondary paragraph
+- Content area: adapter component or error state
+
+`SECTION_THEME_MAP` defined inside `SectionEngine.tsx`:
+```typescript
+const SECTION_THEME_MAP: Record<string, { gradient: string; textMuted: string; codeBg: string }> = {
+  amber:  { gradient: 'from-yellow-400 to-orange-400', textMuted: 'text-yellow-100', codeBg: 'bg-yellow-500/40' },
+  indigo: { gradient: 'from-indigo-500 to-purple-600', textMuted: 'text-indigo-100', codeBg: 'bg-indigo-400/40' },
+};
+const DEFAULT_THEME = { gradient: 'from-gray-400 to-gray-600', textMuted: 'text-gray-100', codeBg: 'bg-gray-500/40' };
+```
 
 **Acceptance**:
 
 - [ ] Renders hero header using config fields (not hardcoded values)
+- [ ] `config.icon` displayed in `<h1>` before `config.displayName`
+- [ ] `config.externalDocs.url` rendered as anchor with `config.externalDocs.description` as link text
+- [ ] `config.notice` rendered as secondary paragraph when present; omitted when absent
+- [ ] `config.theme` resolved via `SECTION_THEME_MAP`; unknown theme falls back to default (not a config error)
+- [ ] No Tailwind class strings outside `SECTION_THEME_MAP` constant
 - [ ] Invalid/missing schemaVersion → disabled shell with inline error + `addError` with `category: 'Configuration'`
-- [ ] Unknown `executorKey` → disabled shell with inline error message that includes the unresolved key value + `addError` with `category: 'Configuration'` and `context: { sectionId: config.id, unknownKey: config.executorKey }`
-- [ ] Valid config → executor component mounted and functional
+- [ ] Unknown `adapter` → disabled shell with inline error message that includes the unresolved adapter value + `addError` with `category: 'Configuration'` and `context: { sectionId: config.id, unknownAdapter: config.adapter }`
+- [ ] Valid config → adapter component mounted and functional
 - [ ] Engine contains zero API-specific conditional logic (FR-004)
 - [ ] No `console.log`
 - [ ] TypeScript strict — zero errors
