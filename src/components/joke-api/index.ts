@@ -1,0 +1,1 @@
+export { JokeApiScreen } from './JokeApiScreen';
