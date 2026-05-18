@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(uv --version)",
+      "Bash(uv tool:*)",
+      "Bash(specify init:*)",
+      "Bash(PYTHONUTF8=1 NO_COLOR=1 specify init --here --force --ai claude --script ps)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

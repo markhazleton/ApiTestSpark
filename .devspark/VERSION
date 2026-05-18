@@ -1,0 +1,4 @@
+version: 2.3.0
+installed: 2026-05-18
+method: claude-quickstart
+migrated-from: 2.1.0

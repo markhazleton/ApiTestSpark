@@ -1,0 +1,15 @@
+{
+    "chat.promptFilesRecommendations": {
+        "devspark.constitution": true,
+        "devspark.specify": true,
+        "devspark.plan": true,
+        "devspark.tasks": true,
+        "devspark.implement": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        ".devspark/scripts/bash/": true,
+        ".devspark/scripts/powershell/": true,
+        ".documentation/scripts/bash/": true,
+        ".documentation/scripts/powershell/": true
+    }
+}
