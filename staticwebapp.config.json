@@ -1,0 +1,58 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/build-info.json", "/analysis/*"]
+  },
+  "routes": [
+    {
+      "route": "/analysis/*",
+      "serve": "/analysis/*",
+      "statusCode": 200
+    },
+    {
+      "route": "/assets/*",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/build-info.json",
+      "headers": {
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0"
+      }
+    },
+    {
+      "route": "/index.html",
+      "headers": {
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0"
+      }
+    },
+    {
+      "route": "/",
+      "headers": {
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0"
+      }
+    }
+  ],
+  "mimeTypes": {
+    ".json": "application/json",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".pdf": "application/pdf"
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Content-Security-Policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.applicationinsights.azure.com https://*.in.applicationinsights.azure.com; img-src 'self' data: https:; worker-src 'self' blob:; connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 https://*.applicationinsights.azure.com https://*.in.applicationinsights.azure.com https://*.monitor.azure.com https://js.monitor.azure.com https://portal.azure.com"
+  },
+  "platform": {
+    "apiRuntime": "node:20"
+  },
+  "trailingSlash": "auto"
+}
