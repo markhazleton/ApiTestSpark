@@ -5,16 +5,16 @@
  * Extend this class or compose it into feature-specific clients.
  */
 
-import type { ApiRequest, ApiResponse, ErrorResponse } from '../types';
-import { v4 as uuidv4 } from 'uuid';
-import { getRequestIdentityHeaders } from '../utils/session';
+import type { ApiRequest, ApiResponse, ErrorResponse } from "../types";
+import { v4 as uuidv4 } from "uuid";
+import { getRequestIdentityHeaders } from "../utils/session";
 
 export class RequestAbortedError extends Error {
   readonly url: string;
   readonly method: string;
   constructor(url: string, method: string) {
     super(`Request cancelled: ${method} ${url}`);
-    this.name = 'RequestAbortedError';
+    this.name = "RequestAbortedError";
     this.url = url;
     this.method = method;
   }
@@ -37,7 +37,7 @@ export interface ApiClientOptions {
 // Handles UUID correlation, timing, debug callbacks, and error categorisation.
 // ---------------------------------------------------------------------------
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export interface ApiRequestConfig {
   method: HttpMethod;
@@ -55,7 +55,14 @@ export async function executeRequest<T>(config: ApiRequestConfig): Promise<T> {
   const requestId = uuidv4();
   const startTime = performance.now();
 
-  callbacks?.onRequest?.({ id: requestId, url, method, headers, body, timestamp: new Date() });
+  callbacks?.onRequest?.({
+    id: requestId,
+    url,
+    method,
+    headers,
+    body,
+    timestamp: new Date(),
+  });
 
   let responseStatus = 0;
   let responseBody: unknown;
@@ -69,42 +76,61 @@ export async function executeRequest<T>(config: ApiRequestConfig): Promise<T> {
     });
     responseStatus = resp.status;
     const respHeaders: Record<string, string> = {};
-    resp.headers.forEach((v, k) => { respHeaders[k] = v; });
+    resp.headers.forEach((v, k) => {
+      respHeaders[k] = v;
+    });
     const rawText = await resp.text();
-    try { responseBody = rawText ? JSON.parse(rawText) : null; }
-    catch { responseBody = { raw_text: rawText, parse_error: true }; }
+    try {
+      responseBody = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      responseBody = { raw_text: rawText, parse_error: true };
+    }
 
     const duration = performance.now() - startTime;
     callbacks?.onResponse?.({
-      requestId, status: responseStatus, statusText: resp.statusText,
-      headers: respHeaders, body: responseBody,
-      apiResponseDuration: duration, timestamp: new Date(),
+      requestId,
+      status: responseStatus,
+      statusText: resp.statusText,
+      headers: respHeaders,
+      body: responseBody,
+      apiResponseDuration: duration,
+      timestamp: new Date(),
     });
 
     if (!resp.ok) {
       const err: ErrorResponse = {
-        id: uuidv4(), category: 'API',
+        id: uuidv4(),
+        category: "API",
         message: `HTTP ${responseStatus}: ${resp.statusText}`,
-        timestamp: new Date(), context: { url, method, status: responseStatus },
+        timestamp: new Date(),
+        context: { url, method, status: responseStatus },
       };
       callbacks?.onError?.(err);
       throw new Error(err.message);
     }
     return responseBody as T;
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (error instanceof Error && error.name === "AbortError") {
       throw new RequestAbortedError(url, method);
     }
     if (error instanceof Error && !(error instanceof RequestAbortedError)) {
       callbacks?.onError?.({
-        id: uuidv4(), category: 'Network', message: error.message,
-        timestamp: new Date(), context: { url, method }, stack: error.stack,
+        id: uuidv4(),
+        category: "Network",
+        message: error.message,
+        timestamp: new Date(),
+        context: { url, method },
+        stack: error.stack,
       });
       if (responseStatus === 0) {
         callbacks?.onResponse?.({
-          requestId, status: 0, statusText: 'Network Error', headers: {},
+          requestId,
+          status: 0,
+          statusText: "Network Error",
+          headers: {},
           body: { error: error.message },
-          apiResponseDuration: performance.now() - startTime, timestamp: new Date(),
+          apiResponseDuration: performance.now() - startTime,
+          timestamp: new Date(),
         });
       }
     }
@@ -123,7 +149,7 @@ export class ApiClient {
   private abortController: AbortController | null = null;
 
   constructor(baseUrl: string, apiKey: string, options: ApiClientOptions = {}) {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+    this.baseUrl = baseUrl.replace(/\/$/, "");
     this.apiKey = apiKey;
     this.bearerToken = options.bearerToken;
     this.extraHeaders = options.extraHeaders ?? {};
@@ -132,16 +158,19 @@ export class ApiClient {
     this.onError = options.callbacks?.onError;
   }
 
-  cancel(): void { this.abortController?.abort(); }
+  cancel(): void {
+    this.abortController?.abort();
+  }
 
   protected buildHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...getRequestIdentityHeaders(),
       ...this.extraHeaders,
     };
-    if (this.apiKey) headers['X-API-KEY'] = this.apiKey;
-    if (this.bearerToken) headers['Authorization'] = `Bearer ${this.bearerToken}`;
+    if (this.apiKey) headers["X-API-KEY"] = this.apiKey;
+    if (this.bearerToken)
+      headers["Authorization"] = `Bearer ${this.bearerToken}`;
     return headers;
   }
 
@@ -168,19 +197,96 @@ export class ApiClient {
     });
   }
 
-  async get<T>(path: string, extraHeaders?: Record<string, string>): Promise<T> {
-    return this.request<T>('GET', path, undefined, extraHeaders);
+  async get<T>(
+    path: string,
+    extraHeaders?: Record<string, string>,
+  ): Promise<T> {
+    return this.request<T>("GET", path, undefined, extraHeaders);
   }
-  async post<T>(path: string, body?: unknown, extraHeaders?: Record<string, string>): Promise<T> {
-    return this.request<T>('POST', path, body, extraHeaders);
+  async post<T>(
+    path: string,
+    body?: unknown,
+    extraHeaders?: Record<string, string>,
+  ): Promise<T> {
+    return this.request<T>("POST", path, body, extraHeaders);
   }
-  async put<T>(path: string, body?: unknown, extraHeaders?: Record<string, string>): Promise<T> {
-    return this.request<T>('PUT', path, body, extraHeaders);
+  async put<T>(
+    path: string,
+    body?: unknown,
+    extraHeaders?: Record<string, string>,
+  ): Promise<T> {
+    return this.request<T>("PUT", path, body, extraHeaders);
   }
-  async patch<T>(path: string, body?: unknown, extraHeaders?: Record<string, string>): Promise<T> {
-    return this.request<T>('PATCH', path, body, extraHeaders);
+  async patch<T>(
+    path: string,
+    body?: unknown,
+    extraHeaders?: Record<string, string>,
+  ): Promise<T> {
+    return this.request<T>("PATCH", path, body, extraHeaders);
   }
-  async delete<T>(path: string, extraHeaders?: Record<string, string>): Promise<T> {
-    return this.request<T>('DELETE', path, undefined, extraHeaders);
+  async delete<T>(
+    path: string,
+    extraHeaders?: Record<string, string>,
+  ): Promise<T> {
+    return this.request<T>("DELETE", path, undefined, extraHeaders);
   }
+}
+
+// ---------------------------------------------------------------------------
+// createRestCaller — lightweight factory for feature-specific callers.
+// Wraps executeRequest with a fixed baseUrl, shared headers, and optional auth.
+// Use this instead of subclassing ApiClient when no extra constructor logic
+// is needed.
+// ---------------------------------------------------------------------------
+
+export interface RestCallerOptions {
+  callbacks?: ApiClientCallbacks;
+  apiKey?: string;
+  bearerToken?: string;
+  extraHeaders?: Record<string, string>;
+}
+
+export function createRestCaller(baseUrl: string, options: RestCallerOptions = {}) {
+  const base = baseUrl.replace(/\/$/, "");
+  const { callbacks, apiKey, bearerToken, extraHeaders = {} } = options;
+
+  function buildHeaders(callHeaders?: Record<string, string>): Record<string, string> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...getRequestIdentityHeaders(),
+      ...extraHeaders,
+      ...(callHeaders ?? {}),
+    };
+    if (apiKey) headers["X-API-KEY"] = apiKey;
+    if (bearerToken) headers["Authorization"] = `Bearer ${bearerToken}`;
+    return headers;
+  }
+
+  function call<T>(
+    method: HttpMethod,
+    path: string,
+    body?: unknown,
+    callHeaders?: Record<string, string>,
+  ): Promise<T> {
+    return executeRequest<T>({
+      method,
+      url: `${base}${path}`,
+      body,
+      headers: buildHeaders(callHeaders),
+      callbacks,
+    });
+  }
+
+  return {
+    get: <T>(path: string, headers?: Record<string, string>) =>
+      call<T>("GET", path, undefined, headers),
+    post: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
+      call<T>("POST", path, body, headers),
+    put: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
+      call<T>("PUT", path, body, headers),
+    patch: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
+      call<T>("PATCH", path, body, headers),
+    delete: <T>(path: string, headers?: Record<string, string>) =>
+      call<T>("DELETE", path, undefined, headers),
+  };
 }

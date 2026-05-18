@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
-import { JokeApiClient } from '../api/jokeApiClient';
+import { createJokeApiCaller } from '../api/jokeApiClient';
 import { useDebugStore } from '../store';
 import type { JokeFilters, JokeResponse } from '../types/joke-api';
 
@@ -11,19 +11,17 @@ export function useJokeApi() {
 
   const createClient = useCallback(
     () =>
-      new JokeApiClient({
-        callbacks: {
-          onRequest: addRequest,
-          onResponse: addResponse,
-          onError: (err) =>
-            addError({
-              id: err.id ?? uuidv4(),
-              category: err.category,
-              message: err.message,
-              timestamp: err.timestamp,
-              context: err.context ?? {},
-            }),
-        },
+      createJokeApiCaller({
+        onRequest: addRequest,
+        onResponse: addResponse,
+        onError: (err) =>
+          addError({
+            id: err.id ?? uuidv4(),
+            category: err.category,
+            message: err.message,
+            timestamp: err.timestamp,
+            context: err.context ?? {},
+          }),
       }),
     [addRequest, addResponse, addError],
   );
