@@ -32,6 +32,86 @@ export interface ApiClientOptions {
   callbacks?: ApiClientCallbacks;
 }
 
+// ---------------------------------------------------------------------------
+// Functional API — pass a config object instead of extending ApiClient.
+// Handles UUID correlation, timing, debug callbacks, and error categorisation.
+// ---------------------------------------------------------------------------
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export interface ApiRequestConfig {
+  method: HttpMethod;
+  /** Fully-qualified URL (baseUrl + path already combined). */
+  url: string;
+  body?: unknown;
+  headers?: Record<string, string>;
+  callbacks?: ApiClientCallbacks;
+  /** Pass an AbortController.signal to support cancellation. */
+  signal?: AbortSignal;
+}
+
+export async function executeRequest<T>(config: ApiRequestConfig): Promise<T> {
+  const { method, url, body, headers = {}, callbacks, signal } = config;
+  const requestId = uuidv4();
+  const startTime = performance.now();
+
+  callbacks?.onRequest?.({ id: requestId, url, method, headers, body, timestamp: new Date() });
+
+  let responseStatus = 0;
+  let responseBody: unknown;
+
+  try {
+    const resp = await fetch(url, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
+    });
+    responseStatus = resp.status;
+    const respHeaders: Record<string, string> = {};
+    resp.headers.forEach((v, k) => { respHeaders[k] = v; });
+    const rawText = await resp.text();
+    try { responseBody = rawText ? JSON.parse(rawText) : null; }
+    catch { responseBody = { raw_text: rawText, parse_error: true }; }
+
+    const duration = performance.now() - startTime;
+    callbacks?.onResponse?.({
+      requestId, status: responseStatus, statusText: resp.statusText,
+      headers: respHeaders, body: responseBody,
+      apiResponseDuration: duration, timestamp: new Date(),
+    });
+
+    if (!resp.ok) {
+      const err: ErrorResponse = {
+        id: uuidv4(), category: 'API',
+        message: `HTTP ${responseStatus}: ${resp.statusText}`,
+        timestamp: new Date(), context: { url, method, status: responseStatus },
+      };
+      callbacks?.onError?.(err);
+      throw new Error(err.message);
+    }
+    return responseBody as T;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new RequestAbortedError(url, method);
+    }
+    if (error instanceof Error && !(error instanceof RequestAbortedError)) {
+      callbacks?.onError?.({
+        id: uuidv4(), category: 'Network', message: error.message,
+        timestamp: new Date(), context: { url, method }, stack: error.stack,
+      });
+      if (responseStatus === 0) {
+        callbacks?.onResponse?.({
+          requestId, status: 0, statusText: 'Network Error', headers: {},
+          body: { error: error.message },
+          apiResponseDuration: performance.now() - startTime, timestamp: new Date(),
+        });
+      }
+    }
+    throw error;
+  }
+}
+
 export class ApiClient {
   protected readonly baseUrl: string;
   protected readonly apiKey: string;
@@ -73,65 +153,19 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const headers = { ...this.buildHeaders(), ...(extraHeaders ?? {}) };
-    const requestId = uuidv4();
-    const startTime = performance.now();
-
-    this.onRequest?.({ id: requestId, url, method, headers, body, timestamp: new Date() });
     this.abortController = new AbortController();
-
-    let responseStatus = 0;
-    let responseBody: unknown;
-
-    try {
-      const resp = await fetch(url, {
-        method,
-        headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
-        signal: this.abortController.signal,
-      });
-      responseStatus = resp.status;
-      const respHeaders: Record<string, string> = {};
-      resp.headers.forEach((v, k) => { respHeaders[k] = v; });
-      const rawText = await resp.text();
-      try { responseBody = rawText ? JSON.parse(rawText) : null; }
-      catch { responseBody = { raw_text: rawText, parse_error: true }; }
-
-      const duration = performance.now() - startTime;
-      this.onResponse?.({
-        requestId, status: responseStatus, statusText: resp.statusText,
-        headers: respHeaders, body: responseBody,
-        apiResponseDuration: duration, timestamp: new Date(),
-      });
-
-      if (!resp.ok) {
-        const err: ErrorResponse = {
-          id: uuidv4(), category: 'API',
-          message: `HTTP ${responseStatus}: ${resp.statusText}`,
-          timestamp: new Date(), context: { url, method, status: responseStatus },
-        };
-        this.onError?.(err);
-        throw new Error(err.message);
-      }
-      return responseBody as T;
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new RequestAbortedError(url, method);
-      }
-      if (error instanceof Error && !(error instanceof RequestAbortedError)) {
-        this.onError?.({
-          id: uuidv4(), category: 'Network', message: error.message,
-          timestamp: new Date(), context: { url, method }, stack: error.stack,
-        });
-        if (responseStatus === 0) {
-          this.onResponse?.({
-            requestId, status: 0, statusText: 'Network Error', headers: {},
-            body: { error: error.message },
-            apiResponseDuration: performance.now() - startTime, timestamp: new Date(),
-          });
-        }
-      }
-      throw error;
-    }
+    return executeRequest<T>({
+      method: method as HttpMethod,
+      url,
+      body,
+      headers,
+      callbacks: {
+        onRequest: this.onRequest,
+        onResponse: this.onResponse,
+        onError: this.onError,
+      },
+      signal: this.abortController.signal,
+    });
   }
 
   async get<T>(path: string, extraHeaders?: Record<string, string>): Promise<T> {
