@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useUnifiedConfigStore } from '../store';
 import { BRANDING } from '../utils';
 import { SECTION_CONFIGS } from '../config';
@@ -20,16 +20,19 @@ export const UnifiedConfigurationScreen: React.FC = () => {
   const { currentEnvironment, setCurrentEnvironment, updateSectionConfig, reset } =
     useUnifiedConfigStore();
 
+  const [activeEnv, setActiveEnv] = useState<Env>(currentEnvironment as Env);
   const [forms, setForms] = useState<SectionForms>(() =>
     loadFormsFromStore(currentEnvironment as Env),
   );
   const [saved, setSaved] = useState<Record<string, boolean>>({});
   const [showReset, setShowReset] = useState(false);
 
-  useEffect(() => {
+  // Synchronise form values when the active environment changes (in-render, not in effect)
+  if (activeEnv !== (currentEnvironment as Env)) {
+    setActiveEnv(currentEnvironment as Env);
     setForms(loadFormsFromStore(currentEnvironment as Env));
     setSaved({});
-  }, [currentEnvironment]);
+  }
 
   const handleEnvChange = (env: Env) => setCurrentEnvironment(env);
 

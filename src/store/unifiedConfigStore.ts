@@ -86,7 +86,7 @@ export const useUnifiedConfigStore = create<UnifiedConfigStoreState>()(
     {
       name: STORAGE_KEY,
       version: 2,
-      migrate: (_persistedState, _version) => createDefaultConfig(),
+      migrate: () => createDefaultConfig(),
     },
   ),
 );
