@@ -9,7 +9,8 @@ import type {
 import { SECTION_CONFIGS } from "../config";
 
 /** Single source of truth — defined in src/config/sections.ts. */
-export const JSON_PLACEHOLDER_BASE_URL = SECTION_CONFIGS.jsonplaceholder.baseUrl;
+export const JSON_PLACEHOLDER_BASE_URL =
+  SECTION_CONFIGS.jsonplaceholder.baseUrl;
 
 /** Create a caller for JSONPlaceholder. All requests are captured in the debug panel. */
 export function createJsonPlaceholderCaller(callbacks: ApiClientCallbacks) {

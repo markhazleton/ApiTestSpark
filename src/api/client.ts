@@ -246,11 +246,16 @@ export interface RestCallerOptions {
   extraHeaders?: Record<string, string>;
 }
 
-export function createRestCaller(baseUrl: string, options: RestCallerOptions = {}) {
+export function createRestCaller(
+  baseUrl: string,
+  options: RestCallerOptions = {},
+) {
   const base = baseUrl.replace(/\/$/, "");
   const { callbacks, apiKey, bearerToken, extraHeaders = {} } = options;
 
-  function buildHeaders(callHeaders?: Record<string, string>): Record<string, string> {
+  function buildHeaders(
+    callHeaders?: Record<string, string>,
+  ): Record<string, string> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...getRequestIdentityHeaders(),
@@ -284,8 +289,11 @@ export function createRestCaller(baseUrl: string, options: RestCallerOptions = {
       call<T>("POST", path, body, headers),
     put: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
       call<T>("PUT", path, body, headers),
-    patch: <T>(path: string, body?: unknown, headers?: Record<string, string>) =>
-      call<T>("PATCH", path, body, headers),
+    patch: <T>(
+      path: string,
+      body?: unknown,
+      headers?: Record<string, string>,
+    ) => call<T>("PATCH", path, body, headers),
     delete: <T>(path: string, headers?: Record<string, string>) =>
       call<T>("DELETE", path, undefined, headers),
   };

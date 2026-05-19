@@ -1,5 +1,10 @@
 // API clients barrel export
-export { ApiClient, RequestAbortedError, executeRequest, createRestCaller } from "./client";
+export {
+  ApiClient,
+  RequestAbortedError,
+  executeRequest,
+  createRestCaller,
+} from "./client";
 export type {
   ApiClientOptions,
   ApiClientCallbacks,

@@ -32,24 +32,25 @@ export interface SectionConfig {
 
 export const SECTION_CONFIGS = {
   jokeapi: {
-    id: 'jokeapi',
-    displayName: 'JokeAPI Tester',
-    icon: '😂',
-    description: 'Sample integration using JokeAPI v2. No API key required.',
-    baseUrl: 'https://v2.jokeapi.dev',
-    docsUrl: 'https://jokeapi.dev',
-    docsLabel: 'JokeAPI v2',
+    id: "jokeapi",
+    displayName: "JokeAPI Tester",
+    icon: "😂",
+    description: "Sample integration using JokeAPI v2. No API key required.",
+    baseUrl: "https://v2.jokeapi.dev",
+    docsUrl: "https://jokeapi.dev",
+    docsLabel: "JokeAPI v2",
   },
   jsonplaceholder: {
-    id: 'jsonplaceholder',
-    displayName: 'JSONPlaceholder Tester',
-    icon: '📦',
-    description: 'Sample integration using JSONPlaceholder. No API key required.',
-    baseUrl: 'https://jsonplaceholder.typicode.com',
-    docsUrl: 'https://jsonplaceholder.typicode.com',
-    docsLabel: 'JSONPlaceholder',
+    id: "jsonplaceholder",
+    displayName: "JSONPlaceholder Tester",
+    icon: "📦",
+    description:
+      "Sample integration using JSONPlaceholder. No API key required.",
+    baseUrl: "https://jsonplaceholder.typicode.com",
+    docsUrl: "https://jsonplaceholder.typicode.com",
+    docsLabel: "JSONPlaceholder",
     notice:
-      '⚠️ All data is synthetic — no real user information. Write operations are simulated and not persisted server-side.',
+      "⚠️ All data is synthetic — no real user information. Write operations are simulated and not persisted server-side.",
   },
 } as const satisfies Record<string, SectionConfig>;
 

@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { v4 as uuidv4 } from 'uuid';
-import { createJokeApiCaller } from '../api/jokeApiClient';
-import { useDebugStore } from '../store';
-import type { JokeFilters, JokeResponse } from '../types/joke-api';
+import { useState, useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { v4 as uuidv4 } from "uuid";
+import { createJokeApiCaller } from "../api/jokeApiClient";
+import { useDebugStore } from "../store";
+import type { JokeFilters, JokeResponse } from "../types/joke-api";
 
 export function useJokeApi() {
   const { addRequest, addResponse, addError, addMetric } = useDebugStore();
@@ -33,7 +33,7 @@ export function useJokeApi() {
       try {
         const joke = await client.getJoke(filters);
         addMetric({
-          apiName: 'JokeAPI/getJoke',
+          apiName: "JokeAPI/getJoke",
           duration: performance.now() - start,
           timestamp: new Date(),
           isSuccess: true,
@@ -41,11 +41,11 @@ export function useJokeApi() {
         return joke;
       } catch (err) {
         addMetric({
-          apiName: 'JokeAPI/getJoke',
+          apiName: "JokeAPI/getJoke",
           duration: performance.now() - start,
           timestamp: new Date(),
           isSuccess: false,
-          errorMessage: err instanceof Error ? err.message : 'Unknown',
+          errorMessage: err instanceof Error ? err.message : "Unknown",
         });
         throw err;
       }
@@ -60,7 +60,7 @@ export function useJokeApi() {
       try {
         const res = await client.ping();
         addMetric({
-          apiName: 'JokeAPI/ping',
+          apiName: "JokeAPI/ping",
           duration: performance.now() - start,
           timestamp: new Date(),
           isSuccess: true,
@@ -68,11 +68,11 @@ export function useJokeApi() {
         return res;
       } catch (err) {
         addMetric({
-          apiName: 'JokeAPI/ping',
+          apiName: "JokeAPI/ping",
           duration: performance.now() - start,
           timestamp: new Date(),
           isSuccess: false,
-          errorMessage: err instanceof Error ? err.message : 'Unknown',
+          errorMessage: err instanceof Error ? err.message : "Unknown",
         });
         throw err;
       }
