@@ -6,8 +6,7 @@ interface BuildInfo { version: string; buildDate: string; buildTimestamp: number
 interface AboutModalProps { isOpen: boolean; onClose: () => void; }
 
 export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
-  const { getApiConfig, currentEnvironment } = useUnifiedConfigStore();
-  const apiConfig = getApiConfig();
+  const { currentEnvironment } = useUnifiedConfigStore();
   const [buildInfo, setBuildInfo] = useState<BuildInfo | null>(null);
 
   useEffect(() => {
@@ -19,11 +18,6 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  const maskApiKey = (key: string) => {
-    if (!key || key.length < 8) return '****';
-    return key.substring(0, 4) + '...' + key.substring(key.length - 4);
-  };
 
   const formatDate = (d: string) => { try { return new Date(d).toLocaleString(); } catch { return d; } };
 
@@ -62,29 +56,13 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             </div>
           </section>
 
-          {/* Current Configuration */}
+          {/* Active Environment */}
           <section className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Current Configuration</h3>
-            <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Active Environment</h3>
+            <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-700">Environment:</span>
                 <span className="text-gray-900 uppercase font-semibold">{currentEnvironment}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-700">Base URL:</span>
-                <span className="text-gray-900 text-sm truncate max-w-xs">{apiConfig.baseUrl || 'Not configured'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-700">API Key:</span>
-                <span className="text-gray-900 font-mono text-sm">
-                  {apiConfig.apiKey ? maskApiKey(apiConfig.apiKey) : 'Not configured'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-700">Status:</span>
-                <span className={`font-semibold ${apiConfig.status === 'complete' ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {apiConfig.status.toUpperCase()}
-                </span>
               </div>
             </div>
           </section>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useUnifiedConfigStore } from '../store';
 import { BRANDING } from '../utils';
 
@@ -10,8 +9,7 @@ interface BuildInfo {
 }
 
 export const AboutScreen: React.FC = () => {
-  const { getApiConfig, currentEnvironment } = useUnifiedConfigStore();
-  const config = getApiConfig();
+  const { currentEnvironment } = useUnifiedConfigStore();
   const [buildInfo, setBuildInfo] = useState<BuildInfo | null>(null);
 
   useEffect(() => {
@@ -30,11 +28,6 @@ export const AboutScreen: React.FC = () => {
     }
     return total;
   })();
-
-  const maskApiKey = (key: string) => {
-    if (!key || key.length < 8) return '****';
-    return key.substring(0, 4) + '...' + key.substring(key.length - 4);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,34 +54,18 @@ export const AboutScreen: React.FC = () => {
           </dl>
         </section>
 
-        {/* Current Config */}
+        {/* Active Environment */}
         <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Configuration</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Environment</h2>
           <dl className="space-y-2 text-sm bg-blue-50 rounded-lg p-4">
             <div className="flex justify-between">
               <dt className="font-medium text-gray-700">Environment</dt>
               <dd className="font-semibold text-gray-900 uppercase">{currentEnvironment}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="font-medium text-gray-700">Base URL</dt>
-              <dd className="text-gray-900 truncate max-w-xs">{config.baseUrl || 'Not configured'}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="font-medium text-gray-700">API Key</dt>
-              <dd className="font-mono text-gray-900">{config.apiKey ? maskApiKey(config.apiKey) : 'Not configured'}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="font-medium text-gray-700">Status</dt>
-              <dd className={`font-semibold ${config.status === 'complete' ? 'text-green-600' : 'text-yellow-600'}`}>
-                {config.status.toUpperCase()}
-              </dd>
-            </div>
           </dl>
-          <div className="mt-3">
-            <Link to="/config" className="text-sm text-blue-600 hover:underline">
-              Edit Configuration →
-            </Link>
-          </div>
+          <p className="mt-3 text-sm text-gray-500">
+            Per-API configuration is managed within each section's settings panel.
+          </p>
         </section>
 
         {/* LocalStorage */}
