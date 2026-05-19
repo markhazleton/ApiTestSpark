@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useJokeApi } from '../../hooks/useJokeApi';
-import { JOKE_API_BASE_URL } from '../../api/jokeApiClient';
+import { SECTION_CONFIGS } from '../../config';
 import type { JokeCategory, JokeFlag, JokeType, JokeLang } from '../../types/joke-api';
+
+const config = SECTION_CONFIGS.jokeapi;
 
 const CATEGORIES: JokeCategory[] = ['Any', 'Misc', 'Programming', 'Dark', 'Pun', 'Spooky', 'Christmas'];
 const FLAGS: JokeFlag[] = ['nsfw', 'religious', 'political', 'racist', 'sexist', 'explicit'];
@@ -54,19 +56,19 @@ export const JokeApiScreen: React.FC = () => {
       {/* Hero */}
       <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-6">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold mb-1">😂 JokeAPI Tester</h1>
+          <h1 className="text-2xl font-bold mb-1">{config.icon} {config.displayName}</h1>
           <p className="text-yellow-100 text-sm">
             Sample integration using{' '}
             <a
-              href="https://jokeapi.dev"
+              href={config.docsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="underline font-medium"
             >
-              JokeAPI v2
+              {config.docsLabel}
             </a>
             . No API key required. Base URL:{' '}
-            <code className="bg-yellow-500/40 px-1 rounded">{JOKE_API_BASE_URL}</code>
+            <code className="bg-yellow-500/40 px-1 rounded">{config.baseUrl}</code>
           </p>
         </div>
       </div>
@@ -106,6 +108,7 @@ export const JokeApiScreen: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <select
+                aria-label="Joke category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as JokeCategory)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
@@ -118,6 +121,7 @@ export const JokeApiScreen: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Joke Type</label>
               <select
+                aria-label="Joke type"
                 value={jokeType}
                 onChange={(e) => setJokeType(e.target.value as JokeType | '')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
@@ -130,6 +134,7 @@ export const JokeApiScreen: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
               <select
+                aria-label="Joke language"
                 value={lang}
                 onChange={(e) => setLang(e.target.value as JokeLang)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"

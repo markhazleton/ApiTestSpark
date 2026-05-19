@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useJsonPlaceholder } from '../../hooks/useJsonPlaceholder';
-import { JSON_PLACEHOLDER_BASE_URL } from '../../api/jsonPlaceholderClient';
+import { SECTION_CONFIGS } from '../../config';
 import type { JsonPlaceholderResourceType } from '../../types/json-placeholder';
+
+const config = SECTION_CONFIGS.jsonplaceholder;
 
 const RESOURCE_TYPES: Array<{ value: JsonPlaceholderResourceType; label: string; emoji: string }> = [
   { value: 'posts', label: 'Posts', emoji: '📝' },
@@ -81,24 +83,23 @@ export const JsonPlaceholderScreen: React.FC = () => {
       {/* Hero */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-6">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold mb-1">📦 JSONPlaceholder Tester</h1>
+          <h1 className="text-2xl font-bold mb-1">{config.icon} {config.displayName}</h1>
           <p className="text-indigo-100 text-sm">
             Sample integration using{' '}
             <a
-              href="https://jsonplaceholder.typicode.com"
+              href={config.docsUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="underline font-medium"
             >
-              JSONPlaceholder
+              {config.docsLabel}
             </a>
             . No API key required. Base URL:{' '}
-            <code className="bg-indigo-400/40 px-1 rounded">{JSON_PLACEHOLDER_BASE_URL}</code>
+            <code className="bg-indigo-400/40 px-1 rounded">{config.baseUrl}</code>
           </p>
-          <p className="text-indigo-200 text-xs mt-1">
-            ⚠️ All data is synthetic — no real user information. Write operations are simulated
-            and not persisted server-side.
-          </p>
+          {config.notice && (
+            <p className="text-indigo-200 text-xs mt-1">{config.notice}</p>
+          )}
         </div>
       </div>
 
