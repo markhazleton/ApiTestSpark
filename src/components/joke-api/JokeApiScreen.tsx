@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useJokeApi } from '../../hooks/useJokeApi';
 import { SECTION_CONFIGS } from '../../config';
-import { ApiHero, ErrorAlert } from '../shared';
+import { ApiHero, ErrorAlert, SectionConfigPanel } from '../shared';
 import type { JokeCategory, JokeFlag, JokeType, JokeLang } from '../../types/joke-api';
 
 const config = SECTION_CONFIGS.jokeapi;
@@ -62,6 +62,8 @@ export const JokeApiScreen: React.FC = () => {
       />
 
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
+        <SectionConfigPanel sectionKey="jokeapi" />
+
         {/* Ping */}
         <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
           <div>

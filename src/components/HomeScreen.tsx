@@ -22,18 +22,6 @@ interface NavSection {
 // ---------------------------------------------------------------------------
 const SECTIONS: NavSection[] = [
   {
-    label: "Configuration",
-    defaultOpen: true,
-    items: [
-      {
-        icon: "⚙️",
-        title: "API Configuration",
-        description: "Configure the API base URL, API key, and optional auth settings.",
-        path: "/config",
-      },
-    ],
-  },
-  {
     label: "Sample Integration",
     defaultOpen: true,
     items: Object.values(SECTION_CONFIGS).map((cfg) => ({

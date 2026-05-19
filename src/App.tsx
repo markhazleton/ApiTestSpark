@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppInsightsContext } from '@microsoft/applicationinsights-react-js';
 import { reactPlugin } from './utils/appInsights';
 import {
-  UnifiedConfigurationScreen,
   HomeScreen,
   HowToUseScreen,
   AboutScreen,
@@ -75,11 +74,11 @@ function App() {
                     <Route path="/"          element={<HomeScreen />} />
                     <Route path="/how-to-use" element={<HowToUseScreen />} />
                     <Route path="/about"      element={<AboutScreen />} />
-                    <Route path="/config"     element={<UnifiedConfigurationScreen />} />
 
-                    {/* Legacy redirects */}
-                    <Route path="/conversation-config" element={<Navigate to="/config" replace />} />
-                    <Route path="/unified-config"      element={<Navigate to="/config" replace />} />
+                    {/* /config now redirects — config lives in each section screen */}
+                    <Route path="/config"             element={<Navigate to="/" replace />} />
+                    <Route path="/conversation-config" element={<Navigate to="/" replace />} />
+                    <Route path="/unified-config"      element={<Navigate to="/" replace />} />
 
                     {/* TODO: Add your feature routes here */}
                     <Route path="/joke-api" element={<JokeApiScreen />} />

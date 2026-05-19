@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useJsonPlaceholder } from '../../hooks/useJsonPlaceholder';
 import { SECTION_CONFIGS } from '../../config';
-import { ApiHero, ErrorAlert, JsonDisplay } from '../shared';
+import { ApiHero, ErrorAlert, JsonDisplay, SectionConfigPanel } from '../shared';
 import type { JsonPlaceholderResourceType } from '../../types/json-placeholder';
 
 const config = SECTION_CONFIGS.jsonplaceholder;
@@ -90,6 +90,8 @@ export const JsonPlaceholderScreen: React.FC = () => {
       />
 
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
+        <SectionConfigPanel sectionKey="jsonplaceholder" />
+
         {/* Resource Selector */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <h2 className="font-semibold text-gray-900 mb-3">Resource Type</h2>
