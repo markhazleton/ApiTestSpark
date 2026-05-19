@@ -5,11 +5,15 @@
  * source of truth for API endpoint defaults.
  */
 
-import type { ApiConfigSet, EnvironmentConfigs, UnifiedConfigState } from '../../types/state';
-import { SECTION_CONFIGS } from '../../config';
+import type {
+  ApiConfigSet,
+  EnvironmentConfigs,
+  UnifiedConfigState,
+} from "../../types/state";
+import { SECTION_CONFIGS } from "../../config";
 
 function createDefaultApiConfigSet(baseUrl: string): ApiConfigSet {
-  return { baseUrl, apiKey: '', lastUpdatedAt: 0, status: 'incomplete' };
+  return { baseUrl, apiKey: "", lastUpdatedAt: 0, status: "incomplete" };
 }
 
 function createDefaultSectionEnvConfigs(baseUrl: string): EnvironmentConfigs {
@@ -22,5 +26,5 @@ export function createDefaultConfig(): UnifiedConfigState {
   for (const [key, cfg] of Object.entries(SECTION_CONFIGS)) {
     sections[key] = createDefaultSectionEnvConfigs(cfg.baseUrl);
   }
-  return { version: 2, currentEnvironment: 'test', sections };
+  return { version: 2, currentEnvironment: "test", sections };
 }

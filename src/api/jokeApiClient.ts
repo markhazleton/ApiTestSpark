@@ -32,7 +32,10 @@ function buildJokePath(filters: JokeFilters): string {
 
 /** Create a caller for JokeAPI v2. All requests are captured in the debug panel.
  *  Pass baseUrl to override the default (e.g. from the config store). */
-export function createJokeApiCaller(callbacks: ApiClientCallbacks, baseUrl = JOKE_API_BASE_URL) {
+export function createJokeApiCaller(
+  callbacks: ApiClientCallbacks,
+  baseUrl = JOKE_API_BASE_URL,
+) {
   const caller = createRestCaller(baseUrl, { callbacks });
   return {
     getJoke: (filters: JokeFilters = {}) =>

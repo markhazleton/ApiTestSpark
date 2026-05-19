@@ -14,7 +14,10 @@ export const JSON_PLACEHOLDER_BASE_URL =
 
 /** Create a caller for JSONPlaceholder. All requests are captured in the debug panel.
  *  Pass baseUrl to override the default (e.g. from the config store). */
-export function createJsonPlaceholderCaller(callbacks: ApiClientCallbacks, baseUrl = JSON_PLACEHOLDER_BASE_URL) {
+export function createJsonPlaceholderCaller(
+  callbacks: ApiClientCallbacks,
+  baseUrl = JSON_PLACEHOLDER_BASE_URL,
+) {
   const caller = createRestCaller(baseUrl, { callbacks });
   return {
     getPosts: (id?: number) =>

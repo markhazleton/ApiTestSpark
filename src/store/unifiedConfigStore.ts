@@ -7,29 +7,39 @@
  * Persisted to localStorage via Zustand persist middleware.
  */
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { ApiConfigSet, UnifiedConfigState, Environment } from '../types/state';
-import { createDefaultConfig } from './migrations/configMigration';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type {
+  ApiConfigSet,
+  UnifiedConfigState,
+  Environment,
+} from "../types/state";
+import { createDefaultConfig } from "./migrations/configMigration";
 
-const STORAGE_KEY = 'api-test-harness-config';
+const STORAGE_KEY = "api-test-harness-config";
 
-function validateConfigStatus(config: ApiConfigSet): 'complete' | 'incomplete' | 'stale' {
+function validateConfigStatus(
+  config: ApiConfigSet,
+): "complete" | "incomplete" | "stale" {
   const hasBaseUrl = !!config.baseUrl?.trim();
   const hasApiKey = !!config.apiKey?.trim();
   const hasValidUrl = hasBaseUrl && /^https?:\/\/.+/.test(config.baseUrl);
 
-  if (!hasBaseUrl || !hasValidUrl) return 'incomplete';
+  if (!hasBaseUrl || !hasValidUrl) return "incomplete";
 
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  if (config.lastUpdatedAt > 0 && config.lastUpdatedAt < thirtyDaysAgo) return 'stale';
+  if (config.lastUpdatedAt > 0 && config.lastUpdatedAt < thirtyDaysAgo)
+    return "stale";
 
-  return hasApiKey ? 'complete' : 'incomplete';
+  return hasApiKey ? "complete" : "incomplete";
 }
 
 interface UnifiedConfigStoreState extends UnifiedConfigState {
   setCurrentEnvironment: (env: Environment) => void;
-  getSectionConfig: (sectionKey: string, environment?: Environment) => ApiConfigSet;
+  getSectionConfig: (
+    sectionKey: string,
+    environment?: Environment,
+  ) => ApiConfigSet;
   updateSectionConfig: (
     sectionKey: string,
     environment: Environment,
@@ -53,7 +63,14 @@ export const useUnifiedConfigStore = create<UnifiedConfigStoreState>()(
         const section = get().sections[sectionKey];
         if (!section) {
           const first = Object.values(get().sections)[0];
-          return first?.[env] ?? { baseUrl: '', apiKey: '', lastUpdatedAt: 0, status: 'incomplete' };
+          return (
+            first?.[env] ?? {
+              baseUrl: "",
+              apiKey: "",
+              lastUpdatedAt: 0,
+              status: "incomplete",
+            }
+          );
         }
         return section[env];
       },
@@ -63,7 +80,11 @@ export const useUnifiedConfigStore = create<UnifiedConfigStoreState>()(
           const section = state.sections[sectionKey];
           if (!section) return state;
           const current = section[environment];
-          const updated: ApiConfigSet = { ...current, ...updates, lastUpdatedAt: Date.now() };
+          const updated: ApiConfigSet = {
+            ...current,
+            ...updates,
+            lastUpdatedAt: Date.now(),
+          };
           updated.status = validateConfigStatus(updated);
           return {
             sections: {
@@ -74,11 +95,14 @@ export const useUnifiedConfigStore = create<UnifiedConfigStoreState>()(
         });
       },
 
-      getApiConfig: (environment) => get().getSectionConfig('jokeapi', environment),
+      getApiConfig: (environment) =>
+        get().getSectionConfig("jokeapi", environment),
 
       isComplete: () => {
         const env = get().currentEnvironment;
-        return Object.values(get().sections).some((s) => s[env].status === 'complete');
+        return Object.values(get().sections).some(
+          (s) => s[env].status === "complete",
+        );
       },
 
       reset: () => set(createDefaultConfig()),

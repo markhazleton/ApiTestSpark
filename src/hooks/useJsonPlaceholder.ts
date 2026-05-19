@@ -1,146 +1,49 @@
 import { useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { v4 as uuidv4 } from "uuid";
 import { createJsonPlaceholderCaller } from "../api/jsonPlaceholderClient";
 import { useDebugStore, useUnifiedConfigStore } from "../store";
 import type { CreatePostRequest } from "../types/json-placeholder";
+import { withMetric, buildDebugCallbacks } from "./hookUtils";
 
 export function useJsonPlaceholder() {
   const { addRequest, addResponse, addError, addMetric } = useDebugStore();
 
-  const createClient = useCallback(
-    () => {
-      const { baseUrl } = useUnifiedConfigStore.getState().getSectionConfig("jsonplaceholder");
-      return createJsonPlaceholderCaller(
-        {
-          onRequest: addRequest,
-          onResponse: addResponse,
-          onError: (err) =>
-            addError({
-              id: err.id ?? uuidv4(),
-              category: err.category,
-              message: err.message,
-              timestamp: err.timestamp,
-              context: err.context ?? {},
-            }),
-        },
-        baseUrl,
-      );
-    },
-    [addRequest, addResponse, addError],
-  );
+  const createClient = useCallback(() => {
+    const { baseUrl } = useUnifiedConfigStore
+      .getState()
+      .getSectionConfig("jsonplaceholder");
+    return createJsonPlaceholderCaller(
+      buildDebugCallbacks(addRequest, addResponse, addError),
+      baseUrl,
+    );
+  }, [addRequest, addResponse, addError]);
 
   const fetchPosts = useMutation({
-    mutationFn: async (id: number | undefined) => {
-      const start = performance.now();
-      const client = createClient();
-      try {
-        const result =
-          id !== undefined
-            ? await client.getPosts(id)
-            : await client.getPosts();
-        addMetric({
-          apiName: "JSONPlaceholder/getPosts",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: true,
-        });
-        return result;
-      } catch (err) {
-        addMetric({
-          apiName: "JSONPlaceholder/getPosts",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: false,
-          errorMessage: err instanceof Error ? err.message : "Unknown",
-        });
-        throw err;
-      }
-    },
+    mutationFn: (id: number | undefined) =>
+      withMetric("JSONPlaceholder/getPosts", addMetric, () =>
+        createClient().getPosts(id),
+      ),
   });
 
   const fetchUsers = useMutation({
-    mutationFn: async (id: number | undefined) => {
-      const start = performance.now();
-      const client = createClient();
-      try {
-        const result =
-          id !== undefined
-            ? await client.getUsers(id)
-            : await client.getUsers();
-        addMetric({
-          apiName: "JSONPlaceholder/getUsers",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: true,
-        });
-        return result;
-      } catch (err) {
-        addMetric({
-          apiName: "JSONPlaceholder/getUsers",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: false,
-          errorMessage: err instanceof Error ? err.message : "Unknown",
-        });
-        throw err;
-      }
-    },
+    mutationFn: (id: number | undefined) =>
+      withMetric("JSONPlaceholder/getUsers", addMetric, () =>
+        createClient().getUsers(id),
+      ),
   });
 
   const fetchTodos = useMutation({
-    mutationFn: async (id: number | undefined) => {
-      const start = performance.now();
-      const client = createClient();
-      try {
-        const result =
-          id !== undefined
-            ? await client.getTodos(id)
-            : await client.getTodos();
-        addMetric({
-          apiName: "JSONPlaceholder/getTodos",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: true,
-        });
-        return result;
-      } catch (err) {
-        addMetric({
-          apiName: "JSONPlaceholder/getTodos",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: false,
-          errorMessage: err instanceof Error ? err.message : "Unknown",
-        });
-        throw err;
-      }
-    },
+    mutationFn: (id: number | undefined) =>
+      withMetric("JSONPlaceholder/getTodos", addMetric, () =>
+        createClient().getTodos(id),
+      ),
   });
 
   const createPost = useMutation({
-    mutationFn: async (payload: CreatePostRequest) => {
-      const start = performance.now();
-      const client = createClient();
-      try {
-        const result = await client.createPost(payload);
-        addMetric({
-          apiName: "JSONPlaceholder/createPost",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: true,
-        });
-        return result;
-      } catch (err) {
-        addMetric({
-          apiName: "JSONPlaceholder/createPost",
-          duration: performance.now() - start,
-          timestamp: new Date(),
-          isSuccess: false,
-          errorMessage: err instanceof Error ? err.message : "Unknown",
-        });
-        throw err;
-      }
-    },
+    mutationFn: (payload: CreatePostRequest) =>
+      withMetric("JSONPlaceholder/createPost", addMetric, () =>
+        createClient().createPost(payload),
+      ),
   });
 
   return { fetchPosts, fetchUsers, fetchTodos, createPost };

@@ -15,7 +15,7 @@ export interface ApiConfigSet {
   apiKey: string;
   headers?: Record<string, string>;
   lastUpdatedAt: number;
-  status: 'complete' | 'incomplete' | 'stale';
+  status: "complete" | "incomplete" | "stale";
 }
 
 export interface EnvironmentConfigs {
@@ -49,7 +49,7 @@ export interface AuthConfigSet {
   username: string;
   password: string;
   lastUpdatedAt: number;
-  status: 'complete' | 'incomplete';
+  status: "complete" | "incomplete";
 }
 
 export interface AuthEnvironmentConfigs {
@@ -73,9 +73,12 @@ export interface AuthTokenState {
 export interface AuthStoreState {
   config: AuthEnvironmentConfigs;
   token: AuthTokenState;
-  updateAuthConfig: (environment: Environment, updates: Partial<AuthConfigSet>) => void;
+  updateAuthConfig: (
+    environment: Environment,
+    updates: Partial<AuthConfigSet>,
+  ) => void;
   getAuthConfig: (environment?: Environment) => AuthConfigSet;
-  setToken: (tokenResponse: import('./api').AuthTokenResponse) => void;
+  setToken: (tokenResponse: import("./api").AuthTokenResponse) => void;
   clearToken: () => void;
   isTokenValid: () => boolean;
   isTokenExpired: () => boolean;

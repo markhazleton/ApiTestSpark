@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useJsonPlaceholder } from '../../hooks/useJsonPlaceholder';
 import { SECTION_CONFIGS } from '../../config';
+import { ApiHero, ErrorAlert, JsonDisplay } from '../shared';
 import type { JsonPlaceholderResourceType } from '../../types/json-placeholder';
 
 const config = SECTION_CONFIGS.jsonplaceholder;
@@ -80,28 +81,13 @@ export const JsonPlaceholderScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-6">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold mb-1">{config.icon} {config.displayName}</h1>
-          <p className="text-indigo-100 text-sm">
-            Sample integration using{' '}
-            <a
-              href={config.docsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline font-medium"
-            >
-              {config.docsLabel}
-            </a>
-            . No API key required. Base URL:{' '}
-            <code className="bg-indigo-400/40 px-1 rounded">{config.baseUrl}</code>
-          </p>
-          {config.notice && (
-            <p className="text-indigo-200 text-xs mt-1">{config.notice}</p>
-          )}
-        </div>
-      </div>
+      <ApiHero
+        config={config}
+        gradientClass="bg-gradient-to-r from-indigo-500 to-purple-600"
+        subtitleClass="text-indigo-100"
+        codeBgClass="bg-indigo-400/40"
+        noticeClass="text-indigo-200"
+      />
 
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
         {/* Resource Selector */}
@@ -155,27 +141,14 @@ export const JsonPlaceholderScreen: React.FC = () => {
           </div>
 
           {isFetchError && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
-              {fetchError instanceof Error ? fetchError.message : 'Error fetching resource'}
-              {resourceId && (
-                <span className="block text-xs mt-1 text-red-400">
-                  ID {resourceId} may not exist — leave the ID field empty for the full list.
-                </span>
-              )}
-            </p>
+            <ErrorAlert
+              message={fetchError instanceof Error ? fetchError.message : 'Error fetching resource'}
+              hint={resourceId ? `ID ${resourceId} may not exist — leave the ID field empty for the full list.` : undefined}
+            />
           )}
 
           {fetchData !== undefined && !isFetchPending && (
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                {Array.isArray(fetchData)
-                  ? `${fetchData.length} item${fetchData.length !== 1 ? 's' : ''} returned`
-                  : 'Single item returned'}
-              </p>
-              <pre className="bg-gray-50 border border-gray-200 rounded-md p-3 text-xs overflow-auto max-h-80 text-gray-800">
-                {JSON.stringify(fetchData, null, 2)}
-              </pre>
-            </div>
+            <JsonDisplay data={fetchData} />
           )}
         </div>
 
@@ -222,22 +195,17 @@ export const JsonPlaceholderScreen: React.FC = () => {
             </button>
 
             {createPost.isError && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
-                {createPost.error instanceof Error
-                  ? createPost.error.message
-                  : 'Error creating post'}
-              </p>
+              <ErrorAlert
+                message={createPost.error instanceof Error ? createPost.error.message : 'Error creating post'}
+              />
             )}
 
             {createPost.data && (
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  ✅ Created (HTTP 201) — synthetic response, not persisted server-side
-                </p>
-                <pre className="bg-gray-50 border border-gray-200 rounded-md p-3 text-xs overflow-auto max-h-48 text-gray-800">
-                  {JSON.stringify(createPost.data, null, 2)}
-                </pre>
-              </div>
+              <JsonDisplay
+                data={createPost.data}
+                label="✅ Created (HTTP 201) — synthetic response, not persisted server-side"
+                maxHeightClass="max-h-48"
+              />
             )}
           </div>
         )}

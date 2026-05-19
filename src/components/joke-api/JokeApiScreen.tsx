@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useJokeApi } from '../../hooks/useJokeApi';
 import { SECTION_CONFIGS } from '../../config';
+import { ApiHero, ErrorAlert } from '../shared';
 import type { JokeCategory, JokeFlag, JokeType, JokeLang } from '../../types/joke-api';
 
 const config = SECTION_CONFIGS.jokeapi;
@@ -53,25 +54,12 @@ export const JokeApiScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-6">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold mb-1">{config.icon} {config.displayName}</h1>
-          <p className="text-yellow-100 text-sm">
-            Sample integration using{' '}
-            <a
-              href={config.docsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline font-medium"
-            >
-              {config.docsLabel}
-            </a>
-            . No API key required. Base URL:{' '}
-            <code className="bg-yellow-500/40 px-1 rounded">{config.baseUrl}</code>
-          </p>
-        </div>
-      </div>
+      <ApiHero
+        config={config}
+        gradientClass="bg-gradient-to-r from-yellow-400 to-orange-400"
+        subtitleClass="text-yellow-100"
+        codeBgClass="bg-yellow-500/40"
+      />
 
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
         {/* Ping */}
@@ -198,9 +186,9 @@ export const JokeApiScreen: React.FC = () => {
           </button>
 
           {fetchJoke.isError && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
-              {fetchJoke.error instanceof Error ? fetchJoke.error.message : 'Error fetching joke'}
-            </p>
+            <ErrorAlert
+              message={fetchJoke.error instanceof Error ? fetchJoke.error.message : 'Error fetching joke'}
+            />
           )}
         </div>
 
