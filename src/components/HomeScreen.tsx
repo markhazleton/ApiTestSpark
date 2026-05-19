@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BRANDING } from "../utils";
+import { SECTION_CONFIGS } from "../config";
 
 interface NavItem {
   icon: string;
@@ -35,22 +36,12 @@ const SECTIONS: NavSection[] = [
   {
     label: "Sample Integration",
     defaultOpen: true,
-    items: [
-      {
-        icon: "😂",
-        title: "JokeAPI Tester",
-        description:
-          "Fetch jokes from the public JokeAPI v2 with category, type, language, and content filters. All requests are captured in the debug panel.",
-        path: "/joke-api",
-      },
-      {
-        icon: "📦",
-        title: "JSONPlaceholder Tester",
-        description:
-          "Explore fake REST resources (Posts, Users, Todos) from JSONPlaceholder. No API key required. Demonstrates list, single-item lookup, and create operations.",
-        path: "/json-placeholder",
-      },
-    ],
+    items: Object.values(SECTION_CONFIGS).map((cfg) => ({
+      icon: cfg.icon,
+      title: cfg.displayName,
+      description: cfg.description,
+      path: cfg.path,
+    })),
   },
   // TODO: Add your own API feature sections here:
   // {

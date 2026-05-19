@@ -28,6 +28,8 @@ export interface SectionConfig {
   readonly docsLabel: string;
   /** Optional notice shown below the description (e.g. synthetic-data warnings). */
   readonly notice?: string;
+  /** React Router path for this section's screen, e.g. '/joke-api'. */
+  readonly path: string;
 }
 
 export const SECTION_CONFIGS = {
@@ -39,6 +41,7 @@ export const SECTION_CONFIGS = {
     baseUrl: "https://v2.jokeapi.dev",
     docsUrl: "https://jokeapi.dev",
     docsLabel: "JokeAPI v2",
+    path: "/joke-api",
   },
   jsonplaceholder: {
     id: "jsonplaceholder",
@@ -51,6 +54,7 @@ export const SECTION_CONFIGS = {
     docsLabel: "JSONPlaceholder",
     notice:
       "⚠️ All data is synthetic — no real user information. Write operations are simulated and not persisted server-side.",
+    path: "/json-placeholder",
   },
 } as const satisfies Record<string, SectionConfig>;
 
