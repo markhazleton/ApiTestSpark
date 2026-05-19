@@ -1,14 +1,11 @@
 // Export all components from a single entry point
+// Shell components — eagerly imported by App.tsx
 export { AboutModal } from "./AboutModal";
-export { AboutScreen } from "./AboutScreen";
 export { DebugPanel } from "./DebugPanel";
 export { ErrorBoundary } from "./ErrorBoundary";
 export { Footer } from "./Footer";
 export { Header } from "./Header";
-export { default as HomeScreen } from "./HomeScreen";
-export { HowToUseScreen } from "./HowToUseScreen";
 export { default as StorageWarningBanner } from "./StorageWarningBanner";
 export { default as VersionMismatchBanner } from "./VersionMismatchBanner";
-export { JokeApiScreen } from "./joke-api";
-export { JsonPlaceholderScreen } from "./json-placeholder";
-export { ApiHero, ErrorAlert, JsonDisplay, SectionConfigPanel } from "./shared";
+// Route screens are NOT exported here — App.tsx lazy-imports them directly
+// so Rolldown can split them into separate on-demand chunks.

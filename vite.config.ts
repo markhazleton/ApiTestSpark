@@ -40,14 +40,6 @@ export default defineConfig({
             return 'vendor-insights'
           }
 
-          if (matchesPackage(id, ['react-markdown'])) {
-            return 'vendor-content'
-          }
-
-          if (matchesPackage(id, ['pdfjs-dist'])) {
-            return 'vendor-pdf'
-          }
-
           return undefined
         },
       },

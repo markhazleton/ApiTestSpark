@@ -1,20 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppInsightsContext } from '@microsoft/applicationinsights-react-js';
 import { reactPlugin } from './utils/appInsights';
 import {
-  HomeScreen,
-  HowToUseScreen,
-  AboutScreen,
   VersionMismatchBanner,
   Header,
   DebugPanel,
   ErrorBoundary,
   Footer,
-  JokeApiScreen,
-  JsonPlaceholderScreen,
 } from './components';
+
+// Route-level screens are lazy-loaded so each becomes its own chunk.
+// Shell components above stay eager (they render on every page).
+const HomeScreen         = React.lazy(() => import('./components/HomeScreen'));
+const HowToUseScreen     = React.lazy(() => import('./components/HowToUseScreen').then(m => ({ default: m.HowToUseScreen })));
+const AboutScreen        = React.lazy(() => import('./components/AboutScreen').then(m => ({ default: m.AboutScreen })));
+const JokeApiScreen      = React.lazy(() => import('./components/joke-api/JokeApiScreen').then(m => ({ default: m.JokeApiScreen })));
+const JsonPlaceholderScreen = React.lazy(() => import('./components/json-placeholder/JsonPlaceholderScreen').then(m => ({ default: m.JsonPlaceholderScreen })));
 
 // TODO: Import your feature screens here and add routes below
 
@@ -70,7 +73,12 @@ function App() {
                     transition: isDragging ? 'none' : 'width 0.2s ease',
                   }}
                 >
-                  <Routes>
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center min-h-[60vh]">
+                      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  }>
+                    <Routes>
                     <Route path="/"          element={<HomeScreen />} />
                     <Route path="/how-to-use" element={<HowToUseScreen />} />
                     <Route path="/about"      element={<AboutScreen />} />
@@ -86,6 +94,7 @@ function App() {
 
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
+                  </Suspense>
                 </div>
 
                 {/* Resize handle */}

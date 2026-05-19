@@ -21,7 +21,6 @@ export default tseslint.config(
       '*.config.ts',
       'vite.config.ts',
       'postcss.config.js',
-      'tailwind.config.js',
       'public/build-info.json',
       '*.tmp',
       '*.temp',
