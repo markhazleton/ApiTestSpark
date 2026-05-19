@@ -2,26 +2,31 @@ import { useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { v4 as uuidv4 } from "uuid";
 import { createJsonPlaceholderCaller } from "../api/jsonPlaceholderClient";
-import { useDebugStore } from "../store";
+import { useDebugStore, useUnifiedConfigStore } from "../store";
 import type { CreatePostRequest } from "../types/json-placeholder";
 
 export function useJsonPlaceholder() {
   const { addRequest, addResponse, addError, addMetric } = useDebugStore();
 
   const createClient = useCallback(
-    () =>
-      createJsonPlaceholderCaller({
-        onRequest: addRequest,
-        onResponse: addResponse,
-        onError: (err) =>
-          addError({
-            id: err.id ?? uuidv4(),
-            category: err.category,
-            message: err.message,
-            timestamp: err.timestamp,
-            context: err.context ?? {},
-          }),
-      }),
+    () => {
+      const { baseUrl } = useUnifiedConfigStore.getState().getSectionConfig("jsonplaceholder");
+      return createJsonPlaceholderCaller(
+        {
+          onRequest: addRequest,
+          onResponse: addResponse,
+          onError: (err) =>
+            addError({
+              id: err.id ?? uuidv4(),
+              category: err.category,
+              message: err.message,
+              timestamp: err.timestamp,
+              context: err.context ?? {},
+            }),
+        },
+        baseUrl,
+      );
+    },
     [addRequest, addResponse, addError],
   );
 

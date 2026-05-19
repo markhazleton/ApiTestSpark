@@ -32,9 +32,10 @@ export interface EnvironmentProfile {
 }
 
 export interface UnifiedConfigState {
-  version: 1;
+  version: 2;
   currentEnvironment: Environment;
-  api: EnvironmentConfigs;
+  /** Per-section, per-environment API configuration. Key matches SectionKey. */
+  sections: Record<string, EnvironmentConfigs>;
 }
 
 // ============================================================================

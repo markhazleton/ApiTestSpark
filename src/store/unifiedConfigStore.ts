@@ -1,7 +1,9 @@
 /**
  * Unified Config Store
- * 
- * Single API endpoint configuration per environment (localhost, test, other).
+ *
+ * Per-section, per-environment API configuration.
+ * Each section (jokeapi, jsonplaceholder, …) has its own base URL and API key
+ * for each environment (localhost, test, other).
  * Persisted to localStorage via Zustand persist middleware.
  */
 
@@ -17,21 +19,23 @@ function validateConfigStatus(config: ApiConfigSet): 'complete' | 'incomplete' |
   const hasApiKey = !!config.apiKey?.trim();
   const hasValidUrl = hasBaseUrl && /^https?:\/\/.+/.test(config.baseUrl);
 
-  if (!hasBaseUrl || !hasValidUrl) {
-    return 'incomplete';
-  }
+  if (!hasBaseUrl || !hasValidUrl) return 'incomplete';
 
-  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-  if (config.lastUpdatedAt > 0 && config.lastUpdatedAt < thirtyDaysAgo) {
-    return 'stale';
-  }
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  if (config.lastUpdatedAt > 0 && config.lastUpdatedAt < thirtyDaysAgo) return 'stale';
 
   return hasApiKey ? 'complete' : 'incomplete';
 }
 
 interface UnifiedConfigStoreState extends UnifiedConfigState {
   setCurrentEnvironment: (env: Environment) => void;
-  updateApiConfig: (environment: Environment, updates: Partial<ApiConfigSet>) => void;
+  getSectionConfig: (sectionKey: string, environment?: Environment) => ApiConfigSet;
+  updateSectionConfig: (
+    sectionKey: string,
+    environment: Environment,
+    updates: Partial<ApiConfigSet>,
+  ) => void;
+  /** @deprecated Use getSectionConfig('jokeapi') — kept for backward compat. */
   getApiConfig: (environment?: Environment) => ApiConfigSet;
   isComplete: () => boolean;
   reset: () => void;
@@ -44,41 +48,47 @@ export const useUnifiedConfigStore = create<UnifiedConfigStoreState>()(
 
       setCurrentEnvironment: (env) => set({ currentEnvironment: env }),
 
-      updateApiConfig: (environment, updates) => {
+      getSectionConfig: (sectionKey, environment) => {
+        const env = environment ?? get().currentEnvironment;
+        const section = get().sections[sectionKey];
+        if (!section) {
+          const first = Object.values(get().sections)[0];
+          return first?.[env] ?? { baseUrl: '', apiKey: '', lastUpdatedAt: 0, status: 'incomplete' };
+        }
+        return section[env];
+      },
+
+      updateSectionConfig: (sectionKey, environment, updates) => {
         set((state) => {
-          const current = state.api[environment];
-          const updated: ApiConfigSet = {
-            ...current,
-            ...updates,
-            lastUpdatedAt: Date.now(),
-          };
+          const section = state.sections[sectionKey];
+          if (!section) return state;
+          const current = section[environment];
+          const updated: ApiConfigSet = { ...current, ...updates, lastUpdatedAt: Date.now() };
           updated.status = validateConfigStatus(updated);
           return {
-            api: {
-              ...state.api,
-              [environment]: updated,
+            sections: {
+              ...state.sections,
+              [sectionKey]: { ...section, [environment]: updated },
             },
           };
         });
       },
 
-      getApiConfig: (environment) => {
-        const env = environment ?? get().currentEnvironment;
-        return get().api[env];
-      },
+      getApiConfig: (environment) => get().getSectionConfig('jokeapi', environment),
 
       isComplete: () => {
-        const config = get().getApiConfig();
-        return config.status === 'complete';
+        const env = get().currentEnvironment;
+        return Object.values(get().sections).some((s) => s[env].status === 'complete');
       },
 
       reset: () => set(createDefaultConfig()),
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
-    }
-  )
+      version: 2,
+      migrate: (_persistedState, _version) => createDefaultConfig(),
+    },
+  ),
 );
 
 export default useUnifiedConfigStore;

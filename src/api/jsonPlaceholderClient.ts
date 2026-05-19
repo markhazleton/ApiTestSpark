@@ -12,9 +12,10 @@ import { SECTION_CONFIGS } from "../config";
 export const JSON_PLACEHOLDER_BASE_URL =
   SECTION_CONFIGS.jsonplaceholder.baseUrl;
 
-/** Create a caller for JSONPlaceholder. All requests are captured in the debug panel. */
-export function createJsonPlaceholderCaller(callbacks: ApiClientCallbacks) {
-  const caller = createRestCaller(JSON_PLACEHOLDER_BASE_URL, { callbacks });
+/** Create a caller for JSONPlaceholder. All requests are captured in the debug panel.
+ *  Pass baseUrl to override the default (e.g. from the config store). */
+export function createJsonPlaceholderCaller(callbacks: ApiClientCallbacks, baseUrl = JSON_PLACEHOLDER_BASE_URL) {
+  const caller = createRestCaller(baseUrl, { callbacks });
   return {
     getPosts: (id?: number) =>
       caller.get<Post[] | Post>(id !== undefined ? `/posts/${id}` : "/posts"),

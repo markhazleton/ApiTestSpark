@@ -30,9 +30,10 @@ function buildJokePath(filters: JokeFilters): string {
   return `/joke/${encodeURIComponent(category)}${qs ? `?${qs}` : ""}`;
 }
 
-/** Create a caller for JokeAPI v2. All requests are captured in the debug panel. */
-export function createJokeApiCaller(callbacks: ApiClientCallbacks) {
-  const caller = createRestCaller(JOKE_API_BASE_URL, { callbacks });
+/** Create a caller for JokeAPI v2. All requests are captured in the debug panel.
+ *  Pass baseUrl to override the default (e.g. from the config store). */
+export function createJokeApiCaller(callbacks: ApiClientCallbacks, baseUrl = JOKE_API_BASE_URL) {
+  const caller = createRestCaller(baseUrl, { callbacks });
   return {
     getJoke: (filters: JokeFilters = {}) =>
       caller.get<JokeResponse>(buildJokePath(filters)),

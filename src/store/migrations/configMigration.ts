@@ -1,31 +1,26 @@
 /**
  * Config Migration Utility
- * Handles migration from legacy configuration to the current schema.
+ * Handles default state creation for the unified config store.
+ * Default base URLs are seeded from SECTION_CONFIGS so there is one
+ * source of truth for API endpoint defaults.
  */
 
 import type { ApiConfigSet, EnvironmentConfigs, UnifiedConfigState } from '../../types/state';
+import { SECTION_CONFIGS } from '../../config';
 
-const JOKE_API_DEFAULT_URL = 'https://v2.jokeapi.dev';
+function createDefaultApiConfigSet(baseUrl: string): ApiConfigSet {
+  return { baseUrl, apiKey: '', lastUpdatedAt: 0, status: 'incomplete' };
+}
 
-export function createDefaultApiConfigSet(): ApiConfigSet {
-  return {
-    baseUrl: JOKE_API_DEFAULT_URL,
-    apiKey: '',
-    lastUpdatedAt: 0,
-    status: 'incomplete',
-  };
+function createDefaultSectionEnvConfigs(baseUrl: string): EnvironmentConfigs {
+  const d = createDefaultApiConfigSet(baseUrl);
+  return { localhost: { ...d }, test: { ...d }, other: { ...d } };
 }
 
 export function createDefaultConfig(): UnifiedConfigState {
-  const defaultSet = createDefaultApiConfigSet();
-  const envConfigs: EnvironmentConfigs = {
-    localhost: { ...defaultSet },
-    test: { ...defaultSet },
-    other: { ...defaultSet },
-  };
-  return {
-    version: 1,
-    currentEnvironment: 'test',
-    api: envConfigs,
-  };
+  const sections: Record<string, EnvironmentConfigs> = {};
+  for (const [key, cfg] of Object.entries(SECTION_CONFIGS)) {
+    sections[key] = createDefaultSectionEnvConfigs(cfg.baseUrl);
+  }
+  return { version: 2, currentEnvironment: 'test', sections };
 }
