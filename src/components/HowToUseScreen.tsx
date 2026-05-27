@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { BRANDING } from "../utils";
 
 export const HowToUseScreen: React.FC = () => {
