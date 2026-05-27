@@ -6,7 +6,10 @@
       "Bash(uv --version)",
       "Bash(uv tool:*)",
       "Bash(specify init:*)",
-      "Bash(PYTHONUTF8=1 NO_COLOR=1 specify init --here --force --ai claude --script ps)"
+      "Bash(PYTHONUTF8=1 NO_COLOR=1 specify init --here --force --ai claude --script ps)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__browser_batch",
+      "mcp__Claude_in_Chrome__computer"
     ],
     "deny": [],
     "ask": []
