@@ -17,8 +17,9 @@ export const HowToUseScreen: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-3">Overview</h2>
           <p className="text-gray-700">
-            This tool lets you send requests to an API, inspect requests and responses in the
-            debug panel, and verify behaviour across multiple environments.
+            This tool lets you send requests to different APIs, inspect requests and responses in the
+            debug panel, and verify behaviour across multiple environments. Each section owns its own
+            configuration—there is no global configuration.
           </p>
         </div>
 
@@ -26,12 +27,12 @@ export const HowToUseScreen: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-3">Getting Started</h2>
           <ol className="list-decimal list-inside space-y-2 text-gray-700">
+            <li>Navigate to a feature section (e.g., JokeAPI, JSON Placeholder).</li>
             <li>
-              Open <Link to="/config" className="text-blue-600 hover:underline">Configuration</Link>{" "}
-              and enter your API base URL and key.
+              Configure the API endpoint, environment, and authentication in the configuration panel
+              at the top of that section.
             </li>
-            <li>Select the environment (localhost, test, or a custom URL).</li>
-            <li>Navigate to a feature screen and make a request.</li>
+            <li>Make a request using the section's controls.</li>
             <li>Inspect the captured request and response in the debug panel on the right.</li>
           </ol>
         </div>
