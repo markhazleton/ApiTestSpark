@@ -32,16 +32,6 @@ export function Header() {
             Home
           </Link>
           <Link
-            to="/config"
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              location.pathname === '/config'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Configuration
-          </Link>
-          <Link
             to="/how-to-use"
             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
               location.pathname === '/how-to-use'
