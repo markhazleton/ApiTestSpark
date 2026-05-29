@@ -39,7 +39,7 @@ public static class ApiTestHarnessExtensions
         var options = new ApiTestHarnessOptions();
         configure?.Invoke(options);
 
-        var logger = app.Services.GetRequiredService<ILogger<ApiTestHarnessExtensions>>();
+        var logger = app.Services.GetRequiredService<ILogger<ApiTestHarnessMiddleware>>();
 
         // (a) Verify embedded resources exist — catch silent 404 trap at startup
         var assembly = typeof(ApiTestHarnessExtensions).Assembly;
