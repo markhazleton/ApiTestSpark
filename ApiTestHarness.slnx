@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SampleApi/SampleApi.csproj" />
+  <Project Path="WebSpark.ApiTestHarness.Tests/WebSpark.ApiTestHarness.Tests.csproj" />
+  <Project Path="WebSpark.ApiTestHarness/WebSpark.ApiTestHarness.csproj" />
+</Solution>
