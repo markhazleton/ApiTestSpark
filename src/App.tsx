@@ -19,7 +19,7 @@ const AboutScreen        = React.lazy(() => import('./components/AboutScreen').t
 const JokeApiScreen      = React.lazy(() => import('./components/joke-api/JokeApiScreen').then(m => ({ default: m.JokeApiScreen })));
 const JsonPlaceholderScreen = React.lazy(() => import('./components/json-placeholder/JsonPlaceholderScreen').then(m => ({ default: m.JsonPlaceholderScreen })));
 
-// TODO: Import your feature screens here and add routes below
+const HostApiScreen = React.lazy(() => import('./components/host-api/HostApiScreen').then(m => ({ default: m.HostApiScreen })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,7 +59,7 @@ function App() {
     <ErrorBoundary>
       <AppInsightsContext.Provider value={reactPlugin}>
         <QueryClientProvider client={queryClient}>
-          <Router>
+          <Router basename={import.meta.env.BASE_URL}>
             <div className="app flex flex-col min-h-screen">
               <VersionMismatchBanner />
               <Header />
@@ -88,7 +88,7 @@ function App() {
                     <Route path="/conversation-config" element={<Navigate to="/" replace />} />
                     <Route path="/unified-config"      element={<Navigate to="/" replace />} />
 
-                    {/* TODO: Add your feature routes here */}
+                    <Route path="/host-api" element={<HostApiScreen />} />
                     <Route path="/joke-api" element={<JokeApiScreen />} />
                     <Route path="/json-placeholder" element={<JsonPlaceholderScreen />} />
 

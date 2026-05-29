@@ -12,6 +12,7 @@ function matchesPackage(id: string, packages: string[]) {
 export default defineConfig({
   plugins: [react()],
   publicDir: 'src/public',
+  base: process.env.VITE_BASE_PATH ?? '/',
   server: {
     port: 5151,
   },
