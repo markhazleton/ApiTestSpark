@@ -1,6 +1,5 @@
 ---
-name: "devspark.personalize"
-description: "Create a personalized copy of any DevSpark command prompt for the current git user."
+description: Create a personalized copy of any DevSpark command prompt for the current git user.
 ---
 
 ## Prompt Resolution
@@ -13,8 +12,12 @@ Read and execute the instructions from the **first file that exists**:
 2. `.documentation/commands/devspark.personalize.md` (team customization)
 3. `.devspark/defaults/commands/devspark.personalize.md` (stock default)
 
+Where `{git-user}` is the normalized slug from step above.
+
 ## User Input
 
-{{input}}
+```text
+$ARGUMENTS
+```
 
 Pass the user input above to the resolved prompt.

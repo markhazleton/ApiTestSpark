@@ -1,6 +1,13 @@
 ---
-name: "devspark.implement"
-description: "Execute the implementation plan by processing and executing all tasks defined in tasks.md"
+description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+handoffs:
+  - label: Create Pull Request
+    agent: devspark.create-pr
+    prompt: Draft a pull request for the implemented changes
+    send: true
+  - label: Run Analysis
+    agent: devspark.analyze
+    prompt: Analyze spec consistency after implementation
 ---
 
 ## Prompt Resolution
@@ -13,8 +20,12 @@ Read and execute the instructions from the **first file that exists**:
 2. `.documentation/commands/devspark.implement.md` (team customization)
 3. `.devspark/defaults/commands/devspark.implement.md` (stock default)
 
+Where `{git-user}` is the normalized slug from step above.
+
 ## User Input
 
-{{input}}
+```text
+$ARGUMENTS
+```
 
 Pass the user input above to the resolved prompt.
