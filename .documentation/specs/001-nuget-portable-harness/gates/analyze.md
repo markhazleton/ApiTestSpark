@@ -5,7 +5,7 @@ gate: analyze
 status: pass
 blocking: false
 severity: info
-summary: "All 12 findings resolved 2026-05-29. No critical or high issues remain. Artifacts are consistent and ready for /devspark.implement."
+summary: "17 findings across two runs — all resolved. Second run (2026-05-29): 5 new findings (NEW-001 CORS allowlist missing from HarnessOptions, NEW-002 Constitution VII T039 ambiguity, NEW-003 reverse proxy baseUrl, NEW-004 protected OpenAPI guidance, NEW-005 pack path ambiguity). Resolved via: data-model.md (CorsOrigins property), spec.md (FR-003 CorsOrigins), T003 (explicit .csproj path), T013 (protected OpenAPI note), T023 (reverse proxy XML comment), T038 (README proxy + CORS docs), T039 (Constitution VII exemption note). PROCEED."
 ```
 
 **Feature**: `001-nuget-portable-harness` | **Analyzed**: 2026-05-29

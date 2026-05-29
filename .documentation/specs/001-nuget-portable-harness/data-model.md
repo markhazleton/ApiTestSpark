@@ -112,8 +112,17 @@ public class ApiTestHarnessOptions
     /// <summary>
     /// When true, emits ILogger.LogDebug for every static asset request and SPA fallback.
     /// Default: false. Use ILogger category "WebSpark.ApiTestHarness" to filter independently.
+    /// Alternatively set Logging:LogLevel:WebSpark.ApiTestHarness=Debug in appsettings at runtime.
     /// </summary>
     public bool EnableVerboseLogging { get; set; } = false;
+
+    /// <summary>
+    /// Additional origins allowed to call the config endpoint, beyond same-origin.
+    /// Default: empty (same-origin only). Use for local dev when SPA and API run on different ports
+    /// (e.g., Vite dev server on :5151 and .NET on :5000).
+    /// Example: ["http://localhost:5151"]
+    /// </summary>
+    public string[] CorsOrigins { get; set; } = [];
 }
 ```
 

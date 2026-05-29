@@ -5,7 +5,7 @@ gate: critic
 status: pass
 blocking: false
 severity: info
-summary: "All 13 findings resolved 2026-05-29. 5 new tasks added (T038-T042): integration tests, NuGet metadata/README, bundle size measurement, public API surface snapshot, robots.txt. Spec frontmatter updated with archetype/risk_profile/change_type. SC-002 reworded to exclude cold-start. PROCEED."
+summary: "26 findings total across two runs — all resolved. Second run (2026-05-29): 4 critical (CSP App Insights, CORS dev gap, npm audit false-positive, PublicAPI ordering), 7 high, 4 medium. Resolved via: T003b (PublicAPI files in Phase 1), T004 (warn-not-fail audit + version strip), T010 (parser error handling), T013 (root-level hook note), T023 (CorsOrigins + URI validation), T024 (connect-src App Insights), T038 (CorsOrigins docs), T039 (Constitution VII exemption), data-model.md + spec.md (CorsOrigins property). PROCEED."
 ```
 
 ## Technical Risk Assessment
