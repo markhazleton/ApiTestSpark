@@ -108,6 +108,12 @@ public class ApiTestHarnessOptions
     /// Example: ["Development", "Staging"]
     /// </summary>
     public string[] Environments { get; set; } = [];
+
+    /// <summary>
+    /// When true, emits ILogger.LogDebug for every static asset request and SPA fallback.
+    /// Default: false. Use ILogger category "WebSpark.ApiTestHarness" to filter independently.
+    /// </summary>
+    public bool EnableVerboseLogging { get; set; } = false;
 }
 ```
 

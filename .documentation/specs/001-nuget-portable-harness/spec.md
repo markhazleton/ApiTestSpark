@@ -5,6 +5,9 @@ target_workflow: specify-full
 required_artifacts: spec, plan, tasks
 recommended_next_step: plan
 required_gates: checklist, analyze, critic
+archetype: library
+risk_profile: internal
+change_type: greenfield
 ---
 
 # Feature Specification: Portable NuGet Package for API Test Harness
@@ -145,7 +148,7 @@ A developer installs the harness in a project that has no OpenAPI document. The 
 
 - **FR-001**: The NuGet package MUST serve the compiled React SPA at the fixed path `/api-test-harness/`; custom mount paths are out of scope for this release
 - **FR-002**: The package MUST expose a `MapApiTestHarness()` extension method on `IEndpointRouteBuilder` (Minimal API pattern)
-- **FR-003**: The package MUST expose a publicly accessible config endpoint at `{mountPath}/config` returning JSON with `baseUrl`, `openApiUrl`, `authScheme`, and `defaultHeaders` — the endpoint MUST NOT return actual credential values (tokens, keys), only scheme metadata
+- **FR-003**: The package MUST expose a publicly accessible config endpoint at `{mountPath}/config` returning JSON with `baseUrl`, `openApiUrl`, `authScheme`, and `defaultHeaders` — the endpoint MUST NOT return actual credential values (tokens, keys), only scheme metadata; the endpoint MUST set a same-origin CORS policy and the SPA HTML response MUST include a Content-Security-Policy header
 - **FR-004**: The SPA MUST fetch the config endpoint on startup before rendering the host app endpoint list
 - **FR-005**: The SPA MUST parse OpenAPI v3.x documents at the configured `openApiUrl` and display discovered endpoints under a "Your App's APIs" section; OpenAPI v2 (Swagger 2.0) is explicitly out of scope for this version
 - **FR-006**: The package MUST allow host apps to register custom default headers injected into every request the SPA makes to host app endpoints
@@ -169,7 +172,7 @@ A developer installs the harness in a project that has no OpenAPI document. The 
 ### Measurable Outcomes
 
 - **SC-001**: A developer can go from `dotnet add package WebSpark.ApiTestHarness` to a running test harness in under 5 minutes, with no additional configuration beyond one line in `Program.cs`
-- **SC-002**: All endpoints from a host app's OpenAPI document appear in the harness UI within 2 seconds of the page loading on a local development machine
+- **SC-002**: All endpoints from a host app's OpenAPI document appear in the harness UI within 2 seconds of the SPA becoming interactive (DOMContentLoaded), excluding .NET cold-start time, on a local development machine with a warm application
 - **SC-003**: The harness UI loads fully (all assets, no console errors) at the configured mount path in a freshly created `dotnet new webapi` project
 - **SC-004**: The existing standalone Azure Static Web Apps deployment continues to pass all current quality gates (lint, typecheck, build) without modification
 - **SC-005**: Built-in examples (JokeAPI, JsonPlaceholder) execute successfully when the harness is embedded in a host app with no OpenAPI configuration
