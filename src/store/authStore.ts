@@ -104,8 +104,8 @@ export const useAuthStore = create<AuthStoreState>()(
               hasClientSecret: !!updated.clientSecret,
             },
           });
-        } catch (e) {
-          console.error('[AuthStore] Failed to emit audit entry:', e);
+        } catch {
+          // Audit log failure is non-critical; primary config update already succeeded
         }
       },
 
@@ -149,8 +149,8 @@ export const useAuthStore = create<AuthStoreState>()(
               roles: tokenResponse.Roles,
             },
           });
-        } catch (e) {
-          console.error('[AuthStore] Failed to emit token audit entry:', e);
+        } catch {
+          // Audit log failure is non-critical; token state already set
         }
       },
 

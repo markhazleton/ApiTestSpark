@@ -44,12 +44,9 @@ export default function VersionMismatchBanner() {
         if (embeddedInfo.version !== latestInfo.version) {
           setLatestVersion(latestInfo.version);
           setShowBanner(true);
-          console.warn(
-            `[Version] Mismatch detected! Cached: ${embeddedInfo.version}, Latest: ${latestInfo.version}`
-          );
         }
-      } catch (error) {
-        console.error('[Version] Failed to check version:', error);
+      } catch {
+        // Version check is non-critical; silently skip on fetch failure
       }
     };
 

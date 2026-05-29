@@ -15,10 +15,7 @@ export function Footer() {
     const cacheBuster = new Date().getTime();
     fetch(`/build-info.json?v=${cacheBuster}`)
       .then((response) => {
-        if (!response.ok) {
-          console.warn('Build info not available');
-          return null;
-        }
+        if (!response.ok) return null;
         return response.json();
       })
       .then((data: BuildInfo | null) => {
@@ -26,8 +23,8 @@ export function Footer() {
           setBuildInfo(data);
         }
       })
-      .catch((error) => {
-        console.warn('Failed to load build info:', error);
+      .catch(() => {
+        // Build info is non-critical; silently skip if unavailable
       });
   }, []);
 

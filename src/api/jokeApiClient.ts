@@ -34,7 +34,7 @@ function buildJokePath(filters: JokeFilters): string {
  *  Pass baseUrl to override the default (e.g. from the config store). */
 export function createJokeApiCaller(
   callbacks: ApiClientCallbacks,
-  baseUrl = JOKE_API_BASE_URL,
+  baseUrl: string = JOKE_API_BASE_URL,
 ) {
   const caller = createRestCaller(baseUrl, { callbacks });
   return {

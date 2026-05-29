@@ -16,7 +16,7 @@ export const JSON_PLACEHOLDER_BASE_URL =
  *  Pass baseUrl to override the default (e.g. from the config store). */
 export function createJsonPlaceholderCaller(
   callbacks: ApiClientCallbacks,
-  baseUrl = JSON_PLACEHOLDER_BASE_URL,
+  baseUrl: string = JSON_PLACEHOLDER_BASE_URL,
 ) {
   const caller = createRestCaller(baseUrl, { callbacks });
   return {
