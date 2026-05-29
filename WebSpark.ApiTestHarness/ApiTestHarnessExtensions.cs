@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -88,16 +87,6 @@ public static class ApiTestHarnessExtensions
             }
         }
 
-        // (e) CORS policy — same-origin by default, expandable via CorsOrigins
-        app.UseCors(builder =>
-        {
-            if (options.CorsOrigins.Length > 0)
-                builder.WithOrigins(options.CorsOrigins).AllowAnyHeader().AllowAnyMethod();
-            else
-                builder.SetIsOriginAllowed(origin =>
-                    new Uri(origin).Host == "localhost" || origin == string.Empty);
-        });
-
         // Register embedded static files under /api-test-harness
         var fileProvider = new EmbeddedFileProvider(assembly, "WebSpark.ApiTestHarness.build");
         app.UseStaticFiles(new StaticFileOptions
@@ -106,12 +95,25 @@ public static class ApiTestHarnessExtensions
             RequestPath = MountPath,
         });
 
-        // Config endpoint
+        // Config endpoint — set CORS headers manually (avoids requiring AddCors() from host)
         app.MapGet(ConfigPath, (HttpContext ctx) =>
         {
             logger.LogInformation(
                 "WebSpark.ApiTestHarness: Config requested from {RemoteIp}",
                 ctx.Connection.RemoteIpAddress);
+
+            // Apply CORS: allow listed origins or same-origin only
+            var origin = ctx.Request.Headers["Origin"].ToString();
+            if (!string.IsNullOrEmpty(origin))
+            {
+                var allowed = options.CorsOrigins.Length > 0
+                    ? options.CorsOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase)
+                    : Uri.TryCreate(origin, UriKind.Absolute, out var originUri) &&
+                      originUri.Host == ctx.Request.Host.Host;
+
+                if (allowed)
+                    ctx.Response.Headers["Access-Control-Allow-Origin"] = origin;
+            }
 
             var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
             var response = new
@@ -144,6 +146,13 @@ public static class ApiTestHarnessExtensions
             if (hasExtension)
             {
                 // Let static file middleware handle — if not found, return 404 (not index.html)
+                await next(ctx);
+                return;
+            }
+
+            // Pass through to MapGet routes (e.g. /api-test-harness/config) before SPA fallback
+            if (ctx.Request.Path.StartsWithSegments(ConfigPath))
+            {
                 await next(ctx);
                 return;
             }

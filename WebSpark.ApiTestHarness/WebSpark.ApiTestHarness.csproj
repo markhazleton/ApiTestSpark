@@ -30,16 +30,17 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- Embed the compiled React SPA assets -->
+  <!-- Embed the compiled React SPA assets from the repo root build/ directory -->
   <ItemGroup>
-    <EmbeddedResource Include="build\**" />
+    <EmbeddedResource Include="$(MSBuildProjectDirectory)\..\build\**"
+                      LogicalName="WebSpark.ApiTestHarness.build.%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <!-- Pre-pack guard: fail loudly if build/ is empty (resource name mismatch trap) -->
   <Target Name="ValidateSpaAssets" BeforeTargets="Pack">
     <ItemGroup>
-      <_SpaFiles Include="build\**\*.*" />
+      <_SpaFiles Include="$(MSBuildProjectDirectory)\..\build\**\*.*" />
     </ItemGroup>
     <Error
       Condition="'@(_SpaFiles)' == ''"
