@@ -14,7 +14,7 @@ change_type: greenfield
 
 **Feature Branch**: `001-nuget-portable-harness`
 **Created**: 2026-05-29
-**Status**: Draft
+**Status**: Complete
 **Input**: User description: "Transform the API Test Harness React SPA into a portable NuGet package (WebSpark.ApiTestHarness) that can be installed into any .NET Minimal API project."
 
 ## Rationale Summary
@@ -69,7 +69,7 @@ Focus on: (1) whether the config endpoint contract is flexible enough for divers
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Install Harness in a New .NET API (Priority: P1)
+### User Story 1 - Install Harness in a New .NET API (Priority: P1) ✅ Complete
 
 A .NET developer adds `WebSpark.ApiTestHarness` from NuGet to their Minimal API project. They add one line to `Program.cs` and run the app. Navigating to `/api-test-harness/` in the browser opens the test harness UI, which has already discovered and listed the host app's API endpoints via its OpenAPI document.
 
@@ -85,7 +85,7 @@ A .NET developer adds `WebSpark.ApiTestHarness` from NuGet to their Minimal API 
 
 ---
 
-### User Story 2 - Configure Auth and Custom Headers (Priority: P2)
+### User Story 2 - Configure Auth and Custom Headers (Priority: P2) ✅ Complete
 
 A developer's API requires a bearer token and a tenant header for every request. They configure these in `Program.cs` when registering the harness. The test harness UI pre-populates the auth header and tenant header fields for all requests made to the host app's endpoints.
 
@@ -101,7 +101,7 @@ A developer's API requires a bearer token and a tenant header for every request.
 
 ---
 
-### User Story 3 - Built-in Examples Still Work (Priority: P3)
+### User Story 3 - Built-in Examples Still Work (Priority: P3) ✅ Complete
 
 A developer installs the harness in a project that has no OpenAPI document. The JokeAPI and JsonPlaceholder reference examples are still available in the UI and fully functional, demonstrating the tool's capabilities even without host app integration.
 
