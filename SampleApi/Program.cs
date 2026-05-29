@@ -7,7 +7,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Map OpenAPI document at /openapi.json
+// Map OpenAPI document — .NET 10 default is /openapi/{documentName}.json
 app.MapOpenApi();
 
 // -----------------------------------------------------------------------
@@ -56,7 +56,7 @@ app.MapDelete("/products/{id}", (int id) =>
 // -----------------------------------------------------------------------
 app.MapApiTestHarness(options =>
 {
-    options.OpenApiUrl = "/openapi.json";
+    options.OpenApiUrl = "/openapi/v1.json";  // .NET 10 MapOpenApi() default
     options.AuthScheme = null;           // no auth on this sample
     options.Environments = ["Development"];
 });
