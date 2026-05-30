@@ -48,7 +48,7 @@ export function HostApiScreen() {
           <div className="bg-gray-50 border border-gray-200 rounded p-4">
             <p className="text-sm font-semibold text-gray-700">No host API endpoints configured</p>
             <p className="text-xs text-gray-500 mt-1">
-              Set <code>options.OpenApiUrl</code> in <code>MapApiTestHarness()</code> to enable endpoint autodiscovery.
+              Set <code>options.OpenApiUrl</code> in <code>MapApiTestSpark()</code> to enable endpoint autodiscovery.
               See the <a href="/how-to-use" className="text-blue-600 underline">how-to-use guide</a> for setup instructions.
             </p>
           </div>

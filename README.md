@@ -1,12 +1,12 @@
-# API Test Harness
+# API Test Spark
 
-A lightweight React + TypeScript developer tool for testing and debugging REST APIs with real-time request inspection.
+A lightweight React + TypeScript developer tool for testing and debugging REST APIs with real-time request inspection. Embedded in the [ApiTestSpark NuGet package](ApiTestSpark/README.md) for drop-in use in any .NET 10 Minimal API.
 
 ## What It Does
 
 - Sends requests to any REST API and captures every request, response, and error in a live debug panel
 - Configures independent base URLs and API keys per environment (localhost, tst2, other)
-- Demonstrates the pattern with a working **JokeAPI** integration at `/joke-api`
+- Demonstrates the pattern with working integrations: **JokeAPI** at `/joke-api`, **JsonPlaceholder** at `/json-placeholder`, and a **Host API** explorer at `/host-api`
 
 ## Quick Start
 
@@ -76,42 +76,58 @@ PowerShell helpers are available under `scripts/` for Windows:
 ```
 src/
 ├── api/
-│   ├── client.ts           # Base ApiClient class
-│   ├── jokeApiClient.ts    # JokeAPI client (reference implementation)
+│   ├── client.ts               # Base ApiClient class
+│   ├── jokeApiClient.ts        # JokeAPI client (reference implementation)
+│   ├── hostApiClient.ts        # Host API client
+│   ├── jsonPlaceholderClient.ts
 │   └── index.ts
 ├── components/
-│   ├── HomeScreen.tsx      # Navigation dashboard
-│   ├── HowToUseScreen.tsx  # Usage documentation
-│   ├── AboutScreen.tsx     # About page
-│   ├── UnifiedConfigurationScreen.tsx
-│   ├── DebugPanel.tsx      # Request/response inspector
+│   ├── HomeScreen.tsx          # Navigation dashboard
+│   ├── HowToUseScreen.tsx      # Usage documentation
+│   ├── AboutScreen.tsx         # About page
+│   ├── AboutModal.tsx
+│   ├── StorageWarningBanner.tsx
+│   ├── VersionMismatchBanner.tsx
+│   ├── DebugPanel.tsx          # Request/response inspector
 │   ├── Header.tsx
 │   ├── Footer.tsx
 │   ├── ErrorBoundary.tsx
+│   ├── debug-panel/
+│   ├── host-api/
+│   │   └── HostApiScreen.tsx
 │   ├── joke-api/
 │   │   └── JokeApiScreen.tsx
+│   ├── json-placeholder/
+│   │   └── JsonPlaceholderScreen.tsx
+│   ├── shared/
 │   └── index.ts
 ├── hooks/
-│   ├── useJokeApi.ts       # TanStack mutation for JokeAPI
-│   ├── useConfig.ts
-│   ├── useAuth.ts
-│   ├── useTrackedMutation.ts
+│   ├── useHarnessConfig.ts     # Harness config from /api-test-spark/config
+│   ├── useHostApi.ts
+│   ├── useJokeApi.ts           # TanStack mutation for JokeAPI
+│   ├── useJsonPlaceholder.ts
+│   ├── hookUtils.ts
 │   └── index.ts
 ├── store/
 │   ├── unifiedConfigStore.ts
 │   ├── debugStore.ts
 │   ├── authStore.ts
+│   ├── harnessConfigStore.ts
+│   ├── migrations/
 │   └── index.ts
 ├── types/
 │   ├── api.ts
-│   ├── joke-api.ts
 │   ├── auth.ts
+│   ├── host-api.ts
+│   ├── joke-api.ts
+│   ├── json-placeholder.ts
 │   ├── state.ts
 │   └── index.ts
 ├── utils/
-│   ├── appInsights.ts      # Application Insights (opt-in)
+│   ├── appInsights.ts          # Application Insights (opt-in)
 │   ├── branding.ts
-│   ├── exporters.ts
+│   ├── errorMessages.ts
+│   ├── openApiParser.ts
 │   ├── session.ts
 │   ├── storage.ts
 │   └── index.ts
@@ -147,7 +163,7 @@ npm run preview       # Preview production build locally
 ## Troubleshooting
 
 - **Connection failures**: confirm the base URL and API key on the Configuration screen, then open the Debug panel to inspect the failing request/response.
-- **Configuration not persisting**: ensure browser localStorage is allowed. Clearing `localStorage` key `api-test-harness-config` resets environments to defaults.
+- **Configuration not persisting**: ensure browser localStorage is allowed. Clearing `localStorage` key `api-test-spark-config` resets environments to defaults.
 - **Debug panel missing data**: verify debug mode is enabled (toggle bottom-right). Telemetry resets on page reload.
 - **Build problems**: run `npm run verify` locally first. If dependency state looks suspect, run `npm run clean:full` then `npm install`.
 
