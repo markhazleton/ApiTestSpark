@@ -31,14 +31,18 @@ const SECTIONS: NavSection[] = [
       path: cfg.path,
     })),
   },
-  // TODO: Add your own API feature sections here:
-  // {
-  //   label: "My API",
-  //   defaultOpen: true,
-  //   items: [
-  //     { icon: "🔎", title: "My Screen", description: "...", path: "/my-screen" },
-  //   ],
-  // },
+  {
+    label: "Your App's APIs",
+    defaultOpen: true,
+    items: [
+      {
+        icon: "🔍",
+        title: "Host API Explorer",
+        description: "Autodiscovered endpoints from your app's OpenAPI v3 document. Test any endpoint interactively.",
+        path: "/host-api",
+      },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
 version: 2.4.0
-installed: 2026-05-27
-method: claude-quickstart
-migrated-from: 2.3.0
+installed: 2026-05-29
+method: copilot-quickstart
+migrated-from: fresh

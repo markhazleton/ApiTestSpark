@@ -1,6 +1,5 @@
 ---
-name: "devspark.upgrade"
-description: "Check the installed DevSpark version, identify stale framework files, and guide a safe upgrade to the latest release"
+description: Check the installed DevSpark version, identify stale framework files, and guide a safe upgrade to the latest release
 ---
 
 ## Prompt Resolution
@@ -13,8 +12,12 @@ Read and execute the instructions from the **first file that exists**:
 2. `.documentation/commands/devspark.upgrade.md` (team customization)
 3. `.devspark/defaults/commands/devspark.upgrade.md` (stock default)
 
+Where `{git-user}` is the normalized slug from step above.
+
 ## User Input
 
-{{input}}
+```text
+$ARGUMENTS
+```
 
 Pass the user input above to the resolved prompt.

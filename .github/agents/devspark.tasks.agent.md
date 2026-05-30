@@ -1,6 +1,14 @@
 ---
-name: "devspark.tasks"
-description: "Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts."
+description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+handoffs:
+  - label: Analyze For Consistency
+    agent: devspark.analyze
+    prompt: Run a project analysis for consistency
+    send: true
+  - label: Implement Project
+    agent: devspark.implement
+    prompt: Start the implementation in phases
+    send: true
 ---
 
 ## Prompt Resolution
@@ -13,8 +21,12 @@ Read and execute the instructions from the **first file that exists**:
 2. `.documentation/commands/devspark.tasks.md` (team customization)
 3. `.devspark/defaults/commands/devspark.tasks.md` (stock default)
 
+Where `{git-user}` is the normalized slug from step above.
+
 ## User Input
 
-{{input}}
+```text
+$ARGUMENTS
+```
 
 Pass the user input above to the resolved prompt.

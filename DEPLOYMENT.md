@@ -89,6 +89,45 @@ Located in repository root. Configures:
 - **Included config**: The build step stages `staticwebapp.config.json` into the generated `build/` output via `src/public/`.
 - **Pipeline deploy path**: When `skip_app_build: true`, set `app_location: 'build'` and leave `output_location` empty so Azure Static Web Apps uploads only the built site, not the repository root.
 
+## NuGet Package Build (`WebSpark.ApiTestHarness`)
+
+The standalone SWA deployment and the NuGet package are built from the same source using a `VITE_BASE_PATH` environment variable:
+
+| Build type | `VITE_BASE_PATH` | `base` in HTML | Used for |
+| --- | --- | --- | --- |
+| Standalone (SWA) | *(unset)* | `/` | Azure Static Web Apps deployment |
+| NuGet embedded | `/api-test-harness/` | `/api-test-harness/` | `WebSpark.ApiTestHarness` package |
+
+### Producing the NuGet package
+
+```powershell
+# From repo root — builds React SPA then packs .NET library
+.\scripts\build\pack.ps1
+
+# Skip npm audit (e.g. in CI with separate audit step)
+.\scripts\build\pack.ps1 -SkipAudit
+
+# Output: ./nupkg/WebSpark.ApiTestHarness.{version}.nupkg
+```
+
+The script performs these steps in order:
+
+1. Runs `npm audit --audit-level=critical` (warns on high, fails on critical)
+2. Builds the React SPA with `VITE_BASE_PATH=/api-test-harness/`
+3. Reads version from `package.json` and uses it as the NuGet version
+4. Runs `dotnet pack` with pre-pack validation that embedded assets exist
+
+### Security note
+
+The harness config endpoint (`/api-test-harness/config`) is publicly accessible and returns deployment metadata. **Do not expose the harness to the public internet.** Use environment gating:
+
+```csharp
+app.MapApiTestHarness(options =>
+{
+    options.Environments = ["Development", "Staging"];
+});
+```
+
 ## Environment-Specific Configuration
 
 The app supports multiple API environments configured at runtime:

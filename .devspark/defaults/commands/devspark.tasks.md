@@ -9,9 +9,6 @@ handoffs:
     agent: devspark.implement
     prompt: Start the implementation in phases
     send: true
-scripts:
-  sh: .devspark/scripts/bash/check-prerequisites.sh --json
-  ps: .devspark/scripts/powershell/check-prerequisites.ps1 -Json
 ---
 
 ## User Input
@@ -22,16 +19,29 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Workflow Position
+
+**Step 4 of 4** in the authoring chain (`specify → clarify → plan → tasks`).
+
+- **Owns**: a complete, dependency-ordered, story-organized `tasks.md` immediately executable by `/devspark.implement`.
+- **Does NOT own**: revisiting WHAT/WHY (spec is authoritative); redesigning architecture/stack/contracts (→ `/devspark.plan`); resolving `[NEEDS CLARIFICATION]` (→ `/devspark.clarify`); gate artifacts beyond the opt-in `## Gate Acknowledgements` note (→ `/devspark.analyze`, `/devspark.critic`).
+- **Pre-flight**: if `plan.md` is missing or `spec.md` still contains `[NEEDS CLARIFICATION]` markers, halt and route back to the appropriate earlier step.
+
+## Constitution Authority
+
+Load `/.documentation/memory/constitution.md` before generating tasks. **Non-negotiable** in one specific way: every mandated principle that requires runtime behavior (observability, structured logging, accessibility, security baseline, test coverage, telemetry, audit logging, etc.) MUST have a corresponding task in either the Foundational phase or the relevant user-story phase. If the plan accepted a Constitution Waiver, surface it as a task-section note rather than silently skipping the principle's task.
+
 ## Outline
 
 **Multi-app support**: If this repository uses multi-app mode (`.documentation/devspark.json` exists with `mode: "multi-app"`), check for `--app <id>` in the user input to scope this workflow to a specific application. When app context is provided, resolve artifacts from `{app.path}/.documentation/` instead of the repository root `.documentation/`. Print the resolved scope (app name, doc root) at the start of output.
 
-> **Script Resolution**: Before running `{SCRIPT}`, apply the 2-tier override check — if `.documentation/scripts/powershell/<filename>` (PowerShell) or `.documentation/scripts/bash/<filename>` (Bash) exists on disk, run that file instead, preserving all arguments. Team overrides in `.documentation/scripts/` always take priority over `.devspark/scripts/`.
+> **Script Resolution**: Before running `.devspark/scripts/powershell/check-prerequisites.ps1 -Json`, apply the 2-tier override check — if `.documentation/scripts/powershell/<filename>` (PowerShell) or `.documentation/scripts/bash/<filename>` (Bash) exists on disk, run that file instead, preserving all arguments. Team overrides in `.documentation/scripts/` always take priority over `.devspark/scripts/`.
 
-1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Run `.devspark/scripts/powershell/check-prerequisites.ps1 -Json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
    - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
+   - **Required for principle enforcement**: `/.documentation/memory/constitution.md` (load once; extract mandated principles that imply runtime tasks — observability, accessibility, security baseline, test coverage, audit logging, etc.)
    - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
    - Note: Not all projects have all documents. Generate tasks based on what's available.
 
@@ -53,6 +63,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - If contracts/ exists: Map interface contracts to user stories
    - If research.md exists: Extract decisions for setup tasks
    - Generate tasks organized by user story (see Task Generation Rules below)
+   - **Enforce constitution-mandated tasks**: for every loaded principle that requires runtime behavior, ensure a concrete task exists in the appropriate phase (Foundational for cross-cutting concerns like logging/auth-baseline; story phase for story-specific obligations). If a Constitution Waiver was recorded in `plan.md`, add a single annotation task referencing it rather than silently omitting the principle.
    - Generate dependency graph showing user story completion order
    - Create parallel execution examples per user story
    - Validate task completeness (each user story has all needed tasks, independently testable)
@@ -79,7 +90,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Suggested MVP scope (typically just User Story 1)
    - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
 
-Context for task generation: {ARGS}
+Context for task generation: $ARGUMENTS
 
 The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.
 

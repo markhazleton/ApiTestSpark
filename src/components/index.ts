@@ -9,3 +9,5 @@ export { default as StorageWarningBanner } from "./StorageWarningBanner";
 export { default as VersionMismatchBanner } from "./VersionMismatchBanner";
 // Route screens are NOT exported here — App.tsx lazy-imports them directly
 // so Rolldown can split them into separate on-demand chunks.
+// HostApiScreen is lazy-imported directly by App.tsx — not re-exported here
+export { EndpointList, EndpointTester } from './host-api';

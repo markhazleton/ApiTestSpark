@@ -17,3 +17,4 @@ export {
   createJsonPlaceholderCaller,
   JSON_PLACEHOLDER_BASE_URL,
 } from "./jsonPlaceholderClient";
+export { HostApiClient } from "./hostApiClient";

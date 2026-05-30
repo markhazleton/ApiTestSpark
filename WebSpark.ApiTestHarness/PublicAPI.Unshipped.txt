@@ -1,0 +1,17 @@
+#nullable enable
+WebSpark.ApiTestHarness.ApiTestHarnessExtensions
+WebSpark.ApiTestHarness.ApiTestHarnessOptions
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.ApiTestHarnessOptions() -> void
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.AuthScheme.get -> string?
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.AuthScheme.set -> void
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.CorsOrigins.get -> string![]!
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.CorsOrigins.set -> void
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.DefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.DefaultHeaders.set -> void
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.EnableVerboseLogging.get -> bool
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.EnableVerboseLogging.set -> void
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.Environments.get -> string![]!
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.Environments.set -> void
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.OpenApiUrl.get -> string?
+WebSpark.ApiTestHarness.ApiTestHarnessOptions.OpenApiUrl.set -> void
+static WebSpark.ApiTestHarness.ApiTestHarnessExtensions.MapApiTestHarness(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<WebSpark.ApiTestHarness.ApiTestHarnessOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!

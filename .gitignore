@@ -123,6 +123,12 @@ storybook-static/
 .tmp/
 .temp/
 
+# .NET build outputs
+bin/
+obj/
+*.nupkg
+*.snupkg
+
 # DevSpark — personal overrides (never commit)
 .documentation/*/commands/
 
