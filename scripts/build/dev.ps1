@@ -1,8 +1,8 @@
 #!/usr/bin/env pwsh
-# Development server script for API Test Harness
+# Development server script for API Test Spark
 # Starts Vite dev server for local API development
 
-Write-Host "Starting API Test Harness development server..." -ForegroundColor Green
+Write-Host "Starting API Test Spark development server..." -ForegroundColor Green
 
 # Check if node_modules exists
 if (-not (Test-Path "node_modules")) {

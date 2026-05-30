@@ -12,7 +12,8 @@ function matchesPackage(id: string, packages: string[]) {
 export default defineConfig({
   plugins: [react()],
   publicDir: 'src/public',
-  base: process.env.VITE_BASE_PATH ?? '/',
+  // Default to the NuGet embedded path. Set VITE_BASE_PATH=/ for standalone SWA builds.
+  base: process.env.VITE_BASE_PATH ?? '/api-test-spark/',
   server: {
     port: 5151,
   },

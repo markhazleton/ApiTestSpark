@@ -1,12 +1,12 @@
 #!/usr/bin/env pwsh
-# Build script for API Test Harness
+# Build script for API Test Spark
 # Runs the full verification pipeline and optional release version bump
 
 param(
     [switch]$Release = $false
 )
 
-Write-Host "Building API Test Harness..." -ForegroundColor Green
+Write-Host "Building API Test Spark..." -ForegroundColor Green
 
 # Check if node_modules exists
 if (-not (Test-Path "node_modules")) {

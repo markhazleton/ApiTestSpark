@@ -38,13 +38,11 @@
   </ItemGroup>
 
   <!--
-    React SPA build — runs before every .NET build, always produces the
-    /api-test-spark/ embedded build.
-
-    The sentinel file lives in obj/ so Visual Studio Clean wipes it,
-    which forces a fresh npm build on the next Build invocation.
-    Using cmd /c with inline set is more reliable than the Exec
-    EnvironmentVariables attribute on Windows.
+    React SPA build — runs before every .NET build.
+    No environment variable needed: vite.config.ts defaults base to
+    /api-test-spark/ so plain "npm run build" always produces the correct
+    embedded assets. The sentinel lives in obj/ so VS Clean wipes it,
+    guaranteeing a fresh build after every Clean + Build cycle.
   -->
   <PropertyGroup>
     <_SpaSentinel>$(IntermediateOutputPath)spa-built.sentinel</_SpaSentinel>
@@ -62,10 +60,9 @@
           BeforeTargets="Build"
           Inputs="@(_SpaSources)"
           Outputs="$(_SpaSentinel)">
-    <Message Text="ApiTestSpark: building React SPA (VITE_BASE_PATH=/api-test-spark/)..." Importance="high" />
-    <Exec Command="cmd /c &quot;set VITE_BASE_PATH=/api-test-spark/ &amp;&amp; npm run build&quot;"
+    <Message Text="ApiTestSpark: building React SPA (base=/api-test-spark/)..." Importance="high" />
+    <Exec Command="npm run build"
           WorkingDirectory="$(MSBuildProjectDirectory)\.." />
-    <!-- Touch sentinel so incremental check passes until sources change again -->
     <Touch Files="$(_SpaSentinel)" AlwaysCreate="true" />
   </Target>
 

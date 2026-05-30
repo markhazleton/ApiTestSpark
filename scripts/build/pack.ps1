@@ -31,19 +31,14 @@ if (-not $SkipAudit) {
     Write-Host "`n[1/4] Skipping npm audit (--SkipAudit flag set)" -ForegroundColor Yellow
 }
 
-# 2. Build the React SPA with embedded base path
-Write-Host "`n[2/4] Building React SPA (VITE_BASE_PATH=/api-test-spark/)..." -ForegroundColor Blue
-$env:VITE_BASE_PATH = '/api-test-spark/'
-try {
-    npm run build
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "npm run build failed."
-        exit 1
-    }
-    Write-Host "  React SPA build complete → build/" -ForegroundColor Green
-} finally {
-    Remove-Item Env:\VITE_BASE_PATH -ErrorAction SilentlyContinue
+# 2. Build the React SPA — base path /api-test-spark/ is now the default in vite.config.ts
+Write-Host "`n[2/4] Building React SPA (base=/api-test-spark/)..." -ForegroundColor Blue
+npm run build
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "npm run build failed."
+    exit 1
 }
+Write-Host "  React SPA build complete → build/" -ForegroundColor Green
 
 # 3. Read and validate version from package.json
 Write-Host "`n[3/4] Reading version from package.json..." -ForegroundColor Blue
