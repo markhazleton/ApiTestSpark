@@ -1,87 +1,95 @@
-﻿# API Test Spark - Claude Code Instructions
+# API Test Spark — Claude Code Instructions
 
-Practical guidance for Claude Code. Keep in sync with .github/copilot-instructions.md.
+> **Engineering rules live in the constitution.**
+> All architectural decisions, code quality gates, and MUST/MUST-NOT constraints are
+> defined in `.documentation/memory/constitution.md`. This file covers only what is
+> specific to operating Claude Code in this repository: commands, file paths, and
+> task-execution guidance. Do not duplicate constitution content here.
 
 ## Project Overview
 
-Lightweight React + TypeScript developer tool for testing and debugging REST APIs. Includes a working JokeAPI integration as a reference implementation. Prioritize simplicity and fast iteration.
+Dual-artifact repository:
+
+- **React SPA** (`src/`) — lightweight developer tool for testing and debugging REST APIs
+- **.NET NuGet library** (`ApiTestSpark/`) — embeds the SPA into any .NET 10 Minimal API via `MapApiTestSpark()`
+- **Demo site** (`SampleApi/`) — live at `https://apitest.makeboldspark.com`
+- **DevSpark framework** (`.devspark/`) — spec-driven development workflows; commands resolved via `.documentation/`
 
 ## Tech Stack
 
 - React 19 / TypeScript 5.x / Vite 8
 - Zustand 5 (persist), TanStack Query 5, Tailwind CSS 4, React Router DOM 7
-- No test runner -- quality gates are type-check + lint + build
+- .NET 10 / ASP.NET Core Minimal API / MSTest
+- No test runner for React SPA (see Constitution VII)
 
 ## Development Commands
 
-    .\scripts\build\dev.ps1      # Start dev server
-    .\scripts\build\build.ps1    # Production build
+    .\scripts\build\dev.ps1      # Start React dev server
+    .\scripts\build\build.ps1    # Production build (tsc -b + vite)
+    .\scripts\build\pack.ps1     # Build SPA + pack NuGet (ApiTestSpark)
     .\scripts\lint\lint.ps1      # ESLint check
     .\scripts\lint\fix.ps1       # Auto-fix linting
+    dotnet build ApiTestSpark    # Build .NET library
+    dotnet test ApiTestSpark.Tests  # Run .NET integration tests
 
-## Quality Gates
+## Quality Gates (run before every merge)
 
-1. npm run lint
-2. npm run verify -- tsc -b + vite build (canonical gate)
+1. `npm run lint` — zero ESLint errors (Constitution II)
+2. `npm run verify` — tsc -b + vite build (Constitution I, canonical gate)
+3. `dotnet build ApiTestSpark` — zero C# errors
+4. `dotnet test ApiTestSpark.Tests` — all integration tests pass
 
-## File Organization
+## File Layout
 
-| What | Where |
-|------|-------|
-| Source code | src/ |
-| Types | src/types/ |
-| Stores (Zustand) | src/store/ |
-| Hooks | src/hooks/ |
-| Feature specs | .documentation/specs/ |
-| Scripts | scripts/build/, scripts/lint/ |
+| What              | Where                                                    |
+|-------------------|----------------------------------------------------------|
+| React source      | `src/`                                                   |
+| Types             | `src/types/`                                             |
+| Zustand stores    | `src/store/`                                             |
+| Hooks             | `src/hooks/`                                             |
+| .NET library      | `ApiTestSpark/`                                          |
+| .NET tests        | `ApiTestSpark.Tests/`                                    |
+| Demo/promo site   | `SampleApi/`                                             |
+| Feature specs     | `.documentation/specs/`                                  |
+| Constitution      | `.documentation/memory/constitution.md`                  |
+| DevSpark commands | `.devspark/` (framework) + `.documentation/` (overrides) |
+| Scripts           | `scripts/build/`, `scripts/lint/`                        |
 
-Barrel Exports required: src/store/index.ts, src/types/index.ts, src/components/index.ts, src/hooks/index.ts
+## Adding a New API (all steps required — see Constitution III)
 
-## Architecture Rules
+1. `src/types/my-api.ts` + re-export from `src/types/index.ts`
+2. `src/api/myApiClient.ts` extending `ApiClient` + re-export from `src/api/index.ts`
+3. `src/hooks/useMyApi.ts` with `useMutation` + re-export from `src/hooks/index.ts`
+4. `src/components/my-api/MyApiScreen.tsx` + `index.ts` barrel + re-export from `src/components/index.ts`
+5. Route in `src/App.tsx`
+6. Nav card in `SECTIONS` in `src/components/HomeScreen.tsx`
 
-- Stores: useUnifiedConfigStore, useDebugStore, useAuthStore -- each owns a focused concern
-- Never mutate Zustand state directly -- always use store actions
-- Hook layer owns API orchestration, not components
-- API clients created per-call with debug callbacks (onRequest, onResponse, onError)
-- Every request gets a UUID for correlation across request/response/error
-- TanStack Query mutations for all API calls with performance tracking
+## NuGet Package Workflow
 
-## Environment Configuration
+- `pack.ps1` is the only correct way to pack — sets `VITE_BASE_PATH=/api-test-spark/`, runs `npm audit`, builds React, then `dotnet pack`
+- Changes to `MapApiTestSpark`, `ApiTestSparkOptions`, or `ApiTestSparkExtensions` require updating `PublicAPI.Shipped.txt` and a semver decision (`SEMVER: MAJOR` or `SEMVER: MINOR` in the PR title)
+- `VITE_BASE_PATH` unset = standalone build at `/`; set to `/api-test-spark/` = NuGet embedded build
 
-Three environments with independent base URL + API key:
+## DevSpark Workflow
 
-| Environment | Purpose |
-|-------------|---------|
-| localhost | Local API development |
-| tst2 | Secondary environment |
-| other | Custom endpoint |
+- **Spec**: `/devspark.specify` → `.documentation/specs/###-feature-name/spec.md`
+- **Plan**: `/devspark.plan` → `plan.md` in the same folder
+- **Tasks**: `/devspark.tasks` → `tasks.md`
+- **Implement**: `/devspark.implement`
+- **Audit**: `/devspark.site-audit` — validates compliance against the constitution
+- **Amend constitution**: `/devspark.evolve-constitution` after PR review findings
 
-Persisted in localStorage via Zustand persist middleware.
+## Constitution Reference
 
-## Adding a New API (follow the JokeAPI pattern)
+The following principles from `.documentation/memory/constitution.md` are blocking gates for all work:
 
-1. Types -> src/types/my-api.ts + re-export from src/types/index.ts
-2. Client -> src/api/myApiClient.ts extending ApiClient + re-export from src/api/index.ts
-3. Hook -> src/hooks/useMyApi.ts with TanStack useMutation + re-export from src/hooks/index.ts
-4. Screen -> src/components/my-api/MyApiScreen.tsx + barrel index.ts + re-export from src/components/index.ts
-5. Route -> add route in src/App.tsx
-6. Nav -> add card to SECTIONS in src/components/HomeScreen.tsx
-
-## Store Persistence
-
-| Store | Persisted | Key |
-|-------|-----------|-----|
-| unifiedConfigStore | Yes | api-test-spark-config |
-| authStore | Config only | api-test-spark-auth-config |
-| debugStore | Enabled flag only | api-test-spark-debug |
-
-Debug buffer limits: 50 requests/responses, 100 metrics (FIFO).
-
-## What NOT To Do
-
-- Do not add test frameworks
-- Do not use webpack, create-react-app, or class components
-- Do not place AI-generated docs in root -- use .documentation/
-- Do not add Prettier (ESLint only)
-- Do not skip barrel export updates when adding new files
-- Do not commit major dependency bumps in batched updates
+| #    | Principle                                                      | Gate              |
+|------|----------------------------------------------------------------|-------------------|
+| I    | TypeScript strict — zero errors                                | `npm run verify`  |
+| II   | ESLint only, no Prettier — zero errors                         | `npm run lint`    |
+| III  | Layer separation + barrel exports                              | Code review       |
+| IV   | API client pattern — extend ApiClient, per-call, UUID          | Code review       |
+| V    | Zustand — one concern, action-gated, FIFO limits               | Code review       |
+| VI   | No `console.log` in `src/` — all observability via debug store | Code review       |
+| VII  | No React test framework without amendment                      | Do not add        |
+| VIII | No PII/PHI in any store, type, log, or test data               | Code review       |
