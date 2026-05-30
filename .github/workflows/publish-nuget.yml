@@ -1,0 +1,121 @@
+name: Publish ApiTestSpark NuGet Package
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Trigger on version tags: v1.0.0, v1.1.0, etc.
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create GitHub releases
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for Source Link
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore .NET dependencies
+        run: dotnet restore ApiTestSpark.slnx
+
+      - name: Build solution (triggers React SPA build via MSBuild target)
+        # MSBuild's BuildReactSpa target calls "npm run build" (lint + vite build)
+        # before dotnet build. Node.js must be in PATH (provided by setup-node above).
+        run: dotnet build ApiTestSpark.slnx --configuration Release --no-restore
+
+      - name: Run integration tests
+        run: >
+          dotnet test ApiTestSpark.slnx
+          --configuration Release
+          --no-build
+          --verbosity normal
+          --logger "trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: ./TestResults
+          if-no-files-found: warn
+
+      - name: Check .NET package vulnerabilities
+        run: dotnet list ApiTestSpark/ApiTestSpark.csproj package --vulnerable --include-transitive
+
+      - name: Check npm vulnerabilities
+        run: npm audit --audit-level=high
+
+      - name: Pack NuGet package
+        # --no-build: React build already ran via MSBuild target above.
+        # ValidateSpaAssets MSBuild target (BeforeTargets="Pack") will fail loudly
+        # if build/ is empty, preventing a broken package from being published.
+        run: >
+          dotnet pack ApiTestSpark/ApiTestSpark.csproj
+          --configuration Release
+          --no-build
+          --output ./nupkg
+
+      - name: Verify package contents
+        run: |
+          echo "Packages in ./nupkg:"
+          ls -la ./nupkg/
+          echo ""
+          echo "Package lib/ entries:"
+          unzip -l ./nupkg/ApiTestSpark.*.nupkg | grep -E "lib/|build/" || echo "No lib/ or build/ entries found"
+          echo ""
+          echo "Embedded React assets (build/):"
+          unzip -l ./nupkg/ApiTestSpark.*.nupkg | grep "build/" | wc -l | xargs echo "Asset count:"
+
+      - name: Upload NuGet packages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./nupkg
+          if-no-files-found: error
+
+      # Only publish when triggered by a version tag push (not workflow_dispatch or PRs)
+      - name: Publish to NuGet.org
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: >
+          dotnet nuget push ./nupkg/ApiTestSpark.*.nupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      # Publish symbol package separately (snupkg)
+      - name: Publish symbol package to NuGet.org
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: >
+          dotnet nuget push ./nupkg/ApiTestSpark.*.snupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+        continue-on-error: true # snupkg may not exist if no symbols were generated
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./nupkg/*
+          body_path: CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
