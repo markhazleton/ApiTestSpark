@@ -79,6 +79,169 @@ function ParamField({
   );
 }
 
+// ── Response renderer ────────────────────────────────────────────────────────
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+/** Single plain object rendered as an editable form with copy-to-clipboard. */
+function ResponseObjectForm({ data }: { data: Record<string, unknown> }) {
+  const entries = Object.entries(data);
+  const [fields, setFields] = useState<Record<string, string>>(() =>
+    Object.fromEntries(entries.map(([k, v]) => [k, v == null ? '' : String(v)]))
+  );
+  const [copied, setCopied] = useState(false);
+
+  function copyJson() {
+    const out = Object.fromEntries(
+      entries.map(([k]) => {
+        const orig = data[k];
+        const str = fields[k];
+        if (orig == null) return [k, null];
+        if (typeof orig === 'number') return [k, Number(str)];
+        if (typeof orig === 'boolean') return [k, str === 'true'];
+        return [k, str];
+      })
+    );
+    navigator.clipboard.writeText(JSON.stringify(out, null, 2)).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  return (
+    <div className="border border-gray-200 rounded overflow-hidden text-xs">
+      <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5 flex items-center justify-between">
+        <span className="text-gray-500 font-semibold">Response object</span>
+        <button type="button" onClick={copyJson} className="text-blue-600 hover:text-blue-800 text-xs underline">
+          {copied ? 'Copied!' : 'Copy as JSON'}
+        </button>
+      </div>
+      {entries.map(([key]) => {
+        const orig = data[key];
+        const isObj = typeof orig === 'object' && orig !== null;
+        const isBool = typeof orig === 'boolean';
+        return (
+          <div key={key} className="flex items-center gap-3 px-3 py-1.5 even:bg-gray-50 border-b border-gray-100 last:border-0">
+            <label className="font-mono font-semibold text-blue-700 shrink-0 w-28 truncate" title={key} htmlFor={`resp-${key}`}>
+              {key}
+            </label>
+            {isObj ? (
+              <span className="font-mono text-gray-500 truncate text-[10px]">{JSON.stringify(orig)}</span>
+            ) : isBool ? (
+              <select
+                id={`resp-${key}`}
+                value={fields[key]}
+                onChange={(e) => setFields((f) => ({ ...f, [key]: e.target.value }))}
+                className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+              >
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            ) : (
+              <input
+                id={`resp-${key}`}
+                type={typeof orig === 'number' ? 'number' : 'text'}
+                value={fields[key]}
+                onChange={(e) => setFields((f) => ({ ...f, [key]: e.target.value }))}
+                className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              />
+            )}
+          </div>
+        );
+      })}
+      <p className="text-gray-400 px-3 py-1 border-t border-gray-100">Full JSON in debug panel</p>
+    </div>
+  );
+}
+
+/** Array of objects → sortable table; single object → editable form; else → pre. */
+function ResponseView({ data }: { data: unknown }) {
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortAsc, setSortAsc] = useState(true);
+
+  // ── Array of objects ──
+  if (Array.isArray(data) && data.length > 0 && isPlainObject(data[0])) {
+    const rows = data as Record<string, unknown>[];
+    const cols = Object.keys(rows[0]);
+
+    const sorted = sortKey
+      ? [...rows].sort((a, b) => {
+          const av = a[sortKey], bv = b[sortKey];
+          if (av == null && bv == null) return 0;
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          const cmp = String(av).localeCompare(String(bv), undefined, { numeric: true });
+          return sortAsc ? cmp : -cmp;
+        })
+      : rows;
+
+    function toggleSort(col: string) {
+      if (sortKey === col) setSortAsc((a) => !a);
+      else { setSortKey(col); setSortAsc(true); }
+    }
+
+    return (
+      <div className="overflow-auto border border-gray-200 rounded text-xs">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {cols.map((col) => (
+                <th
+                  key={col}
+                  onClick={() => toggleSort(col)}
+                  className="px-3 py-1.5 text-left font-semibold text-gray-600 font-mono whitespace-nowrap cursor-pointer select-none hover:bg-gray-100"
+                >
+                  {col}
+                  {sortKey === col && (
+                    <span className="ml-1 text-blue-500">{sortAsc ? '↑' : '↓'}</span>
+                  )}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((row, i) => (
+              <tr key={i} className="border-b border-gray-100 last:border-0 even:bg-gray-50 hover:bg-blue-50 transition-colors">
+                {cols.map((col) => {
+                  const val = row[col];
+                  const display = val == null ? '' : typeof val === 'object' ? JSON.stringify(val) : String(val);
+                  return (
+                    <td key={col} className="px-3 py-1.5 font-mono text-gray-700 whitespace-nowrap max-w-50 truncate" title={display}>
+                      {display}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="text-gray-400 px-3 py-1 border-t border-gray-100">
+          {rows.length} {rows.length === 1 ? 'row' : 'rows'} — full JSON in debug panel
+        </p>
+      </div>
+    );
+  }
+
+  // ── Empty array ──
+  if (Array.isArray(data) && data.length === 0) {
+    return <p className="text-xs text-gray-400 italic">Empty array — no rows returned.</p>;
+  }
+
+  // ── Single plain object → editable form ──
+  if (isPlainObject(data)) {
+    return <ResponseObjectForm data={data as Record<string, unknown>} />;
+  }
+
+  // ── Primitive or other ──
+  return (
+    <pre className="text-xs bg-gray-50 rounded p-2 overflow-auto max-h-40 font-mono border border-gray-100">
+      {JSON.stringify(data, null, 2)}
+    </pre>
+  );
+}
+
 // Render a response schema as a simple property table
 function ResponseSchemaHint({ schema }: { schema: ResolvedSchema }) {
   if (!schema.properties && schema.type !== 'array') return null;
@@ -290,10 +453,8 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
       {/* ── Response ── */}
       {data !== undefined && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 mb-1">Response (see debug panel for full detail)</p>
-          <pre className="text-xs bg-gray-50 rounded p-2 overflow-auto max-h-60 font-mono border border-gray-100">
-            {JSON.stringify(data, null, 2)}
-          </pre>
+          <p className="text-xs font-semibold text-gray-500 mb-1">Response</p>
+          <ResponseView data={data} />
         </div>
       )}
 
