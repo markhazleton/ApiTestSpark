@@ -167,7 +167,7 @@ public static class HomeEndpoints
                     <div class="feature-card">
                         <div class="feature-icon">🔍</div>
                         <h3>OpenAPI Autodiscovery</h3>
-                        <p>Points at your OpenAPI v3 document and renders every endpoint instantly. Works with .NET's built-in <code class="inline">MapOpenApi()</code>.</p>
+                        <p>Points at your OpenAPI v3 document and renders every endpoint in a collapsible accordion grouped by tag. Works with .NET's built-in <code class="inline">MapOpenApi()</code>.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">📦</div>
@@ -182,12 +182,12 @@ public static class HomeEndpoints
                     <div class="feature-card">
                         <div class="feature-icon">🐛</div>
                         <h3>Live Debug Panel</h3>
-                        <p>Inspect every request, response, and error in real time. Performance metrics tracked per call. FIFO history buffer keeps memory bounded.</p>
+                        <p>Inspect every request, response, and error in real time. cURL snippet generation per request. FIFO history buffer keeps memory bounded.</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon">🌍</div>
-                        <h3>Multi-Environment</h3>
-                        <p>Switch between localhost, staging, and custom endpoints without changing code. Config persisted in localStorage per environment.</p>
+                        <div class="feature-icon">📄</div>
+                        <h3>API Doc Builder</h3>
+                        <p>Select endpoints, capture live curl + responses, annotate sections, and export a complete markdown document for front-end developer agents — at <code class="inline">/api-docs</code>.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🔒</div>
@@ -451,7 +451,11 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     </div>
                     <div>
                         <h3>Does it support OpenAPI v2 / Swagger 2.0?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">Not in the current release. Only OpenAPI v3.x documents are parsed. Support for v2 is on the roadmap.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">Only OpenAPI v3.x documents are parsed. For Swagger 2.0 APIs, use a converter to produce a v3 document (e.g. <a href="https://converter.swagger.io/" style="color:#0ea5e9;">converter.swagger.io</a>) and point <code class="inline">OpenApiUrl</code> at the converted output.</p>
+                    </div>
+                    <div>
+                        <h3>Can I generate API documentation from test runs?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">Yes — the <strong>API Doc Builder</strong> at <code class="inline">/api-docs</code> lets you select endpoints, capture live requests and responses, annotate sections, and export a complete markdown document targeted at front-end developer agents. It includes exact curl commands, full JSON responses, parameter tables, and schema tables.</p>
                     </div>
                 </div>
             </section>

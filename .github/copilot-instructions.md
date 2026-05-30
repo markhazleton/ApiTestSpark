@@ -50,6 +50,25 @@ src/App.tsx                            → add route
 src/components/HomeScreen.tsx          → add card to SECTIONS
 ```
 
+### Key component locations
+
+| Screen | Route | File |
+|--------|-------|------|
+| Endpoint Explorer | `/host-api` | `src/components/host-api/HostApiScreen.tsx` |
+| API Doc Builder | `/api-docs` | `src/components/api-doc/ApiDocScreen.tsx` |
+| JokeAPI | `/joke-api` | `src/components/joke-api/JokeApiScreen.tsx` |
+| JSONPlaceholder | `/json-placeholder` | `src/components/json-placeholder/JsonPlaceholderScreen.tsx` |
+
+### Key utilities
+
+| Utility | File | Purpose |
+|---------|------|---------|
+| `parseOpenApiV3` | `src/utils/openApiParser.ts` | Parse OpenAPI doc → DiscoveredEndpoint[] |
+| `buildJsonScaffold` | `src/utils/openApiParser.ts` | Build JSON scaffold from schema |
+| `renderMarkdown` | `src/utils/renderMarkdown.tsx` | Render OpenAPI description markdown |
+| `generateMarkdown` | `src/utils/generateMarkdown.ts` | Generate API doc markdown |
+| `buildCurlCommand` | `src/utils/generateMarkdown.ts` | Build curl command from request |
+
 ### API client instantiation (Constitution IV)
 
 ```typescript
@@ -75,6 +94,7 @@ const { addRequest, addResponse, addError, addMetric } = useDebugStore();
 | `useUnifiedConfigStore` | `api-test-spark-config` | Full config |
 | `useAuthStore` | `api-test-spark-auth-config` | Config only |
 | `useDebugStore` | `api-test-spark-debug` | Enabled flag only |
+| `useHarnessConfigStore` | (none) | Session only — config, endpoints, apiInfo |
 
 Debug buffer limits: 50 requests/responses/errors, 100 metrics (FIFO).
 
