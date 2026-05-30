@@ -142,5 +142,6 @@ nupkg/
 # DevSpark — personal overrides (never commit)
 .documentation/*/commands/
 
-# Claude Code harness state (per-session runtime locks; never commit)
+# Claude Code harness state (per-session and per-developer; never commit)
 .claude/scheduled_tasks.lock
+.claude/settings.local.json
