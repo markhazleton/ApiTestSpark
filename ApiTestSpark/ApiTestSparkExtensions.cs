@@ -167,9 +167,18 @@ public static class ApiTestSparkExtensions
             }
 
             ctx.Response.Headers["Cache-Control"] = "no-cache";
+
+            // In Development, allow localhost WebSocket/HTTP connections so ASP.NET Core
+            // Browser Link and hot-reload can connect without being blocked by CSP.
+            var hostEnv = app.Services.GetRequiredService<IHostEnvironment>();
+            var devConnectSrc = hostEnv.IsDevelopment()
+                ? " ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*"
+                : string.Empty;
+
             ctx.Response.Headers["Content-Security-Policy"] =
                 "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-                "connect-src 'self' https://*.applicationinsights.azure.com https://*.monitor.azure.com https://v2.jokeapi.dev https://jsonplaceholder.typicode.com";
+                "connect-src 'self' https://*.applicationinsights.azure.com https://*.monitor.azure.com " +
+                $"https://v2.jokeapi.dev https://jsonplaceholder.typicode.com{devConnectSrc}";
 
             var indexFile = fileProvider.GetFileInfo("index.html");
             if (!indexFile.Exists)

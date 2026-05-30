@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.0.2] - 2026-05-30
+
+### Fixed
+
+- **CSP blocking harness in Development** — the `Content-Security-Policy` header on the SPA fallback `index.html` response now adds `ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*` to `connect-src` when the host app is running in the `Development` environment. This allows ASP.NET Core Browser Link and hot-reload WebSocket connections to succeed without being blocked. In non-Development environments the CSP is unchanged. The blank/empty harness page seen after upgrading to v1.0.1 in a Development project was caused by this CSP violation.
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.0.1] - 2026-05-30
 
 ### Added
@@ -85,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.2...HEAD
+[v1.0.2]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.1...v1.0.2
 [v1.0.1]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/MarkHazleton/ApiTestSpark/releases/tag/v1.0.0

@@ -9,7 +9,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>Mark Hazleton</Authors>
     <Company>MarkHazleton</Company>
     <Copyright>Copyright © Mark Hazleton 2026</Copyright>
@@ -31,12 +31,9 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>1.0.1 — API Doc Builder for generating front-end developer agent markdown
-      documentation with live curl + response capture. Collapsible accordion endpoint groups derived
-      from OpenAPI tags. Full markdown renderer for OpenAPI descriptions (bold, italic, code, tables,
-      fenced blocks). Response code badges with expandable schemas. operationId chip, schema
-      constraint and default-value display, nullable hints. Relational SampleApi demo with 10
-      products, 5 customers (with addresses), 7 orders across all statuses.
+    <PackageReleaseNotes>1.0.2 — Fix: Content-Security-Policy on the index.html SPA fallback now
+      allows localhost WebSocket and HTTP connections in Development so ASP.NET Core Browser Link
+      and hot-reload no longer block the harness from loading. No public API changes.
       See CHANGELOG.md for full history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
