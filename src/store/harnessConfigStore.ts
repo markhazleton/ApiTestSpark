@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import type { HarnessConfig, DiscoveredEndpoint } from '../types';
+import type { ApiInfo, HarnessConfig, DiscoveredEndpoint } from '../types';
 
 interface HarnessConfigState {
   config: HarnessConfig | null;
+  apiInfo: ApiInfo | null;
   endpoints: DiscoveredEndpoint[];
   configStatus: 'idle' | 'loading' | 'ready' | 'error';
   openApiStatus: 'idle' | 'loading' | 'ready' | 'error' | 'skipped';
@@ -10,6 +11,7 @@ interface HarnessConfigState {
   openApiError: string | null;
 
   setConfig: (config: HarnessConfig) => void;
+  setApiInfo: (info: ApiInfo | null) => void;
   setEndpoints: (endpoints: DiscoveredEndpoint[]) => void;
   setConfigStatus: (status: HarnessConfigState['configStatus']) => void;
   setOpenApiStatus: (status: HarnessConfigState['openApiStatus']) => void;
@@ -20,6 +22,7 @@ interface HarnessConfigState {
 // Not persisted — config is always re-fetched fresh on app load.
 const useHarnessConfigStore = create<HarnessConfigState>((set) => ({
   config: null,
+  apiInfo: null,
   endpoints: [],
   configStatus: 'idle',
   openApiStatus: 'idle',
@@ -27,6 +30,7 @@ const useHarnessConfigStore = create<HarnessConfigState>((set) => ({
   openApiError: null,
 
   setConfig: (config) => set({ config }),
+  setApiInfo: (apiInfo) => set({ apiInfo }),
   setEndpoints: (endpoints) => set({ endpoints }),
   setConfigStatus: (configStatus) => set({ configStatus }),
   setOpenApiStatus: (openApiStatus) => set({ openApiStatus }),

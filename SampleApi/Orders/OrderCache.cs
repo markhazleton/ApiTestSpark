@@ -13,41 +13,78 @@ public sealed class OrderCache
 
     public OrderCache(ProductCache products)
     {
-        // Seed a few realistic orders using the seeded product data
-        var widget      = products.GetById(1)!;  // Widget        $9.99
-        var gadget      = products.GetById(2)!;  // Gadget        $24.99
-        var doohickey   = products.GetById(3)!;  // Doohickey     $4.49
-        var thingamajig = products.GetById(4)!;  // Thingamajig   $14.99
+        // Resolve seeded products by ID for consistent line-item snapshots
+        var widget      = products.GetById(1)!;   // Widget           $9.99
+        var gadget      = products.GetById(2)!;   // Gadget           $24.99
+        var doohickey   = products.GetById(3)!;   // Doohickey        $4.49
+        var thingamajig = products.GetById(4)!;   // Thingamajig      $14.99
+        var watchama    = products.GetById(5)!;   // Whatchamacallit  $7.49
+        var gizmoPro    = products.GetById(6)!;   // Gizmo Pro        $49.99
+        var sprocket    = products.GetById(7)!;   // Super Sprocket   $3.29
+        var doodad      = products.GetById(8)!;   // Fancy Doodad     $19.95
+        var megaWidget  = products.GetById(9)!;   // Mega Widget      $34.99
+        var nanoGadget  = products.GetById(10)!;  // Nano Gadget      $12.49
 
         var now = DateTime.UtcNow;
 
-        _orders.AddRange([
-            new Order(_nextId++, 1, OrderStatus.Delivered,
-                [new(widget.Id,      widget.Name,      2, widget.Price),
-                 new(doohickey.Id,   doohickey.Name,   1, doohickey.Price)],
-                now.AddDays(-10)),
+        // ── Customer 1 (Alice / Acme Corp) — two orders: one delivered, one confirmed ──
+        Seed(1, OrderStatus.Delivered, now.AddDays(-14),
+            Line(widget, 5), Line(doohickey, 10), Line(sprocket, 20));
 
-            new Order(_nextId++, 2, OrderStatus.Shipped,
-                [new(gadget.Id,      gadget.Name,      1, gadget.Price)],
-                now.AddDays(-3)),
+        Seed(1, OrderStatus.Confirmed, now.AddDays(-2),
+            Line(gadget, 1), Line(thingamajig, 2));
 
-            new Order(_nextId++, 1, OrderStatus.Confirmed,
-                [new(thingamajig.Id, thingamajig.Name, 3, thingamajig.Price),
-                 new(widget.Id,      widget.Name,      1, widget.Price)],
-                now.AddDays(-1)),
+        // ── Customer 2 (Bob) — one shipped order ──
+        Seed(2, OrderStatus.Shipped, now.AddDays(-5),
+            Line(gizmoPro, 1), Line(nanoGadget, 2));
 
-            new Order(_nextId++, 3, OrderStatus.Pending,
-                [new(doohickey.Id,   doohickey.Name,   5, doohickey.Price)],
-                now.AddHours(-2)),
-        ]);
+        // ── Customer 3 (Carol / White Consulting) — two orders: pending + cancelled ──
+        Seed(3, OrderStatus.Pending, now.AddHours(-3),
+            Line(watchama, 4), Line(doodad, 1));
+
+        Seed(3, OrderStatus.Cancelled, now.AddDays(-7),
+            Line(megaWidget, 1));
+
+        // ── Customer 4 (David / Brown Industries) — one large delivered order ──
+        Seed(4, OrderStatus.Delivered, now.AddDays(-21),
+            Line(widget, 50), Line(sprocket, 100), Line(doohickey, 200));
+
+        // ── Customer 5 (Eve) — one pending order (just placed) ──
+        Seed(5, OrderStatus.Pending, now.AddMinutes(-15),
+            Line(nanoGadget, 3), Line(watchama, 2), Line(doodad, 1));
     }
 
-    /// <summary>Returns a read-only snapshot of all orders.</summary>
-    public IReadOnlyList<Order> GetAll() => _orders.AsReadOnly();
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
-    /// <summary>Returns orders belonging to a specific customer.</summary>
+    private static OrderLine Line(Products.Product p, int qty) =>
+        new(p.Id, p.Name, qty, p.Price);
+
+    private void Seed(int customerId, OrderStatus status, DateTime placedAt, params OrderLine[] lines)
+    {
+        _orders.Add(new Order(_nextId++, customerId, status, lines, placedAt));
+    }
+
+    // ── Public API ───────────────────────────────────────────────────────────
+
+    /// <summary>Returns a read-only snapshot of all orders, newest first.</summary>
+    public IReadOnlyList<Order> GetAll() =>
+        _orders.OrderByDescending(o => o.PlacedAt).ToList().AsReadOnly();
+
+    /// <summary>Returns orders belonging to a specific customer, newest first.</summary>
     public IReadOnlyList<Order> GetByCustomer(int customerId) =>
-        _orders.Where(o => o.CustomerId == customerId).ToList().AsReadOnly();
+        _orders
+            .Where(o => o.CustomerId == customerId)
+            .OrderByDescending(o => o.PlacedAt)
+            .ToList()
+            .AsReadOnly();
+
+    /// <summary>Returns orders in the given status.</summary>
+    public IReadOnlyList<Order> GetByStatus(OrderStatus status) =>
+        _orders
+            .Where(o => o.Status == status)
+            .OrderByDescending(o => o.PlacedAt)
+            .ToList()
+            .AsReadOnly();
 
     /// <summary>Returns the order with the given ID, or <c>null</c> if not found.</summary>
     public Order? GetById(int id) => _orders.FirstOrDefault(o => o.Id == id);

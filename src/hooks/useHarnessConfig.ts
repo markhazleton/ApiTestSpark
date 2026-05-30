@@ -12,7 +12,7 @@ import useDebugStore from '../store/debugStore';
 import { useHarnessConfigStore } from '../store/harnessConfigStore';
 import { HostApiClient } from '../api/hostApiClient';
 import { buildDebugCallbacks } from './hookUtils';
-import { parseOpenApiV3 } from '../utils/openApiParser';
+import { parseOpenApiV3, parseApiInfo } from '../utils/openApiParser';
 import type { OpenApiV3Doc } from '../types';
 
 const HARNESS_CONFIG_QUERY_KEY = ['harness-config'] as const;
@@ -29,6 +29,7 @@ export function useHarnessConfig() {
   const { addRequest, addResponse, addError } = useDebugStore();
   const {
     setConfig,
+    setApiInfo,
     setEndpoints,
     setConfigStatus,
     setOpenApiStatus,
@@ -83,6 +84,7 @@ export function useHarnessConfig() {
         }
         const doc = await resp.json() as OpenApiV3Doc;
         const endpoints = parseOpenApiV3(doc);
+        setApiInfo(parseApiInfo(doc));
 
         if (!doc.paths || Object.keys(doc.paths).length === 0) {
           addError({

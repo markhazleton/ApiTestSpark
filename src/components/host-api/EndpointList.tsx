@@ -46,8 +46,24 @@ function splitTag(tag: string): { namespace: string; label: string } {
 
 export function EndpointList({ endpoints, selected, onSelect }: EndpointListProps) {
   const [search, setSearch] = useState('');
-  // Track which namespaces are collapsed; default all open
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  // Derive namespaces once to seed initial collapse state
+  const initialNamespaces = useMemo(() => {
+    const seen = new Set<string>();
+    for (const ep of endpoints) {
+      const tag = ep.tags[0] ?? '';
+      seen.add(splitTag(tag).namespace);
+    }
+    return [...seen];
+  }, [endpoints]);
+
+  // When there are 3+ namespaces start them all collapsed so the user sees the full map first
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    if (initialNamespaces.length >= 3) {
+      return Object.fromEntries(initialNamespaces.map((ns) => [ns, true]));
+    }
+    return {};
+  });
 
   const toggleNamespace = (ns: string) =>
     setCollapsed((prev) => ({ ...prev, [ns]: !prev[ns] }));
@@ -99,8 +115,8 @@ export function EndpointList({ endpoints, selected, onSelect }: EndpointListProp
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search */}
-      <div className="px-3 py-2 border-b border-gray-200 sticky top-0 bg-white z-20">
+      {/* Search + expand/collapse all */}
+      <div className="px-3 py-2 border-b border-gray-200 sticky top-0 bg-white z-20 space-y-1.5">
         <input
           type="search"
           value={search}
@@ -108,6 +124,24 @@ export function EndpointList({ endpoints, selected, onSelect }: EndpointListProp
           placeholder="Filter endpoints…"
           className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
         />
+        {namespaces.length > 1 && (
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => setCollapsed(Object.fromEntries(namespaces.map((ns) => [ns, false])))}
+              className="text-[10px] text-blue-500 hover:text-blue-700 underline"
+            >
+              expand all
+            </button>
+            <button
+              type="button"
+              onClick={() => setCollapsed(Object.fromEntries(namespaces.map((ns) => [ns, true])))}
+              className="text-[10px] text-gray-400 hover:text-gray-600 underline"
+            >
+              collapse all
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tree */}

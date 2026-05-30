@@ -1,8 +1,10 @@
 import type {
+  ApiInfo,
   DiscoveredEndpoint,
   EndpointParameter,
   OpenApiV3Doc,
   OpenApiV3Operation,
+  ResponseCode,
   ResolvedSchema,
 } from '../types';
 
@@ -26,12 +28,10 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
   if (depth > 5 || raw == null || typeof raw !== 'object') return null;
   const node = raw as Record<string, unknown>;
 
-  // Follow $ref
   if ('$ref' in node && typeof node['$ref'] === 'string') {
     return resolveSchema(resolveRef(node['$ref'], doc), doc, depth + 1);
   }
 
-  // oneOf/anyOf — pick the first non-null branch
   const combiner = node['oneOf'] ?? node['anyOf'];
   if (Array.isArray(combiner)) {
     for (const branch of combiner) {
@@ -43,7 +43,6 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
 
   const result: ResolvedSchema = {};
 
-  // Normalise type — .NET 10 emits type as an array e.g. ["integer","string"]
   const rawType = node['type'];
   if (typeof rawType === 'string') {
     result.type = rawType;
@@ -51,11 +50,15 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
     result.type = (rawType as string[]).find((t) => t !== 'null') ?? 'string';
   }
 
-  if (typeof node['format'] === 'string') result.format = node['format'];
+  if (typeof node['format'] === 'string')      result.format      = node['format'];
   if (typeof node['description'] === 'string') result.description = node['description'];
-  if (node['example'] !== undefined) result.example = node['example'];
-  if (Array.isArray(node['enum'])) result.enum = node['enum'] as string[];
-  if (Array.isArray(node['required'])) result.required = node['required'] as string[];
+  if (node['example'] !== undefined)           result.example     = node['example'];
+  if (Array.isArray(node['enum']))             result.enum        = node['enum'] as string[];
+  if (Array.isArray(node['required']))         result.required    = node['required'] as string[];
+  if (typeof node['minimum'] === 'number')     result.minimum     = node['minimum'];
+  if (typeof node['maximum'] === 'number')     result.maximum     = node['maximum'];
+  if (typeof node['minLength'] === 'number')   result.minLength   = node['minLength'];
+  if (typeof node['maxLength'] === 'number')   result.maxLength   = node['maxLength'];
 
   if (node['properties'] != null && typeof node['properties'] === 'object') {
     result.properties = {};
@@ -118,12 +121,15 @@ function parseOperation(
       type: normaliseType(p.schema?.type),
       format: p.schema?.format,
       enum: p.schema?.enum,
+      minimum: p.schema?.minimum,
+      maximum: p.schema?.maximum,
+      minLength: p.schema?.minLength,
+      maxLength: p.schema?.maxLength,
     },
     description: p.description ?? '',
     example: p.example != null ? String(p.example) : undefined,
   }));
 
-  // Resolve requestBody — follows $ref and oneOf so .NET 10's nullable wrappers are unwrapped
   let requestBodySchema: ResolvedSchema | null = null;
   const requestBodyRequired = op.requestBody?.required ?? false;
   if (op.requestBody?.content) {
@@ -133,14 +139,26 @@ function parseOperation(
     }
   }
 
-  // Resolve 200/201 response schema
+  // Parse all documented response codes
+  const responseCodes: ResponseCode[] = [];
   let responseSchema: ResolvedSchema | null = null;
-  const successResponse = op.responses?.['200'] ?? op.responses?.['201'];
-  if (successResponse?.content) {
-    const firstContent = Object.values(successResponse.content)[0];
-    if (firstContent?.schema) {
-      responseSchema = resolveSchema(firstContent.schema, doc);
+
+  if (op.responses) {
+    for (const [status, resp] of Object.entries(op.responses)) {
+      let schema: ResolvedSchema | null = null;
+      if (resp?.content) {
+        const firstContent = Object.values(resp.content)[0];
+        if (firstContent?.schema) {
+          schema = resolveSchema(firstContent.schema, doc);
+        }
+      }
+      responseCodes.push({ status, description: resp?.description ?? '', schema });
+      if ((status === '200' || status === '201') && schema) {
+        responseSchema = schema;
+      }
     }
+    // Sort: success codes first, then client errors, then server errors
+    responseCodes.sort((a, b) => Number(a.status) - Number(b.status));
   }
 
   return {
@@ -154,6 +172,7 @@ function parseOperation(
     requestBodySchema,
     requestBodyRequired,
     responseSchema,
+    responseCodes,
   };
 }
 
@@ -177,4 +196,15 @@ export function parseOpenApiV3(doc: OpenApiV3Doc): DiscoveredEndpoint[] {
   }
 
   return endpoints;
+}
+
+/** Extract API metadata from the OpenAPI info block. */
+export function parseApiInfo(doc: OpenApiV3Doc): ApiInfo {
+  return {
+    title: doc.info.title,
+    version: doc.info.version,
+    description: doc.info.description,
+    contactName: doc.info.contact?.name,
+    contactUrl: doc.info.contact?.url,
+  };
 }

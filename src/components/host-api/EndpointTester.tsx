@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { DiscoveredEndpoint, EndpointParameter, ResolvedSchema } from '../../types';
+import type { DiscoveredEndpoint, EndpointParameter, ResponseCode, ResolvedSchema } from '../../types';
 import { useHostApi } from '../../hooks';
 import { useHarnessConfigStore } from '../../store';
 import { buildJsonScaffold } from '../../utils/openApiParser';
@@ -12,11 +12,18 @@ const METHOD_COLORS: Record<string, string> = {
   DELETE: 'bg-red-100 text-red-800',
 };
 
+const STATUS_COLORS: Record<string, string> = {
+  '2': 'bg-green-50 text-green-700 border-green-200',
+  '4': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  '5': 'bg-red-50 text-red-700 border-red-200',
+};
+
 interface EndpointTesterProps {
   endpoint: DiscoveredEndpoint;
 }
 
-// Render a single parameter input — string, number, boolean toggle, or enum select
+// ── Parameter field ───────────────────────────────────────────────────────────
+
 function ParamField({
   param,
   value,
@@ -29,18 +36,27 @@ function ParamField({
   const labelId = `param-${param.in}-${param.name}`;
   const placeholder = param.example ?? param.schema.type;
 
+  const constraints: string[] = [];
+  if (param.schema.minimum != null) constraints.push(`min: ${param.schema.minimum}`);
+  if (param.schema.maximum != null) constraints.push(`max: ${param.schema.maximum}`);
+  if (param.schema.minLength != null) constraints.push(`minLen: ${param.schema.minLength}`);
+  if (param.schema.maxLength != null) constraints.push(`maxLen: ${param.schema.maxLength}`);
+
   return (
     <div>
-      <label htmlFor={labelId} className="text-xs font-semibold text-gray-600 flex items-center gap-1 mb-1">
+      <label htmlFor={labelId} className="text-xs font-semibold text-gray-600 flex items-center gap-1 flex-wrap mb-1">
         <span className="font-mono">{param.name}</span>
         {param.required && <span className="text-red-500 text-xs">*</span>}
         <span className="text-gray-400 font-normal">({param.in})</span>
         {param.schema.format && (
           <span className="text-gray-400 font-normal font-mono text-[10px]">{param.schema.format}</span>
         )}
+        {constraints.map((c) => (
+          <span key={c} className="text-gray-300 font-normal font-mono text-[10px]">{c}</span>
+        ))}
       </label>
       {param.description && (
-        <p className="text-xs text-gray-400 mb-1">{param.description}</p>
+        <p className="text-xs text-gray-400 mb-1 leading-relaxed">{param.description}</p>
       )}
       {param.schema.enum?.length ? (
         <select
@@ -79,13 +95,108 @@ function ParamField({
   );
 }
 
-// ── Response renderer ────────────────────────────────────────────────────────
+// ── Schema property table ─────────────────────────────────────────────────────
+
+function SchemaTable({ schema, title }: { schema: ResolvedSchema; title: string }) {
+  const props = schema.type === 'array' && schema.items?.properties
+    ? schema.items.properties
+    : schema.properties;
+  const required = schema.type === 'array'
+    ? (schema.items?.required ?? [])
+    : (schema.required ?? []);
+
+  if (!props) return null;
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-gray-500 mb-1">
+        {title} {schema.type === 'array' ? '(array of objects)' : '(object)'}
+      </p>
+      <div className="border border-gray-100 rounded overflow-hidden text-xs">
+        {Object.entries(props).map(([key, prop]) => {
+          const constraints: string[] = [];
+          if (prop.minimum != null)   constraints.push(`≥${prop.minimum}`);
+          if (prop.maximum != null)   constraints.push(`≤${prop.maximum}`);
+          if (prop.minLength != null) constraints.push(`min ${prop.minLength} chars`);
+          if (prop.maxLength != null) constraints.push(`max ${prop.maxLength} chars`);
+
+          return (
+            <div key={key} className="flex items-baseline gap-2 px-2 py-1.5 even:bg-gray-50 border-b border-gray-50 last:border-0">
+              <span className="font-mono text-blue-700 shrink-0 w-28 truncate" title={key}>{key}</span>
+              <span className="text-gray-400 font-mono shrink-0 text-[10px]">
+                {prop.format ? `${prop.type ?? ''}(${prop.format})` : (prop.type ?? 'any')}
+              </span>
+              {required.includes(key) && (
+                <span className="text-red-400 shrink-0 text-[10px] font-semibold">required</span>
+              )}
+              {constraints.map((c) => (
+                <span key={c} className="text-gray-300 shrink-0 text-[10px] font-mono">{c}</span>
+              ))}
+              {prop.enum && (
+                <span className="text-purple-400 shrink-0 text-[10px] font-mono truncate">
+                  {prop.enum.join(' | ')}
+                </span>
+              )}
+              {prop.description && (
+                <span className="text-gray-400 truncate text-[11px]" title={prop.description}>
+                  {prop.description}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Response code badges ──────────────────────────────────────────────────────
+
+function ResponseCodeBadges({ codes }: { codes: ResponseCode[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  if (!codes.length) return null;
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-gray-500 mb-1.5">Documented responses</p>
+      <div className="flex flex-wrap gap-1.5">
+        {codes.map((rc) => {
+          const colorKey = rc.status[0] as keyof typeof STATUS_COLORS;
+          const colorClass = STATUS_COLORS[colorKey] ?? 'bg-gray-50 text-gray-600 border-gray-200';
+          const isOpen = expanded === rc.status;
+
+          return (
+            <div key={rc.status} className="flex flex-col">
+              <button
+                type="button"
+                onClick={() => setExpanded(isOpen ? null : rc.status)}
+                className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded border ${colorClass} cursor-pointer hover:opacity-80 transition-opacity`}
+                title={rc.description}
+              >
+                {rc.status}
+                {rc.description && (
+                  <span className="font-normal ml-1 text-[10px] opacity-70">{rc.description}</span>
+                )}
+              </button>
+              {isOpen && rc.schema && (
+                <div className="mt-1 ml-1">
+                  <SchemaTable schema={rc.schema} title={`${rc.status} schema`} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Response renderer ─────────────────────────────────────────────────────────
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-/** Single plain object rendered as an editable form with copy-to-clipboard. */
 function ResponseObjectForm({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
   const [fields, setFields] = useState<Record<string, string>>(() =>
@@ -156,16 +267,13 @@ function ResponseObjectForm({ data }: { data: Record<string, unknown> }) {
   );
 }
 
-/** Array of objects → sortable table; single object → editable form; else → pre. */
 function ResponseView({ data }: { data: unknown }) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
 
-  // ── Array of objects ──
   if (Array.isArray(data) && data.length > 0 && isPlainObject(data[0])) {
     const rows = data as Record<string, unknown>[];
     const cols = Object.keys(rows[0]);
-
     const sorted = sortKey
       ? [...rows].sort((a, b) => {
           const av = a[sortKey], bv = b[sortKey];
@@ -194,9 +302,7 @@ function ResponseView({ data }: { data: unknown }) {
                   className="px-3 py-1.5 text-left font-semibold text-gray-600 font-mono whitespace-nowrap cursor-pointer select-none hover:bg-gray-100"
                 >
                   {col}
-                  {sortKey === col && (
-                    <span className="ml-1 text-blue-500">{sortAsc ? '↑' : '↓'}</span>
-                  )}
+                  {sortKey === col && <span className="ml-1 text-blue-500">{sortAsc ? '↑' : '↓'}</span>}
                 </th>
               ))}
             </tr>
@@ -224,17 +330,14 @@ function ResponseView({ data }: { data: unknown }) {
     );
   }
 
-  // ── Empty array ──
   if (Array.isArray(data) && data.length === 0) {
     return <p className="text-xs text-gray-400 italic">Empty array — no rows returned.</p>;
   }
 
-  // ── Single plain object → editable form ──
   if (isPlainObject(data)) {
     return <ResponseObjectForm data={data as Record<string, unknown>} />;
   }
 
-  // ── Primitive or other ──
   return (
     <pre className="text-xs bg-gray-50 rounded p-2 overflow-auto max-h-40 font-mono border border-gray-100">
       {JSON.stringify(data, null, 2)}
@@ -242,49 +345,13 @@ function ResponseView({ data }: { data: unknown }) {
   );
 }
 
-// Render a response schema as a simple property table
-function ResponseSchemaHint({ schema }: { schema: ResolvedSchema }) {
-  if (!schema.properties && schema.type !== 'array') return null;
-
-  const props = schema.type === 'array' && schema.items?.properties
-    ? schema.items.properties
-    : schema.properties;
-
-  const required = schema.type === 'array'
-    ? (schema.items?.required ?? [])
-    : (schema.required ?? []);
-
-  if (!props) return null;
-
-  return (
-    <div>
-      <p className="text-xs font-semibold text-gray-500 mb-1">
-        Response shape {schema.type === 'array' ? '(array of objects)' : '(object)'}
-      </p>
-      <div className="border border-gray-100 rounded overflow-hidden text-xs">
-        {Object.entries(props).map(([key, prop]) => (
-          <div key={key} className="flex items-baseline gap-2 px-2 py-1 even:bg-gray-50">
-            <span className="font-mono text-blue-700 shrink-0">{key}</span>
-            {required.includes(key) && <span className="text-red-400 shrink-0 text-[10px]">required</span>}
-            <span className="text-gray-400 font-mono shrink-0">
-              {prop.format ? `${prop.type ?? ''}(${prop.format})` : prop.type ?? 'any'}
-            </span>
-            {prop.description && <span className="text-gray-400 truncate">{prop.description}</span>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+// ── Main component ────────────────────────────────────────────────────────────
 
 export function EndpointTester({ endpoint }: EndpointTesterProps) {
   const { config } = useHarnessConfigStore();
   const { mutate, isPending, data, error } = useHostApi();
 
-  // State is initialised fresh on every mount — HostApiScreen passes a key prop
-  // that changes with the endpoint so React remounts rather than patching in place.
   const needsBody = ['POST', 'PUT', 'PATCH'].includes(endpoint.method);
-
   const [pathParams, setPathParams]   = useState<Record<string, string>>({});
   const [queryParams, setQueryParams] = useState<Record<string, string>>({});
   const [authToken, setAuthToken]     = useState('');
@@ -317,9 +384,7 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
         </span>
         <span className="text-sm font-mono text-gray-800 break-all">{endpoint.path}</span>
         {endpoint.deprecated && (
-          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">
-            deprecated
-          </span>
+          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">deprecated</span>
         )}
       </div>
 
@@ -330,12 +395,28 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
         </div>
       )}
 
-      {/* ── Summary + description ── */}
+      {/* ── Summary ── */}
       {endpoint.summary && endpoint.summary !== `${endpoint.method} ${endpoint.path}` && (
-        <p className="text-sm font-medium text-gray-800">{endpoint.summary}</p>
+        <p className="text-sm font-semibold text-gray-800">{endpoint.summary}</p>
       )}
+
+      {/* ── Description (markdown-lite: bold + code + bullet lists) ── */}
       {endpoint.description && (
-        <p className="text-xs text-gray-500 leading-relaxed">{endpoint.description}</p>
+        <div className="text-xs text-gray-600 leading-relaxed space-y-1">
+          {endpoint.description.split('\n').map((line, i) => {
+            if (!line.trim()) return null;
+            const html = line
+              .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+              .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-gray-700 px-0.5 rounded font-mono text-[10px]">$1</code>')
+              .replace(/^[-*]\s+/, '• ');
+            return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
+          })}
+        </div>
+      )}
+
+      {/* ── Response codes ── */}
+      {endpoint.responseCodes.length > 0 && (
+        <ResponseCodeBadges codes={endpoint.responseCodes} />
       )}
 
       {/* ── Default headers from config ── */}
@@ -369,24 +450,34 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
       )}
 
       {/* ── Path parameters ── */}
-      {pathParamList.map((p) => (
-        <ParamField
-          key={p.name}
-          param={p}
-          value={pathParams[p.name] ?? ''}
-          onChange={(v) => setPathParams((prev) => ({ ...prev, [p.name]: v }))}
-        />
-      ))}
+      {pathParamList.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-gray-500">Path parameters</p>
+          {pathParamList.map((p) => (
+            <ParamField
+              key={p.name}
+              param={p}
+              value={pathParams[p.name] ?? ''}
+              onChange={(v) => setPathParams((prev) => ({ ...prev, [p.name]: v }))}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── Query parameters ── */}
-      {queryParamList.map((p) => (
-        <ParamField
-          key={p.name}
-          param={p}
-          value={queryParams[p.name] ?? ''}
-          onChange={(v) => setQueryParams((prev) => ({ ...prev, [p.name]: v }))}
-        />
-      ))}
+      {queryParamList.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-gray-500">Query parameters</p>
+          {queryParamList.map((p) => (
+            <ParamField
+              key={p.name}
+              param={p}
+              value={queryParams[p.name] ?? ''}
+              onChange={(v) => setQueryParams((prev) => ({ ...prev, [p.name]: v }))}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── Request body ── */}
       {needsBody && (
@@ -405,21 +496,32 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
               </button>
             )}
           </div>
-          {/* Show property names as inline hints */}
+          {/* Property chips with description tooltip */}
           {endpoint.requestBodySchema?.properties && (
-            <div className="flex flex-wrap gap-1 mb-1">
+            <div className="flex flex-wrap gap-1 mb-1.5">
               {Object.entries(endpoint.requestBodySchema.properties).map(([key, prop]) => (
                 <span
                   key={key}
-                  title={prop.description ?? prop.type ?? ''}
-                  className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-mono cursor-default"
+                  title={[prop.description, prop.type, prop.format].filter(Boolean).join(' · ')}
+                  className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-mono cursor-default"
                 >
                   {key}
                   {endpoint.requestBodySchema?.required?.includes(key) && (
                     <span className="text-red-400 ml-0.5">*</span>
                   )}
+                  {prop.type && (
+                    <span className="text-blue-400 ml-1 opacity-70">
+                      {prop.format ? `${prop.type}(${prop.format})` : prop.type}
+                    </span>
+                  )}
                 </span>
               ))}
+            </div>
+          )}
+          {/* Full schema table for body */}
+          {endpoint.requestBodySchema && (
+            <div className="mb-2">
+              <SchemaTable schema={endpoint.requestBodySchema} title="Request body schema" />
             </div>
           )}
           <textarea
@@ -438,6 +540,7 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
       <button
         onClick={handleFire}
         disabled={isPending}
+        type="button"
         className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
       >
         {isPending ? 'Sending…' : 'Send Request'}
@@ -458,9 +561,9 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
         </div>
       )}
 
-      {/* ── Response schema hint ── */}
-      {endpoint.responseSchema && !data && (
-        <ResponseSchemaHint schema={endpoint.responseSchema} />
+      {/* ── Response schema hint (pre-request) ── */}
+      {endpoint.responseSchema && data === undefined && (
+        <SchemaTable schema={endpoint.responseSchema} title="Expected response schema" />
       )}
 
     </div>

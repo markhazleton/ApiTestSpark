@@ -8,11 +8,20 @@ public sealed class CustomerCache
 {
     private readonly List<Customer> _customers =
     [
-        new(1, "Alice Johnson",   "alice@example.com",   "555-0101"),
-        new(2, "Bob Smith",       "bob@example.com",     "555-0102"),
-        new(3, "Carol White",     "carol@example.com",   null),
-        new(4, "David Brown",     "david@example.com",   "555-0104"),
-        new(5, "Eve Martinez",    "eve@example.com",     "555-0105"),
+        new(1, "Alice Johnson",  "alice@example.com",  "555-0101", "Acme Corp",
+            new("123 Main St",   "Springfield", "IL", "62701", "US")),
+
+        new(2, "Bob Smith",      "bob@example.com",    "555-0102", null,
+            new("456 Oak Ave",   "Shelbyville", "IL", "62565", "US")),
+
+        new(3, "Carol White",    "carol@example.com",  null,       "White Consulting",
+            new("789 Elm Rd",    "Capital City", "IL", "62702", "US")),
+
+        new(4, "David Brown",    "david@example.com",  "555-0104", "Brown Industries",
+            new("321 Pine Blvd", "Ogdenville",   "OR", "97401", "US")),
+
+        new(5, "Eve Martinez",   "eve@example.com",    "555-0105", null,
+            new("654 Cedar Ln",  "North Haverbrook", "OR", "97402", "US")),
     ];
 
     private int _nextId = 6;

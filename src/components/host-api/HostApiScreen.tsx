@@ -9,7 +9,8 @@ export function HostApiScreen() {
   // Must be called here — this component IS the root consumer of useHarnessConfig
   useHarnessConfig();
 
-  const { endpoints, configStatus, openApiStatus, configError, openApiError } = useHarnessConfigStore();
+  const { apiInfo, endpoints, configStatus, openApiStatus, configError, openApiError } =
+    useHarnessConfigStore();
   const [selected, setSelected] = useState<DiscoveredEndpoint | null>(null);
 
   if (configStatus === 'loading' || configStatus === 'idle') {
@@ -36,13 +37,41 @@ export function HostApiScreen() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h1 className="text-lg font-semibold text-gray-900">Your App's APIs</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Autodiscovered from the host app's OpenAPI v3 document
-        </p>
+
+      {/* ── Header: API info from OpenAPI info block ── */}
+      <div className="px-6 py-4 border-b border-gray-200 shrink-0">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <h1 className="text-lg font-semibold text-gray-900">
+            {apiInfo?.title ?? "Your App's APIs"}
+          </h1>
+          {apiInfo?.version && (
+            <span className="text-xs font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+              {apiInfo.version}
+            </span>
+          )}
+          {endpoints.length > 0 && (
+            <span className="text-xs text-gray-400">
+              {endpoints.length} endpoint{endpoints.length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+        {apiInfo?.description && !apiInfo.description.includes('##') && (
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{apiInfo.description}</p>
+        )}
+        {!apiInfo && (
+          <p className="text-xs text-gray-400 mt-0.5">Autodiscovered from the host app's OpenAPI v3 document</p>
+        )}
+        {apiInfo?.contactName && (
+          <p className="text-xs text-gray-400 mt-0.5">
+            Contact:{' '}
+            {apiInfo.contactUrl
+              ? <a href={apiInfo.contactUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{apiInfo.contactName}</a>
+              : apiInfo.contactName}
+          </p>
+        )}
       </div>
 
+      {/* ── Status banners ── */}
       {openApiStatus === 'skipped' && (
         <div className="p-6">
           <div className="bg-gray-50 border border-gray-200 rounded p-4">
@@ -74,9 +103,10 @@ export function HostApiScreen() {
         </div>
       )}
 
+      {/* ── Two-pane layout ── */}
       {openApiStatus === 'ready' && endpoints.length > 0 && (
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-72 shrink-0 border-r border-gray-200 overflow-y-auto">
+          <div className="w-72 shrink-0 border-r border-gray-200 overflow-y-auto flex flex-col">
             <EndpointList
               endpoints={endpoints}
               selected={selected}
@@ -87,7 +117,22 @@ export function HostApiScreen() {
             {selected ? (
               <EndpointTester key={`${selected.method}-${selected.path}`} endpoint={selected} />
             ) : (
-              <div className="p-6 text-sm text-gray-400">Select an endpoint to test it.</div>
+              <div className="p-8 text-center">
+                <p className="text-sm text-gray-400">Select an endpoint from the list to test it.</p>
+                {apiInfo?.description && (
+                  <div className="mt-4 text-left max-w-lg mx-auto bg-gray-50 border border-gray-100 rounded p-4">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">About this API</p>
+                    <div className="text-xs text-gray-500 leading-relaxed space-y-1">
+                      {apiInfo.description.split('\n').filter(Boolean).slice(0, 12).map((line, i) => {
+                        const html = line
+                          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-gray-700 px-0.5 rounded font-mono">$1</code>');
+                        return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

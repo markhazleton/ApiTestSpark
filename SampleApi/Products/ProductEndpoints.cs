@@ -5,42 +5,70 @@ namespace SampleApi.Products;
 
 /// <summary>
 /// Registers all /products routes onto a <see cref="RouteGroupBuilder"/>.
-/// Called from Program.cs: <c>app.MapGroup("/products").WithTags("Products").MapProducts();</c>
+/// Called from Program.cs: <c>app.MapGroup("/products").WithTags("Products: Catalog").MapProducts();</c>
 /// </summary>
 public static class ProductEndpoints
 {
     public static RouteGroupBuilder MapProducts(this RouteGroupBuilder group)
     {
+        // ── Catalog browsing ────────────────────────────────────────────────
+
         group.MapGet("/", GetAll)
              .WithName("GetProducts")
              .WithSummary("List all products")
-             .WithDescription("Returns the full catalog of products held in the in-memory store. " +
-                              "The list is pre-seeded with five products on startup.")
+             .WithDescription(
+                 "Returns the full catalog of products. The list is pre-seeded with **10 products** " +
+                 "across three categories: *Tools*, *Electronics*, and *Office*. " +
+                 "Each product includes category, description, and current stock quantity.")
              .Produces<IReadOnlyList<Product>>(StatusCodes.Status200OK);
 
         group.MapGet("/{id}", GetById)
              .WithName("GetProductById")
              .WithSummary("Get a product by ID")
-             .WithDescription("Returns a single product by its integer ID. " +
-                              "Seeded IDs are 1–5. Returns 404 if no product exists with the given ID.")
+             .WithDescription(
+                 "Returns a single product by its integer ID. " +
+                 "Seeded IDs are **1–10**. Try IDs 1 (Widget), 2 (Gadget), or 6 (Gizmo Pro). " +
+                 "Returns 404 if no product exists with the given ID.")
              .Produces<Product>(StatusCodes.Status200OK)
              .Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/categories", GetCategories)
+             .WithName("GetProductCategories")
+             .WithSummary("List product categories")
+             .WithDescription(
+                 "Returns the distinct list of category names currently used in the catalog, sorted alphabetically. " +
+                 "Useful for building filter menus. Seeded categories: *Electronics*, *Office*, *Tools*.")
+             .Produces<IReadOnlyList<string>>(StatusCodes.Status200OK);
+
+        group.MapGet("/category/{category}", GetByCategory)
+             .WithName("GetProductsByCategory")
+             .WithSummary("List products in a category")
+             .WithDescription(
+                 "Returns all products whose **Category** matches the given string (case-insensitive). " +
+                 "Valid seeded values: `Electronics`, `Office`, `Tools`. " +
+                 "Returns an empty array if no products belong to the category.")
+             .Produces<IReadOnlyList<Product>>(StatusCodes.Status200OK);
+
+        // ── Mutations ───────────────────────────────────────────────────────
 
         group.MapPost("/", Create)
              .WithName("CreateProduct")
              .WithSummary("Create a new product")
-             .WithDescription("Adds a product to the in-memory store. " +
-                              "The **Id** field is assigned by the server — any value you supply is ignored. " +
-                              "**Name** is required (1–100 chars). **Price** must be between 0.01 and 99,999.99.")
+             .WithDescription(
+                 "Adds a product to the in-memory store. The **Id** is assigned by the server. " +
+                 "**Name** is required (1–100 chars). **Price** must be between 0.01 and 99,999.99. " +
+                 "**Category**, **Description**, and **StockQuantity** are optional.\n\n" +
+                 "**Try it:** Create a product, copy its Id, then create an order referencing it via `POST /orders`.")
              .Produces<Product>(StatusCodes.Status201Created)
              .Produces<string>(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id}", Update)
              .WithName("UpdateProduct")
              .WithSummary("Update an existing product")
-             .WithDescription("Replaces the product at the given ID with the supplied values. " +
-                              "The **Id** in the URL is authoritative — the Id in the body is ignored. " +
-                              "Returns 404 if no product exists with the given ID.")
+             .WithDescription(
+                 "Replaces the product at the given ID with the supplied values. " +
+                 "The **Id** in the URL is authoritative — the Id in the body is ignored. " +
+                 "Returns 404 if no product exists with the given ID.")
              .Produces<Product>(StatusCodes.Status200OK)
              .Produces<string>(StatusCodes.Status400BadRequest)
              .Produces(StatusCodes.Status404NotFound);
@@ -48,10 +76,11 @@ public static class ProductEndpoints
         group.MapDelete("/{id}", Delete)
              .WithName("DeleteProduct")
              .WithSummary("Delete a product")
-             .WithDescription("Removes the product with the given ID from the store permanently. " +
-                              "Returns 204 No Content on success. Returns 404 if the product does not exist. " +
-                              "**Note:** deleting a product that is referenced by an existing order does not " +
-                              "affect those orders (prices are snapshotted at order time).")
+             .WithDescription(
+                 "Permanently removes the product with the given ID. " +
+                 "Returns 204 No Content on success. Returns 404 if the product does not exist. " +
+                 "**Note:** existing order line items snapshot product name and price at order time, " +
+                 "so deleting a product does not affect historical orders.")
              .Produces(StatusCodes.Status204NoContent)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -63,16 +92,17 @@ public static class ProductEndpoints
     private static Ok<IReadOnlyList<Product>> GetAll([FromServices] ProductCache cache) =>
         TypedResults.Ok(cache.GetAll());
 
-    private static Results<Ok<Product>, NotFound> GetById(
-        int id,
-        [FromServices] ProductCache cache) =>
-        cache.GetById(id) is { } product
-            ? TypedResults.Ok(product)
-            : TypedResults.NotFound();
+    private static Results<Ok<Product>, NotFound> GetById(int id, [FromServices] ProductCache cache) =>
+        cache.GetById(id) is { } p ? TypedResults.Ok(p) : TypedResults.NotFound();
+
+    private static Ok<IReadOnlyList<string>> GetCategories([FromServices] ProductCache cache) =>
+        TypedResults.Ok(cache.GetCategories());
+
+    private static Ok<IReadOnlyList<Product>> GetByCategory(string category, [FromServices] ProductCache cache) =>
+        TypedResults.Ok(cache.GetByCategory(category));
 
     private static Results<Created<Product>, BadRequest<string>> Create(
-        Product? product,
-        [FromServices] ProductCache cache)
+        Product? product, [FromServices] ProductCache cache)
     {
         if (product is null) return TypedResults.BadRequest("Product body is required.");
         var created = cache.Add(product);
@@ -80,18 +110,12 @@ public static class ProductEndpoints
     }
 
     private static Results<Ok<Product>, BadRequest<string>, NotFound> Update(
-        int id,
-        Product? product,
-        [FromServices] ProductCache cache)
+        int id, Product? product, [FromServices] ProductCache cache)
     {
         if (product is null) return TypedResults.BadRequest("Product body is required.");
-        return cache.Update(id, product) is { } updated
-            ? TypedResults.Ok(updated)
-            : TypedResults.NotFound();
+        return cache.Update(id, product) is { } u ? TypedResults.Ok(u) : TypedResults.NotFound();
     }
 
-    private static Results<NoContent, NotFound> Delete(
-        int id,
-        [FromServices] ProductCache cache) =>
+    private static Results<NoContent, NotFound> Delete(int id, [FromServices] ProductCache cache) =>
         cache.Remove(id) ? TypedResults.NoContent() : TypedResults.NotFound();
 }
