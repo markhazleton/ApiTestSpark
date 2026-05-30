@@ -1,0 +1,58 @@
+namespace SampleApi.Customers;
+
+/// <summary>
+/// Thread-safe in-memory customer store. Registered as a singleton so state
+/// persists for the lifetime of the application process.
+/// </summary>
+public sealed class CustomerCache
+{
+    private readonly List<Customer> _customers =
+    [
+        new(1, "Alice Johnson",   "alice@example.com",   "555-0101"),
+        new(2, "Bob Smith",       "bob@example.com",     "555-0102"),
+        new(3, "Carol White",     "carol@example.com",   null),
+        new(4, "David Brown",     "david@example.com",   "555-0104"),
+        new(5, "Eve Martinez",    "eve@example.com",     "555-0105"),
+    ];
+
+    private int _nextId = 6;
+
+    /// <summary>Returns a read-only snapshot of all customers.</summary>
+    public IReadOnlyList<Customer> GetAll() => _customers.AsReadOnly();
+
+    /// <summary>Returns the customer with the given ID, or <c>null</c> if not found.</summary>
+    public Customer? GetById(int id) => _customers.FirstOrDefault(c => c.Id == id);
+
+    /// <summary>Adds a new customer, assigning a server-generated ID. Returns the created customer.</summary>
+    public Customer Add(Customer customer)
+    {
+        var created = customer with { Id = _nextId++ };
+        _customers.Add(created);
+        return created;
+    }
+
+    /// <summary>
+    /// Replaces the customer at <paramref name="id"/> with the supplied values.
+    /// Returns the updated customer, or <c>null</c> if no customer with that ID exists.
+    /// </summary>
+    public Customer? Update(int id, Customer customer)
+    {
+        var index = _customers.FindIndex(c => c.Id == id);
+        if (index < 0) return null;
+        var updated = customer with { Id = id };
+        _customers[index] = updated;
+        return updated;
+    }
+
+    /// <summary>
+    /// Removes the customer with <paramref name="id"/>.
+    /// Returns <c>true</c> if the customer was found and removed.
+    /// </summary>
+    public bool Remove(int id)
+    {
+        var customer = _customers.FirstOrDefault(c => c.Id == id);
+        if (customer is null) return false;
+        _customers.Remove(customer);
+        return true;
+    }
+}
