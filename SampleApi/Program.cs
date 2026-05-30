@@ -464,6 +464,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
 
 app.MapGet("/products", ([FromServices] ProductCache cache) => cache.GetAll())
    .WithName("GetProducts")
+   .WithTags("Products")
    .WithSummary("List all products")
    .WithDescription("Returns the full list of products in the in-memory store.");
 
@@ -472,6 +473,7 @@ app.MapGet("/products/{id}", (int id, [FromServices] ProductCache cache) =>
         ? Results.Ok(product)
         : Results.NotFound())
    .WithName("GetProductById")
+   .WithTags("Products")
    .WithSummary("Get a product by ID")
    .WithDescription("Returns a single product by its integer ID, or 404 if not found.");
 
@@ -482,6 +484,7 @@ app.MapPost("/products", (Product? product, [FromServices] ProductCache cache) =
     return Results.Created($"/products/{created.Id}", created);
 })
    .WithName("CreateProduct")
+   .WithTags("Products")
    .WithSummary("Create a new product")
    .WithDescription("Adds a new product to the in-memory store. The Id field is assigned by the server.");
 
@@ -493,12 +496,14 @@ app.MapPut("/products/{id}", (int id, Product? product, [FromServices] ProductCa
         : Results.NotFound();
 })
    .WithName("UpdateProduct")
+   .WithTags("Products")
    .WithSummary("Update an existing product")
    .WithDescription("Replaces the product at the given ID. Returns 404 if the product does not exist.");
 
 app.MapDelete("/products/{id}", (int id, [FromServices] ProductCache cache) =>
     cache.Remove(id) ? Results.NoContent() : Results.NotFound())
    .WithName("DeleteProduct")
+   .WithTags("Products")
    .WithSummary("Delete a product")
    .WithDescription("Removes a product from the store by ID. Returns 204 on success, 404 if not found.");
 

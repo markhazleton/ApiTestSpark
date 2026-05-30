@@ -1,12 +1,112 @@
-import type { DiscoveredEndpoint, EndpointParameter, OpenApiV3Doc, OpenApiV3Operation } from '../types';
+import type {
+  DiscoveredEndpoint,
+  EndpointParameter,
+  OpenApiV3Doc,
+  OpenApiV3Operation,
+  ResolvedSchema,
+} from '../types';
 
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const;
 type HttpMethod = typeof HTTP_METHODS[number];
+
+/** Resolve a $ref like "#/components/schemas/Product" to its raw schema object. */
+function resolveRef(ref: string, doc: OpenApiV3Doc): unknown | null {
+  const parts = ref.replace(/^#\//, '').split('/');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let node: any = doc;
+  for (const part of parts) {
+    if (node == null || typeof node !== 'object') return null;
+    node = node[part];
+  }
+  return node ?? null;
+}
+
+/** Recursively resolve a raw schema node, following $ref and oneOf/anyOf once per level. */
+function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSchema | null {
+  if (depth > 5 || raw == null || typeof raw !== 'object') return null;
+  const node = raw as Record<string, unknown>;
+
+  // Follow $ref
+  if ('$ref' in node && typeof node['$ref'] === 'string') {
+    return resolveSchema(resolveRef(node['$ref'], doc), doc, depth + 1);
+  }
+
+  // oneOf/anyOf — pick the first non-null branch
+  const combiner = node['oneOf'] ?? node['anyOf'];
+  if (Array.isArray(combiner)) {
+    for (const branch of combiner) {
+      const resolved = resolveSchema(branch, doc, depth + 1);
+      if (resolved !== null) return resolved;
+    }
+    return null;
+  }
+
+  const result: ResolvedSchema = {};
+
+  // Normalise type — .NET 10 emits type as an array e.g. ["integer","string"]
+  const rawType = node['type'];
+  if (typeof rawType === 'string') {
+    result.type = rawType;
+  } else if (Array.isArray(rawType)) {
+    result.type = (rawType as string[]).find((t) => t !== 'null') ?? 'string';
+  }
+
+  if (typeof node['format'] === 'string') result.format = node['format'];
+  if (typeof node['description'] === 'string') result.description = node['description'];
+  if (node['example'] !== undefined) result.example = node['example'];
+  if (Array.isArray(node['enum'])) result.enum = node['enum'] as string[];
+  if (Array.isArray(node['required'])) result.required = node['required'] as string[];
+
+  if (node['properties'] != null && typeof node['properties'] === 'object') {
+    result.properties = {};
+    for (const [key, val] of Object.entries(node['properties'] as Record<string, unknown>)) {
+      const resolved = resolveSchema(val, doc, depth + 1);
+      if (resolved) result.properties[key] = resolved;
+    }
+  }
+
+  if (node['items'] != null) {
+    const resolved = resolveSchema(node['items'], doc, depth + 1);
+    if (resolved) result.items = resolved;
+  }
+
+  return result;
+}
+
+/** Build a JSON scaffold string from resolved schema properties for use as a body textarea default. */
+export function buildJsonScaffold(schema: ResolvedSchema | null): string {
+  if (!schema?.properties) return '{}';
+  const obj: Record<string, unknown> = {};
+  for (const [key, prop] of Object.entries(schema.properties)) {
+    if (prop.example !== undefined) {
+      obj[key] = prop.example;
+    } else if (prop.enum?.length) {
+      obj[key] = prop.enum[0];
+    } else {
+      switch (prop.type) {
+        case 'integer':
+        case 'number':  obj[key] = 0; break;
+        case 'boolean': obj[key] = false; break;
+        case 'array':   obj[key] = []; break;
+        case 'object':  obj[key] = {}; break;
+        default:        obj[key] = '';
+      }
+    }
+  }
+  return JSON.stringify(obj, null, 2);
+}
+
+function normaliseType(raw: string | string[] | undefined): string {
+  if (!raw) return 'string';
+  if (typeof raw === 'string') return raw;
+  return raw.find((t) => t !== 'null') ?? 'string';
+}
 
 function parseOperation(
   method: HttpMethod,
   path: string,
   op: OpenApiV3Operation,
+  doc: OpenApiV3Doc,
 ): DiscoveredEndpoint {
   const parameters: EndpointParameter[] = (op.parameters ?? []).map((p) => ({
     name: p.name,
@@ -14,26 +114,32 @@ function parseOperation(
       ? p.in
       : 'query') as EndpointParameter['in'],
     required: p.required ?? false,
-    schema: p.schema ?? { type: 'string' },
+    schema: {
+      type: normaliseType(p.schema?.type),
+      format: p.schema?.format,
+      enum: p.schema?.enum,
+    },
     description: p.description ?? '',
+    example: p.example != null ? String(p.example) : undefined,
   }));
 
-  // Resolve requestBody schema from first content type — skip $ref (not dereferenced in v1)
-  let requestBodySchema: unknown = null;
+  // Resolve requestBody — follows $ref and oneOf so .NET 10's nullable wrappers are unwrapped
+  let requestBodySchema: ResolvedSchema | null = null;
+  const requestBodyRequired = op.requestBody?.required ?? false;
   if (op.requestBody?.content) {
     const firstContent = Object.values(op.requestBody.content)[0];
-    if (firstContent?.schema && !('$ref' in (firstContent.schema as object))) {
-      requestBodySchema = firstContent.schema;
+    if (firstContent?.schema) {
+      requestBodySchema = resolveSchema(firstContent.schema, doc);
     }
   }
 
-  // Resolve 200/201 response schema — skip $ref
-  let responseSchema: unknown = null;
+  // Resolve 200/201 response schema
+  let responseSchema: ResolvedSchema | null = null;
   const successResponse = op.responses?.['200'] ?? op.responses?.['201'];
   if (successResponse?.content) {
     const firstContent = Object.values(successResponse.content)[0];
-    if (firstContent?.schema && !('$ref' in (firstContent.schema as object))) {
-      responseSchema = firstContent.schema;
+    if (firstContent?.schema) {
+      responseSchema = resolveSchema(firstContent.schema, doc);
     }
   }
 
@@ -41,23 +147,19 @@ function parseOperation(
     method: method.toUpperCase() as DiscoveredEndpoint['method'],
     path,
     summary: op.summary ?? op.operationId ?? `${method.toUpperCase()} ${path}`,
+    description: op.description ?? '',
+    deprecated: op.deprecated ?? false,
     tags: op.tags ?? [],
     parameters,
     requestBodySchema,
+    requestBodyRequired,
     responseSchema,
   };
 }
 
 export function parseOpenApiV3(doc: OpenApiV3Doc): DiscoveredEndpoint[] {
-  // Reject non-v3 documents
-  if (!doc.openapi?.startsWith('3.')) {
-    return [];
-  }
-
-  if (!doc.paths || typeof doc.paths !== 'object') {
-    // Caller should log a warning via useDebugStore when this returns empty
-    return [];
-  }
+  if (!doc.openapi?.startsWith('3.')) return [];
+  if (!doc.paths || typeof doc.paths !== 'object') return [];
 
   const endpoints: DiscoveredEndpoint[] = [];
 
@@ -67,7 +169,7 @@ export function parseOpenApiV3(doc: OpenApiV3Doc): DiscoveredEndpoint[] {
       const op = pathItem[method];
       if (!op) continue;
       try {
-        endpoints.push(parseOperation(method, path, op));
+        endpoints.push(parseOperation(method, path, op, doc));
       } catch {
         // Skip malformed operations — never throw from the parser
       }

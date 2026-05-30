@@ -85,7 +85,7 @@ export function HostApiScreen() {
           </div>
           <div className="flex-1 overflow-y-auto">
             {selected ? (
-              <EndpointTester endpoint={selected} />
+              <EndpointTester key={`${selected.method}-${selected.path}`} endpoint={selected} />
             ) : (
               <div className="p-6 text-sm text-gray-400">Select an endpoint to test it.</div>
             )}
