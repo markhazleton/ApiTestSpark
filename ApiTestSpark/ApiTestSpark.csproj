@@ -67,12 +67,12 @@
 
   <!-- Embed the compiled React SPA assets from the repo root build/ directory -->
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildProjectDirectory)\..\build\**"
-      Link="build\%(RecursiveDir)%(Filename)%(Extension)" />
-    <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include="NUGET-PACKAGE-WALKTHROUGH.md" Pack="true" PackagePath="\" />
-    <None Include="icon.png" Pack="true" PackagePath="\" />
-    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    <EmbeddedResource Include="$(MSBuildProjectDirectory)/../build/**"
+      Link="build/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="NUGET-PACKAGE-WALKTHROUGH.md" Pack="true" PackagePath="/" />
+    <None Include="icon.png" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <!--
@@ -87,11 +87,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <_SpaSources Include="$(MSBuildProjectDirectory)\..\src\**\*" />
-    <_SpaSources Include="$(MSBuildProjectDirectory)\..\index.html" />
-    <_SpaSources Include="$(MSBuildProjectDirectory)\..\vite.config.ts" />
-    <_SpaSources Include="$(MSBuildProjectDirectory)\..\tsconfig*.json" />
-    <_SpaSources Include="$(MSBuildProjectDirectory)\..\package.json" />
+    <_SpaSources Include="$(MSBuildProjectDirectory)/../src/**/*" />
+    <_SpaSources Include="$(MSBuildProjectDirectory)/../index.html" />
+    <_SpaSources Include="$(MSBuildProjectDirectory)/../vite.config.ts" />
+    <_SpaSources Include="$(MSBuildProjectDirectory)/../tsconfig*.json" />
+    <_SpaSources Include="$(MSBuildProjectDirectory)/../package.json" />
   </ItemGroup>
 
   <Target Name="BuildReactSpa"
@@ -100,14 +100,14 @@
     Outputs="$(_SpaSentinel)">
     <Message Text="ApiTestSpark: building React SPA (base=/api-test-spark/)..." Importance="high" />
     <Exec Command="npm run build"
-      WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+      WorkingDirectory="$(MSBuildProjectDirectory)/.." />
     <Touch Files="$(_SpaSentinel)" AlwaysCreate="true" />
   </Target>
 
   <!-- Pre-pack guard: fail loudly if build/ is empty (resource name mismatch trap) -->
   <Target Name="ValidateSpaAssets" BeforeTargets="Pack">
     <ItemGroup>
-      <_SpaFiles Include="$(MSBuildProjectDirectory)\..\build\**\*.*" />
+      <_SpaFiles Include="$(MSBuildProjectDirectory)/../build/**/*.*" />
     </ItemGroup>
     <Error
       Condition="'@(_SpaFiles)' == ''"
