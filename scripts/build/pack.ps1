@@ -11,7 +11,7 @@
 
 param(
     [switch]$SkipAudit = $false,
-    [switch]$SkipLint  = $false
+    [switch]$SkipLint = $false
 )
 
 Set-StrictMode -Version Latest
@@ -34,7 +34,8 @@ if (-not $SkipAudit) {
         Write-Warning "npm audit found HIGH vulnerabilities. Review 'npm audit' output — not blocking for now."
     }
     Write-Host "  npm audit passed (no critical vulnerabilities)" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "`n[1/7] Skipping npm audit (--SkipAudit flag set)" -ForegroundColor Yellow
 }
 
@@ -47,7 +48,8 @@ if (-not $SkipLint) {
         exit 1
     }
     Write-Host "  ESLint passed (zero errors)" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "`n[2/7] Skipping ESLint (--SkipLint flag set)" -ForegroundColor Yellow
 }
 
@@ -107,7 +109,8 @@ if (Test-Path $nupkgPath) {
     $sizeMB = [math]::Round((Get-Item $nupkgPath).Length / 1MB, 2)
     if ($sizeMB -gt 2) {
         Write-Warning "Package size is ${sizeMB}MB — exceeds 2MB SC-006 budget. Review embedded assets."
-    } else {
+    }
+    else {
         Write-Host "  Package size: ${sizeMB}MB (within 2MB SC-006 budget)" -ForegroundColor Green
     }
 }

@@ -15,15 +15,24 @@
     <Copyright>Copyright © Mark Hazleton 2026</Copyright>
     <NeutralLanguage>en-US</NeutralLanguage>
     <Title>API Test Spark — Interactive API Test UI for .NET 10 Minimal APIs</Title>
-    <Description>Embed the API Test Spark React SPA into any .NET 10 Minimal API project with a single MapApiTestSpark() call. Autodiscovers OpenAPI v3 endpoints and renders an interactive test UI at /api-test-spark/. Includes sortable response tables, editable object forms, curl command generation, a draggable debug panel, and Azure Application Insights integration. Zero configuration required — just add MapApiTestSpark() to your startup.</Description>
-    <PackageTags>api;test;spark;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development</PackageTags>
+    <Description>Embed the API Test Spark React SPA into any .NET 10 Minimal API project with a
+      single MapApiTestSpark() call. Autodiscovers OpenAPI v3 endpoints and renders an interactive
+      test UI at /api-test-spark/. Includes sortable response tables, editable object forms, curl
+      command generation, a draggable debug panel, and Azure Application Insights integration. Zero
+      configuration required — just add MapApiTestSpark() to your startup.</Description>
+    <PackageTags>
+      api;test;spark;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://apitest.makeboldspark.com</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MarkHazleton/ApiTestSpark</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>1.0.0 — Initial release. MapApiTestSpark() embeds an interactive React API test UI at /api-test-spark/ in any .NET 10 Minimal API. Autodiscovers OpenAPI v3 endpoints. Renders sortable response tables and editable object forms. Generates curl commands. Includes draggable debug panel and Azure Application Insights integration. See CHANGELOG.md for full history.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.0.0 — Initial release. MapApiTestSpark() embeds an interactive React API
+      test UI at /api-test-spark/ in any .NET 10 Minimal API. Autodiscovers OpenAPI v3 endpoints.
+      Renders sortable response tables and editable object forms. Generates curl commands. Includes
+      draggable debug panel and Azure Application Insights integration. See CHANGELOG.md for full
+      history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Build quality -->
@@ -59,7 +68,7 @@
   <!-- Embed the compiled React SPA assets from the repo root build/ directory -->
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildProjectDirectory)\..\build\**"
-                      Link="build\%(RecursiveDir)%(Filename)%(Extension)" />
+      Link="build\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="NUGET-PACKAGE-WALKTHROUGH.md" Pack="true" PackagePath="\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
@@ -86,12 +95,12 @@
   </ItemGroup>
 
   <Target Name="BuildReactSpa"
-          BeforeTargets="Build"
-          Inputs="@(_SpaSources)"
-          Outputs="$(_SpaSentinel)">
+    BeforeTargets="Build"
+    Inputs="@(_SpaSources)"
+    Outputs="$(_SpaSentinel)">
     <Message Text="ApiTestSpark: building React SPA (base=/api-test-spark/)..." Importance="high" />
     <Exec Command="npm run build"
-          WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+      WorkingDirectory="$(MSBuildProjectDirectory)\.." />
     <Touch Files="$(_SpaSentinel)" AlwaysCreate="true" />
   </Target>
 
