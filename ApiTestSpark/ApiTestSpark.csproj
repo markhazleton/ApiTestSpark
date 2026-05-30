@@ -61,6 +61,7 @@
     <EmbeddedResource Include="$(MSBuildProjectDirectory)\..\build\**"
                       Link="build\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="NUGET-PACKAGE-WALKTHROUGH.md" Pack="true" PackagePath="\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
     <None Include="..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>

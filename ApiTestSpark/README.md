@@ -79,6 +79,12 @@ The harness uses the `ApiTestSpark` logger category. To enable verbose asset log
 
 Or set `options.EnableVerboseLogging = true` in code.
 
+## How this package is built
+
+For a detailed technical walkthrough of the packaging approach — MSBuild/Vite bridge, embedded resources, Source Link, public API tracking, CI/CD pipeline, and security configuration — see [NUGET-PACKAGE-WALKTHROUGH.md](NUGET-PACKAGE-WALKTHROUGH.md).
+
+Source: [github.com/MarkHazleton/ApiTestSpark](https://github.com/MarkHazleton/ApiTestSpark)
+
 ## SPA routing note
 
 The harness uses client-side SPA routing. All extensionless paths under `/api-test-spark/` return HTTP 200 with `index.html` — the React router handles invalid paths client-side. WAF rules should not expect HTTP 404 for SPA routes.
