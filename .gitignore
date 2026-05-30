@@ -45,7 +45,6 @@ pids/
 .yarn/install-state.gz
 .pnp.*
 yarn-error.log
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
