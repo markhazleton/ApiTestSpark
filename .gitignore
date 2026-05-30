@@ -66,18 +66,27 @@ test-results.xml
 
 # Editor directories and files
 .vscode/*
-.vs/*
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
+
+# Visual Studio local state (solution-level and project-level)
+.vs/
+**/.vs/
+
+# CodeRush personal settings
+.cr/
+**/.cr/
+
+# .NET local user options
+*.user
 
 # Working directories and temporary files
 .temp/
@@ -128,6 +137,7 @@ bin/
 obj/
 *.nupkg
 *.snupkg
+nupkg/
 
 # DevSpark — personal overrides (never commit)
 .documentation/*/commands/
