@@ -337,27 +337,56 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
             <section id="demo">
                 <h2>Live demo</h2>
                 <p class="section-intro">
-                    This page is the live demonstration. The Products API below is the host application.
-                    API Test Spark is already installed and running — click the button to open it.
+                    This server is the live demonstration. Three related API groups are running and fully annotated —
+                    Products, Customers, and Orders. API Test Spark has autodiscovered all of them via the OpenAPI document.
                 </p>
                 <div class="demo-box">
                     <p>
-                        The harness has autodiscovered the Products API on this page via its OpenAPI document.
-                        Open it to browse endpoints, fire requests, and inspect responses in the debug panel.
+                        Click to open the harness. Use the collapsible group list on the left to navigate between
+                        resource groups. Request body fields are pre-filled from the schema. Responses render as
+                        sortable tables or editable forms in the debug panel.
                     </p>
                     <a href="/api-test-spark/" class="btn-primary" style="font-size:1.05rem;padding:1rem 2.5rem;">⚡ Open API Test Spark</a>
-                    <ul class="endpoint-list">
-                        <li><span class="method get">GET</span><code>/products</code> — list all products</li>
-                        <li><span class="method get">GET</span><code>/products/{id}</code> — get product by ID</li>
-                        <li><span class="method post">POST</span><code>/products</code> — create a product</li>
-                        <li><span class="method put">PUT</span><code>/products/{id}</code> — update a product</li>
-                        <li><span class="method delete">DELETE</span><code>/products/{id}</code> — delete a product</li>
-                        <li><span class="method get">GET</span><code>/openapi/v1.json</code> — OpenAPI document</li>
-                    </ul>
-                    <div class="badges" style="justify-content:center;margin-top:1.5rem;">
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;margin-top:1.75rem;text-align:left;">
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Products</div>
+                            <ul class="endpoint-list">
+                                <li><span class="method get">GET</span><code>/products</code></li>
+                                <li><span class="method get">GET</span><code>/products/{id}</code></li>
+                                <li><span class="method post">POST</span><code>/products</code></li>
+                                <li><span class="method put">PUT</span><code>/products/{id}</code></li>
+                                <li><span class="method delete">DELETE</span><code>/products/{id}</code></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Customers</div>
+                            <ul class="endpoint-list">
+                                <li><span class="method get">GET</span><code>/customers</code></li>
+                                <li><span class="method get">GET</span><code>/customers/{id}</code></li>
+                                <li><span class="method post">POST</span><code>/customers</code></li>
+                                <li><span class="method put">PUT</span><code>/customers/{id}</code></li>
+                                <li><span class="method delete">DELETE</span><code>/customers/{id}</code></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Orders</div>
+                            <ul class="endpoint-list">
+                                <li><span class="method get">GET</span><code>/orders</code></li>
+                                <li><span class="method get">GET</span><code>/orders/{id}</code></li>
+                                <li><span class="method get">GET</span><code>/orders/customer/{id}</code></li>
+                                <li><span class="method post">POST</span><code>/orders</code></li>
+                                <li><span class="method patch" style="background:#fed7aa;color:#9a3412;">PATCH</span><code>/orders/{id}/status</code></li>
+                                <li><span class="method delete">DELETE</span><code>/orders/{id}</code></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
-                        <div class="badge">📖 <strong>OpenAPI v3</strong> autodiscovery active</div>
+                        <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
                         <div class="badge">📦 <strong>ApiTestSpark</strong> NuGet package</div>
+                        <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                     </div>
                 </div>
             </section>
