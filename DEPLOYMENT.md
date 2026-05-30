@@ -1,153 +1,128 @@
 # Deployment Guide
 
-## Azure Static Web App Configuration
+This repository has two deployment targets with entirely different lifecycles:
 
-Update these values for your deployment:
+| Artifact | What it is | How it is deployed |
+|----------|------------|-------------------|
+| `ApiTestSpark` NuGet package | .NET class library with embedded React SPA | Published to NuGet.org via GitHub Actions tag workflow |
+| `SampleApi` | Live demo of the package — .NET 10 Minimal API | Deployed to a Windows VM running IIS |
 
-- **Resource Name**: `<your-resource-name>`
-- **Resource Group**: `<your-resource-group>`
-- **Subscription ID**: `<your-subscription-id>`
-- **Production URL**: `<your-static-web-app-url>`
-- **Branch**: `main`
+---
 
-## Deployment Methods
+## NuGet Package (`ApiTestSpark`)
 
-### Method 1: Azure DevOps Pipeline (Recommended)
+The package is **not manually deployed** — it is published automatically by the GitHub Actions workflow when a version tag is pushed.
 
-The repository includes `azure-pipelines.yml` for automated deployment.
+### Publish a new version
 
-**Setup Steps:**
-
-1. **Get Deployment Token** from Azure Portal:
-   - Navigate to your Static Web App resource in the Azure Portal
-   - Click "Manage deployment token"
-   - Copy the token
-
-2. **Configure Pipeline Variable**:
-   - Go to Azure DevOps Pipelines
-   - Create/Edit pipeline pointing to `azure-pipelines.yml`
-   - Add secret variable: `AZURE_STATIC_WEB_APPS_API_TOKEN` with the deployment token
-   - Mark as "Keep this value secret"
-
-3. **Deploy**:
-   - Push to `main` branch → Deploys to production
-   - Push to `develop` branch → Deploys to preview environment
-
-### Method 2: Azure CLI (Manual)
+1. Update `version` in `package.json` (e.g. `1.1.0`)
+2. Add a `[1.1.0]` entry to `CHANGELOG.md`
+3. Commit and push
+4. Tag and push:
 
 ```powershell
-# Login to Azure
-az login
-
-# Verify and build the application
-npm run verify
-
-# Deploy to static web app
-az staticwebapp upload `
-  --name <your-resource-name> `
-  --resource-group <your-resource-group> `
-  --subscription <your-subscription-id> `
-  --source build `
-  --no-wait
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
-### Method 3: SWA CLI (Local Testing & Deployment)
+The `publish-nuget.yml` workflow fires, runs the full quality gate, packs the library, and pushes `ApiTestSpark.1.1.0.nupkg` + `ApiTestSpark.1.1.0.snupkg` to NuGet.org using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
+
+### Build the package locally
 
 ```powershell
-# Install SWA CLI globally
-npm install -g @azure/static-web-apps-cli
-
-# Test locally with emulated Azure environment
-npm run verify
-swa start build --port 4280
-
-# Deploy from local machine
-swa deploy build `
-  --app-name <your-resource-name> `
-  --resource-group <your-resource-group> `
-  --subscription-id <your-subscription-id> `
-  --deployment-token $env:AZURE_STATIC_WEB_APPS_API_TOKEN
-```
-
-## Configuration Files
-
-### staticwebapp.config.json
-
-Located in repository root. Configures:
-- SPA routing (fallback to index.html)
-- Cache headers for assets
-- Security headers (CSP, X-Frame-Options)
-- MIME types
-
-### Build Output
-
-- **Build command**: `npm run build`
-- **Verification command**: `npm run verify`
-- **Release build command**: `npm run build:release`
-- **Output directory**: `build/`
-- **Entry point**: `build/index.html`
-- **Included config**: The build step stages `staticwebapp.config.json` into the generated `build/` output via `src/public/`.
-- **Pipeline deploy path**: When `skip_app_build: true`, set `app_location: 'build'` and leave `output_location` empty so Azure Static Web Apps uploads only the built site, not the repository root.
-
-## NuGet Package Build (`WebSpark.ApiTestHarness`)
-
-The standalone SWA deployment and the NuGet package are built from the same source using a `VITE_BASE_PATH` environment variable:
-
-| Build type | `VITE_BASE_PATH` | `base` in HTML | Used for |
-| --- | --- | --- | --- |
-| Standalone (SWA) | *(unset)* | `/` | Azure Static Web Apps deployment |
-| NuGet embedded | `/api-test-harness/` | `/api-test-harness/` | `WebSpark.ApiTestHarness` package |
-
-### Producing the NuGet package
-
-```powershell
-# From repo root — builds React SPA then packs .NET library
+# From repo root — 7-step quality gate then dotnet pack
 .\scripts\build\pack.ps1
 
-# Skip npm audit (e.g. in CI with separate audit step)
+# Skip npm audit if running in a context with a separate audit step
 .\scripts\build\pack.ps1 -SkipAudit
 
-# Output: ./nupkg/WebSpark.ApiTestHarness.{version}.nupkg
+# Output: ./nupkg/ApiTestSpark.{version}.nupkg
+#         ./nupkg/ApiTestSpark.{version}.snupkg
 ```
 
-The script performs these steps in order:
+See [ApiTestSpark/NUGET-PACKAGE-WALKTHROUGH.md](ApiTestSpark/NUGET-PACKAGE-WALKTHROUGH.md) for the full technical explanation of how the package is built.
 
-1. Runs `npm audit --audit-level=critical` (warns on high, fails on critical)
-2. Builds the React SPA with `VITE_BASE_PATH=/api-test-harness/`
-3. Reads version from `package.json` and uses it as the NuGet version
-4. Runs `dotnet pack` with pre-pack validation that embedded assets exist
+---
+
+## SampleApi — IIS on Windows VM
+
+`SampleApi/` is a .NET 10 Minimal API that demonstrates the `ApiTestSpark` package. It is deployed to a Windows VM running IIS with the ASP.NET Core Hosting Bundle.
+
+### Prerequisites on the VM
+
+1. [.NET 10 Runtime (Hosting Bundle)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) — installs the ASP.NET Core Module for IIS
+2. IIS with the **Web Server** role enabled
+
+### Publish from a developer machine
+
+```powershell
+# From repo root
+dotnet publish SampleApi/SampleApi.csproj `
+    --configuration Release `
+    --runtime win-x64 `
+    --self-contained false `
+    --output ./publish/SampleApi
+```
+
+Copy the `./publish/SampleApi/` folder to the VM (robocopy, xcopy, or a deployment tool of your choice).
+
+### IIS site configuration
+
+1. Create a new IIS site (or application under an existing site) pointing to the published folder
+2. Set the application pool to **No Managed Code** (ASP.NET Core runs out-of-process via the Hosting Bundle)
+3. Ensure the app pool identity has read access to the published folder
+4. Add a `web.config` if one was not generated by publish — `dotnet publish` creates one automatically for IIS deployments
+
+### `appsettings.json` on the VM
+
+Override settings without redeploying by editing `appsettings.Production.json` next to the executable:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "ApiTestSpark": "Information"
+    }
+  }
+}
+```
+
+### Reverse proxy / forwarded headers
+
+If IIS is behind another reverse proxy (ARR, nginx, load balancer), call `UseForwardedHeaders()` before `MapApiTestSpark()` so the config endpoint returns the correct public `baseUrl`. `SampleApi/Program.cs` already does this:
+
+```csharp
+app.UseForwardedHeaders();
+app.MapApiTestSpark(options => { options.OpenApiUrl = "/openapi/v1.json"; });
+```
 
 ### Security note
 
-The harness config endpoint (`/api-test-harness/config`) is publicly accessible and returns deployment metadata. **Do not expose the harness to the public internet.** Use environment gating:
+The `ApiTestSpark` config endpoint (`/api-test-spark/config`) returns deployment metadata and is publicly accessible. Restrict the harness to non-production environments if the VM is internet-facing:
 
 ```csharp
-app.MapApiTestHarness(options =>
+app.MapApiTestSpark(options =>
 {
     options.Environments = ["Development", "Staging"];
 });
 ```
 
-## Environment-Specific Configuration
+---
 
-The app supports multiple API environments configured at runtime:
-- `localhost` - Local development API
-- `tst2` - Secondary testing environment
-- `other` - Custom endpoint
+## Application Insights (optional)
 
-No environment-specific builds needed — configuration is managed in browser localStorage.
+Configure Application Insights in `appsettings.json` on the VM:
 
-## Monitoring
+```json
+{
+  "ApplicationInsights": {
+    "ConnectionString": "<your-connection-string>"
+  }
+}
+```
 
-### Application Insights
-Configure your own Application Insights resource:
-- Set the `CONNECTION_STRING` in `src/utils/appInsights.ts`
-- Leave empty to disable telemetry
-- Automatically tracks page views, API calls, errors, and performance metrics
-
-### Static Web App Metrics
-Monitor via the Azure Portal on your Static Web App resource's Metrics blade:
-- Bandwidth usage
+Leave unset to disable telemetry. The React SPA also reads the connection string from the host app's config bridge at startup.
 - Request count
 - Error rates
 - Geographic distribution
