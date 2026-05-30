@@ -4,7 +4,7 @@ This repository has two deployment targets with entirely different lifecycles:
 
 | Artifact | What it is | How it is deployed |
 |----------|------------|-------------------|
-| `ApiTestSpark` NuGet package | .NET class library with embedded React SPA | Published to NuGet.org via GitHub Actions tag workflow |
+| `ApiTestSpark` NuGet package | .NET class library with embedded React SPA | Published to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) via GitHub Actions tag workflow |
 | `SampleApi` | Live demo of the package — .NET 10 Minimal API | Deployed to a Windows VM running IIS |
 
 ---
@@ -25,7 +25,7 @@ git tag v1.1.0
 git push origin v1.1.0
 ```
 
-The `publish-nuget.yml` workflow fires, runs the full quality gate, packs the library, and pushes `ApiTestSpark.1.1.0.nupkg` + `ApiTestSpark.1.1.0.snupkg` to NuGet.org using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
+The `publish-nuget.yml` workflow fires, runs the full quality gate, packs the library, and pushes `ApiTestSpark.1.1.0.nupkg` + `ApiTestSpark.1.1.0.snupkg` to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
 
 ### Build the package locally
 

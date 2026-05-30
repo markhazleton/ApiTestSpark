@@ -23,7 +23,7 @@
     <PackageTags>
       api;test;spark;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://apitest.makeboldspark.com</PackageProjectUrl>
+    <PackageProjectUrl>https://www.nuget.org/packages/ApiTestSpark</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MarkHazleton/ApiTestSpark</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

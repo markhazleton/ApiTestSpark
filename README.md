@@ -1,5 +1,9 @@
 # API Test Spark
 
+[![NuGet](https://img.shields.io/nuget/v/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
+
+**NuGet**: [https://www.nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark)
 **Live Site**: [https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)
 
 A lightweight React + TypeScript developer tool for testing and debugging REST APIs with real-time request inspection. Embedded in the [ApiTestSpark NuGet package](ApiTestSpark/README.md) for drop-in use in any .NET 10 Minimal API.

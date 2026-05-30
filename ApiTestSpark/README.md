@@ -1,5 +1,9 @@
 # ApiTestSpark
 
+[![NuGet](https://img.shields.io/nuget/v/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
+
+**NuGet**: [https://www.nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark)
 **Live Site**: [https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)
 
 Embed the **API Test Spark** React SPA into any **.NET 10 Minimal API** project with a single method call. Autodiscovers your OpenAPI v3 endpoints and renders an interactive test UI at `/api-test-spark/`.
@@ -83,7 +87,8 @@ Or set `options.EnableVerboseLogging = true` in code.
 
 For a detailed technical walkthrough of the packaging approach — MSBuild/Vite bridge, embedded resources, Source Link, public API tracking, CI/CD pipeline, and security configuration — see [NUGET-PACKAGE-WALKTHROUGH.md](NUGET-PACKAGE-WALKTHROUGH.md).
 
-Source: [github.com/MarkHazleton/ApiTestSpark](https://github.com/MarkHazleton/ApiTestSpark)
+**NuGet**: [https://www.nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark)
+**Source**: [github.com/MarkHazleton/ApiTestSpark](https://github.com/MarkHazleton/ApiTestSpark)
 
 ## SPA routing note
 
