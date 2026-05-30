@@ -41,6 +41,12 @@ const SECTIONS: NavSection[] = [
         description: "Autodiscovered endpoints from your app's OpenAPI v3 document. Test any endpoint interactively.",
         path: "/host-api",
       },
+      {
+        icon: "📄",
+        title: "API Doc Builder",
+        description: "Select endpoints, capture live curl + responses, and generate markdown documentation targeted at front-end developer agents.",
+        path: "/api-docs",
+      },
     ],
   },
 ];

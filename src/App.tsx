@@ -20,6 +20,7 @@ const JokeApiScreen      = React.lazy(() => import('./components/joke-api/JokeAp
 const JsonPlaceholderScreen = React.lazy(() => import('./components/json-placeholder/JsonPlaceholderScreen').then(m => ({ default: m.JsonPlaceholderScreen })));
 
 const HostApiScreen = React.lazy(() => import('./components/host-api/HostApiScreen').then(m => ({ default: m.HostApiScreen })));
+const ApiDocScreen  = React.lazy(() => import('./components/api-doc/ApiDocScreen').then(m => ({ default: m.ApiDocScreen })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +90,7 @@ function App() {
                     <Route path="/unified-config"      element={<Navigate to="/" replace />} />
 
                     <Route path="/host-api" element={<HostApiScreen />} />
+                    <Route path="/api-docs" element={<ApiDocScreen />} />
                     <Route path="/joke-api" element={<JokeApiScreen />} />
                     <Route path="/json-placeholder" element={<JsonPlaceholderScreen />} />
 
