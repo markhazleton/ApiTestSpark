@@ -33,7 +33,7 @@
   <!-- Embed the compiled React SPA assets from the repo root build/ directory -->
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildProjectDirectory)\..\build\**"
-                      LogicalName="WebSpark.ApiTestHarness.build.%(RecursiveDir)%(Filename)%(Extension)" />
+                      Link="build\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
