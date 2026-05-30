@@ -1,4 +1,4 @@
-# Data Model: Portable NuGet Package for API Test Harness
+# Data Model: Portable NuGet Package for API Test Spark
 
 **Feature**: `001-nuget-portable-harness` | **Date**: 2026-05-29
 
@@ -85,14 +85,14 @@ interface OpenApiV3Operation {
 }
 ```
 
-## .NET Entities (`WebSpark.ApiTestHarness/`)
+## .NET Entities (`ApiTestSpark/`)
 
-### HarnessOptions (`ApiTestHarnessOptions.cs`)
+### HarnessOptions (`ApiTestSparkOptions.cs`)
 
-Configuration object provided by the host app at `MapApiTestHarness()` registration time.
+Configuration object provided by the host app at `MapApiTestSpark()` registration time.
 
 ```csharp
-public class ApiTestHarnessOptions
+public class ApiTestSparkOptions
 {
     /// <summary>Relative or absolute URL to the OpenAPI v3 JSON document.</summary>
     public string? OpenApiUrl { get; set; } = "/openapi.json";
@@ -111,8 +111,8 @@ public class ApiTestHarnessOptions
 
     /// <summary>
     /// When true, emits ILogger.LogDebug for every static asset request and SPA fallback.
-    /// Default: false. Use ILogger category "WebSpark.ApiTestHarness" to filter independently.
-    /// Alternatively set Logging:LogLevel:WebSpark.ApiTestHarness=Debug in appsettings at runtime.
+    /// Default: false. Use ILogger category "ApiTestSpark" to filter independently.
+    /// Alternatively set Logging:LogLevel:ApiTestSpark=Debug in appsettings at runtime.
     /// </summary>
     public bool EnableVerboseLogging { get; set; } = false;
 
@@ -133,7 +133,7 @@ public class ApiTestHarnessOptions
 
 ### ConfigResponse (anonymous DTO)
 
-Serialized as the JSON response body from `GET /api-test-harness/config`. Derived from `HarnessOptions` at request time — never persisted.
+Serialized as the JSON response body from `GET /api-test-spark/config`. Derived from `HarnessOptions` at request time — never persisted.
 
 ```csharp
 // Returned as anonymous object from MapGet handler

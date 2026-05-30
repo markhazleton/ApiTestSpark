@@ -1,4 +1,4 @@
-﻿# API Test Harness - Claude Code Instructions
+﻿# API Test Spark - Claude Code Instructions
 
 Practical guidance for Claude Code. Keep in sync with .github/copilot-instructions.md.
 
@@ -71,9 +71,9 @@ Persisted in localStorage via Zustand persist middleware.
 
 | Store | Persisted | Key |
 |-------|-----------|-----|
-| unifiedConfigStore | Yes | api-test-harness-config |
-| authStore | Config only | api-test-harness-auth-config |
-| debugStore | Enabled flag only | api-test-harness-debug |
+| unifiedConfigStore | Yes | api-test-spark-config |
+| authStore | Config only | api-test-spark-auth-config |
+| debugStore | Enabled flag only | api-test-spark-debug |
 
 Debug buffer limits: 50 requests/responses, 100 metrics (FIFO).
 

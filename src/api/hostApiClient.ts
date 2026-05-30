@@ -8,6 +8,6 @@ export class HostApiClient extends ApiClient {
   }
 
   fetchConfig(): Promise<HarnessConfig> {
-    return this.get<HarnessConfig>('/api-test-harness/config');
+    return this.get<HarnessConfig>('/api-test-spark/config');
   }
 }

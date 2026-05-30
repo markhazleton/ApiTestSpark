@@ -10,22 +10,22 @@ risk_profile: internal
 change_type: greenfield
 ---
 
-# Feature Specification: Portable NuGet Package for API Test Harness
+# Feature Specification: Portable NuGet Package for API Test Spark
 
 **Feature Branch**: `001-nuget-portable-harness`
 **Created**: 2026-05-29
 **Status**: Complete
-**Input**: User description: "Transform the API Test Harness React SPA into a portable NuGet package (WebSpark.ApiTestHarness) that can be installed into any .NET Minimal API project."
+**Input**: User description: "Transform the API Test Spark React SPA into a portable NuGet package (ApiTestSpark) that can be installed into any .NET Minimal API project."
 
 ## Rationale Summary
 
 ### Core Problem
 
-The API Test Harness is currently a standalone React SPA deployed to Azure Static Web Apps. Developers building .NET Minimal API projects have no easy way to embed a rich, interactive API testing tool directly into their application — they must maintain a separate deployment, configure cross-origin access, and manually keep the tool in sync with their API surface. This friction reduces adoption and limits the tool's value.
+The API Test Spark is currently a standalone React SPA deployed to Azure Static Web Apps. Developers building .NET Minimal API projects have no easy way to embed a rich, interactive API testing tool directly into their application — they must maintain a separate deployment, configure cross-origin access, and manually keep the tool in sync with their API surface. This friction reduces adoption and limits the tool's value.
 
 ### Decision Summary
 
-Package the compiled React SPA as embedded resources inside a NuGet package (`WebSpark.ApiTestHarness`). The package exposes a single `MapApiTestHarness()` extension method and a config endpoint that allows the host app to inject its OpenAPI document URL, auth scheme, and custom headers at registration time. The SPA autodiscovers the host app's endpoints via OpenAPI and renders them alongside built-in examples.
+Package the compiled React SPA as embedded resources inside a NuGet package (`ApiTestSpark`). The package exposes a single `MapApiTestSpark()` extension method and a config endpoint that allows the host app to inject its OpenAPI document URL, auth scheme, and custom headers at registration time. The SPA autodiscovers the host app's endpoints via OpenAPI and renders them alongside built-in examples.
 
 ### Key Drivers
 
@@ -35,7 +35,7 @@ Package the compiled React SPA as embedded resources inside a NuGet package (`We
 
 ### Source Inputs
 
-- Existing API Test Harness React SPA (JokeAPI reference implementation)
+- Existing API Test Spark React SPA (JokeAPI reference implementation)
 - .NET ecosystem patterns: Scalar, Swagger UI, Aspire ship NuGet-embedded SPAs
 - User conversation: portability and extensibility requirements documented in session
 
@@ -43,20 +43,20 @@ Package the compiled React SPA as embedded resources inside a NuGet package (`We
 
 - Option A: Copy `build/` output into each consuming project's `wwwroot/` — simplest but not automated, no versioning
 - Option B: Serve from a CDN and embed a thin script tag — fast but requires internet access and CDN dependency
-- Selected: NuGet embedded resources with `MapApiTestHarness()` — self-contained, versioned, offline-capable, follows established .NET tooling patterns
+- Selected: NuGet embedded resources with `MapApiTestSpark()` — self-contained, versioned, offline-capable, follows established .NET tooling patterns
 
 ### Architectural Impact
 
-- React SPA Vite `base` path is fixed at `/api-test-harness/` — this is a hard constraint for this release; custom mount paths are explicitly out of scope
+- React SPA Vite `base` path is fixed at `/api-test-spark/` — this is a hard constraint for this release; custom mount paths are explicitly out of scope
 - SPA startup flow gains a config fetch step before rendering, replacing hardcoded environment assumptions
-- A new companion `.csproj` (`WebSpark.ApiTestHarness`) is added to the repository alongside the existing React project
+- A new companion `.csproj` (`ApiTestSpark`) is added to the repository alongside the existing React project
 - No changes to existing standalone Azure Static Web Apps deployment path
 
 ### Out of Scope — This Release
 
 - **Response diffing**: Comparing responses across environments is not included
 - **Saved request templates**: Persisting named request body templates is not included
-- **Custom mount paths**: The harness always serves at `/api-test-harness/` (deferred to follow-on)
+- **Custom mount paths**: The harness always serves at `/api-test-spark/` (deferred to follow-on)
 - **OpenAPI v2 / Swagger 2.0**: Only OpenAPI v3.x documents are parsed
 
 ### In Scope — Clarified
@@ -71,16 +71,16 @@ Focus on: (1) whether the config endpoint contract is flexible enough for divers
 
 ### User Story 1 - Install Harness in a New .NET API (Priority: P1) ✅ Complete
 
-A .NET developer adds `WebSpark.ApiTestHarness` from NuGet to their Minimal API project. They add one line to `Program.cs` and run the app. Navigating to `/api-test-harness/` in the browser opens the test harness UI, which has already discovered and listed the host app's API endpoints via its OpenAPI document.
+A .NET developer adds `ApiTestSpark` from NuGet to their Minimal API project. They add one line to `Program.cs` and run the app. Navigating to `/api-test-spark/` in the browser opens the test harness UI, which has already discovered and listed the host app's API endpoints via its OpenAPI document.
 
 **Why this priority**: This is the entire value proposition — zero-friction installation. If this fails nothing else matters.
 
-**Independent Test**: Can be fully tested by creating a new `dotnet new webapi` project, installing the package, adding `app.MapApiTestHarness()`, and confirming the UI loads at `/api-test-harness/` with the host app's endpoints listed.
+**Independent Test**: Can be fully tested by creating a new `dotnet new webapi` project, installing the package, adding `app.MapApiTestSpark()`, and confirming the UI loads at `/api-test-spark/` with the host app's endpoints listed.
 
 **Acceptance Scenarios**:
 
-1. **Given** a new .NET Minimal API project with OpenAPI enabled, **When** `app.MapApiTestHarness()` is called and the app starts, **Then** `GET /api-test-harness/` returns the test harness HTML page
-2. **Given** the harness UI has loaded, **When** the SPA initializes, **Then** it fetches `/api-test-harness/config` and uses the returned `openApiUrl` to populate the endpoint list
+1. **Given** a new .NET Minimal API project with OpenAPI enabled, **When** `app.MapApiTestSpark()` is called and the app starts, **Then** `GET /api-test-spark/` returns the test harness HTML page
+2. **Given** the harness UI has loaded, **When** the SPA initializes, **Then** it fetches `/api-test-spark/config` and uses the returned `openApiUrl` to populate the endpoint list
 3. **Given** the host app exposes `GET /openapi.json`, **When** the SPA reads it, **Then** all endpoints defined in the document appear in the harness UI under a "Your App's APIs" section
 
 ---
@@ -118,9 +118,9 @@ A developer installs the harness in a project that has no OpenAPI document. The 
 
 ### User Story 4 - Custom Mount Path (Priority: P4 — Deferred)
 
-> **Deferred**: Custom mount path support requires dynamic Vite base-path injection at request time, which adds complexity incompatible with the fixed-base embedded-asset approach chosen for this release. The harness is always served at `/api-test-harness/`. This story is a candidate for a follow-on release.
+> **Deferred**: Custom mount path support requires dynamic Vite base-path injection at request time, which adds complexity incompatible with the fixed-base embedded-asset approach chosen for this release. The harness is always served at `/api-test-spark/`. This story is a candidate for a follow-on release.
 
-**Known constraint**: `MapApiTestHarness()` does NOT accept a path parameter in this release. The harness is always served at `/api-test-harness/` and the method signature is `MapApiTestHarness(this WebApplication app, Action<ApiTestHarnessOptions>? configure = null)`. A path parameter may be added in a future release when dynamic base-path injection is implemented.
+**Known constraint**: `MapApiTestSpark()` does NOT accept a path parameter in this release. The harness is always served at `/api-test-spark/` and the method signature is `MapApiTestSpark(this WebApplication app, Action<ApiTestSparkOptions>? configure = null)`. A path parameter may be added in a future release when dynamic base-path injection is implemented.
 
 ---
 
@@ -128,7 +128,7 @@ A developer installs the harness in a project that has no OpenAPI document. The 
 
 - What happens when the host app's OpenAPI document is unreachable or returns an error? The SPA shows a clear error message and falls back to built-in examples only.
 - What happens when the host app's OpenAPI document is very large (hundreds of endpoints)? The endpoint list must remain usable — grouping by tag or search/filter should be considered.
-- How does the system handle requests to `/api-test-harness` (no trailing slash) versus `/api-test-harness/`? The middleware normalizes both to serve `index.html` correctly. This applies only to the default fixed path — custom mount paths are out of scope for this release.
+- How does the system handle requests to `/api-test-spark` (no trailing slash) versus `/api-test-spark/`? The middleware normalizes both to serve `index.html` correctly. This applies only to the default fixed path — custom mount paths are out of scope for this release.
 - What happens when two packages that embed SPAs at the same path are installed? A clear startup exception identifies the path conflict.
 - How does the harness behave in a production environment? The registration should support an environments restriction so it can be limited to non-production environments.
 
@@ -138,7 +138,7 @@ A developer installs the harness in a project that has no OpenAPI document. The 
 
 - Q: Should the config endpoint be publicly accessible or protected? → A: Public endpoint — returns auth scheme metadata only, never actual token values. Actual credentials are entered by the user in the UI and never flow through the config endpoint.
 - Q: Which OpenAPI specification version(s) should the SPA parser support? → A: OpenAPI v3.x only — matches .NET 9+ Minimal API default output. v2 support deferred to a future amendment.
-- Q: Should custom mount path support (User Story 4) be in scope for this release? → A: Deferred — Vite base path is fixed at `/api-test-harness/` for this version. Custom path support is a known constraint, documented for a follow-on release.
+- Q: Should custom mount path support (User Story 4) be in scope for this release? → A: Deferred — Vite base path is fixed at `/api-test-spark/` for this version. Custom path support is a known constraint, documented for a follow-on release.
 - Q: Should the .NET package component emit structured logging? → A: Full request logging via `ILogger` — log startup mount confirmation, every config endpoint hit, and every static asset request through the standard ASP.NET `ILogger` interface.
 - Q: Which capabilities are explicitly out of scope for this release? → A: Response diffing between environments and saved request body templates are out of scope. Request history persistence IS in scope — the existing debug store pattern already captures request/response data and should be preserved when embedded.
 
@@ -146,15 +146,15 @@ A developer installs the harness in a project that has no OpenAPI document. The 
 
 ### Functional Requirements
 
-- **FR-001**: The NuGet package MUST serve the compiled React SPA at the fixed path `/api-test-harness/`; custom mount paths are out of scope for this release
-- **FR-002**: The package MUST expose a `MapApiTestHarness()` extension method on `IEndpointRouteBuilder` (Minimal API pattern)
+- **FR-001**: The NuGet package MUST serve the compiled React SPA at the fixed path `/api-test-spark/`; custom mount paths are out of scope for this release
+- **FR-002**: The package MUST expose a `MapApiTestSpark()` extension method on `IEndpointRouteBuilder` (Minimal API pattern)
 - **FR-003**: The package MUST expose a publicly accessible config endpoint at `{mountPath}/config` returning JSON with `baseUrl`, `openApiUrl`, `authScheme`, and `defaultHeaders` — the endpoint MUST NOT return actual credential values (tokens, keys), only scheme metadata; the endpoint MUST enforce a CORS policy (same-origin by default, expandable via `HarnessOptions.CorsOrigins` for local development scenarios); the SPA HTML response MUST include a `Content-Security-Policy` header with `connect-src` wide enough to permit App Insights telemetry
 - **FR-004**: The SPA MUST fetch the config endpoint on startup before rendering the host app endpoint list
 - **FR-005**: The SPA MUST parse OpenAPI v3.x documents at the configured `openApiUrl` and display discovered endpoints under a "Your App's APIs" section; OpenAPI v2 (Swagger 2.0) is explicitly out of scope for this version
 - **FR-006**: The package MUST allow host apps to register custom default headers injected into every request the SPA makes to host app endpoints
 - **FR-007**: The existing built-in examples (JokeAPI, JsonPlaceholder) MUST remain functional when the package is used
 - **FR-008**: The SPA MUST gracefully handle an absent or unreachable OpenAPI document without crashing
-- **FR-009**: The NuGet pack build MUST set `VITE_BASE_PATH=/api-test-harness/` so Vite bakes that base into all asset references; the standalone SWA build omits `VITE_BASE_PATH`, which defaults to `/`, preserving the existing deployment unchanged
+- **FR-009**: The NuGet pack build MUST set `VITE_BASE_PATH=/api-test-spark/` so Vite bakes that base into all asset references; the standalone SWA build omits `VITE_BASE_PATH`, which defaults to `/`, preserving the existing deployment unchanged
 - **FR-010**: The NuGet package MUST embed all SPA static assets (HTML, JS, CSS, fonts, icons) so the consuming project needs no additional file copying
 - **FR-011**: The package MUST support restricting the harness to specific environments (e.g., Development only)
 - **FR-012**: The .NET package component MUST emit structured log messages via `ILogger` for: (a) harness mount confirmation at startup, (b) every request to the config endpoint, and (c) every static asset request served — using standard ASP.NET `ILogger` so host apps control log level and sink
@@ -165,13 +165,13 @@ A developer installs the harness in a project that has no OpenAPI document. The 
 - **HarnessOptions**: Configuration object the host app provides at registration time — mount path, OpenAPI URL, auth scheme, default headers, allowed environments
 - **ConfigResponse**: JSON payload returned by the config endpoint — `baseUrl`, `openApiUrl`, `authScheme`, `defaultHeaders`
 - **DiscoveredEndpoint**: An API endpoint parsed from the OpenAPI document — method, path, summary, parameters, request/response schema
-- **NuGet Package**: `WebSpark.ApiTestHarness` — contains embedded SPA assets and the .NET extension method
+- **NuGet Package**: `ApiTestSpark` — contains embedded SPA assets and the .NET extension method
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: A developer can go from `dotnet add package WebSpark.ApiTestHarness` to a running test harness in under 5 minutes, with no additional configuration beyond one line in `Program.cs`
+- **SC-001**: A developer can go from `dotnet add package ApiTestSpark` to a running test harness in under 5 minutes, with no additional configuration beyond one line in `Program.cs`
 - **SC-002**: All endpoints from a host app's OpenAPI document appear in the harness UI within 2 seconds of the SPA becoming interactive (DOMContentLoaded), excluding .NET cold-start time, on a local development machine with a warm application
 - **SC-003**: The harness UI loads fully (all assets, no console errors) at the configured mount path in a freshly created `dotnet new webapi` project
 - **SC-004**: The existing standalone Azure Static Web Apps deployment continues to pass all current quality gates (lint, typecheck, build) without modification

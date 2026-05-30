@@ -1,4 +1,4 @@
-using WebSpark.ApiTestHarness;
+using ApiTestSpark;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,8 +43,8 @@ app.MapGet("/", () => Results.Content("""
     </head>
     <body>
         <h1>SampleApi</h1>
-        <p>A minimal ASP.NET Core API demonstrating the WebSpark API Test Harness.</p>
-        <a class="btn" href="/api-test-harness/">Open API Test Harness</a>
+        <p>A minimal ASP.NET Core API demonstrating the WebSpark API Test Spark.</p>
+        <a class="btn" href="/api-test-spark/">Open API Test Spark</a>
         <ul>
             <li><code>GET  /products</code> — list all products</li>
             <li><code>GET  /products/{id}</code> — get product by ID</li>
@@ -93,9 +93,9 @@ app.MapDelete("/products/{id}", (int id, [FromServices] ProductCache cache) =>
    .WithSummary("Delete a product");
 
 // -----------------------------------------------------------------------
-// Install the API Test Harness — serves at /api-test-harness/
+// Install the API Test Spark — serves at /api-test-spark/
 // -----------------------------------------------------------------------
-app.MapApiTestHarness(options =>
+app.MapApiTestSpark(options =>
 {
     options.OpenApiUrl = "/openapi/v1.json";  // .NET 10 MapOpenApi() default
     options.AuthScheme = null;           // no auth on this sample

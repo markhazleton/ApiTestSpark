@@ -1,11 +1,11 @@
-# Implementation Plan: Portable NuGet Package for API Test Harness
+# Implementation Plan: Portable NuGet Package for API Test Spark
 
 **Branch**: `001-nuget-portable-harness` | **Date**: 2026-05-29 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `.documentation/specs/001-nuget-portable-harness/spec.md`
 
 ## Summary
 
-Package the compiled React SPA (`build/`) as embedded resources inside a new .NET class library project (`WebSpark.ApiTestHarness.csproj`). The library exposes a `MapApiTestHarness()` extension method on `IEndpointRouteBuilder` that serves the SPA at `/api-test-harness/` and exposes a config endpoint at `/api-test-harness/config`. The SPA gains a startup config-fetch phase that reads the config endpoint to discover the host app's OpenAPI v3 document URL, auth scheme, and default headers, then renders discovered endpoints alongside the existing JokeAPI and JsonPlaceholder examples. Vite `base` is fixed at `/api-test-harness/`.
+Package the compiled React SPA (`build/`) as embedded resources inside a new .NET class library project (`ApiTestSpark.csproj`). The library exposes a `MapApiTestSpark()` extension method on `IEndpointRouteBuilder` that serves the SPA at `/api-test-spark/` and exposes a config endpoint at `/api-test-spark/config`. The SPA gains a startup config-fetch phase that reads the config endpoint to discover the host app's OpenAPI v3 document URL, auth scheme, and default headers, then renders discovered endpoints alongside the existing JokeAPI and JsonPlaceholder examples. Vite `base` is fixed at `/api-test-spark/`.
 
 ## Technical Context
 
@@ -13,15 +13,15 @@ Package the compiled React SPA (`build/`) as embedded resources inside a new .NE
 
 - Language/Version: TypeScript ~6.0 / React 19 / Vite 8
 - Build output: `build/` (index.html + `assets/` with content-hashed JS/CSS/icons)
-- Current Vite `base`: not set (defaults to `/` — must change to `/api-test-harness/`)
-- Router: `BrowserRouter` — must change to `basename="/api-test-harness"` when embedded
+- Current Vite `base`: not set (defaults to `/` — must change to `/api-test-spark/`)
+- Router: `BrowserRouter` — must change to `basename="/api-test-spark"` when embedded
 - State: Zustand 5 persist stores; debug store FIFO buffers preserved as-is
 - Quality gates: `npm run lint` + `npm run verify` (tsc -b + vite build)
 
 ### .NET Package
 
 - Language/Version: C# 13 / .NET 9
-- Project type: Class library → NuGet package (`WebSpark.ApiTestHarness`)
+- Project type: Class library → NuGet package (`ApiTestSpark`)
 - Key dependency: `Microsoft.AspNetCore.StaticFiles` (embedded file serving)
 - No additional NuGet dependencies beyond ASP.NET Core framework
 - Target framework: `net9.0` (Minimal API pattern, `IEndpointRouteBuilder`)
@@ -31,14 +31,14 @@ Package the compiled React SPA (`build/`) as embedded resources inside a new .NE
 
 - React build runs first → produces `build/`
 - `.csproj` embeds `build/**` as `EmbeddedResource`
-- `dotnet pack` produces `WebSpark.ApiTestHarness.{version}.nupkg`
+- `dotnet pack` produces `ApiTestSpark.{version}.nupkg`
 - New PowerShell script `scripts/build/pack.ps1` orchestrates both steps
 
 **Testing**: No test framework (constitution VII) — validation via manual install test in `dotnet new webapi` project
 
 **Performance goals**: SPA load < 2s on localhost; NuGet package < 2 MB (SC-002, SC-006)
 
-**Constraints**: Vite base fixed at `/api-test-harness/`; OpenAPI v3 only; no custom mount paths this release
+**Constraints**: Vite base fixed at `/api-test-spark/`; OpenAPI v3 only; no custom mount paths this release
 
 ## Constitution Check
 
@@ -80,7 +80,7 @@ Package the compiled React SPA (`build/`) as embedded resources inside a new .NE
 ### Source Code Layout (full repo after this feature)
 
 ```text
-ApiTestHarness/                          ← repo root
+ApiTestSpark/                            ← repo root
 │
 ├── src/                                 ← React SPA (existing, modified)
 │   ├── types/
@@ -110,11 +110,11 @@ ApiTestHarness/                          ← repo root
 │
 ├── vite.config.ts                       ← MODIFIED: base driven by VITE_BASE_PATH env var
 │
-├── WebSpark.ApiTestHarness/             ← NEW: .NET class library project
-│   ├── WebSpark.ApiTestHarness.csproj   ← NEW: embeds build/** as EmbeddedResource
-│   ├── ApiTestHarnessExtensions.cs      ← NEW: MapApiTestHarness() extension method
-│   ├── ApiTestHarnessOptions.cs         ← NEW: HarnessOptions configuration class
-│   └── ApiTestHarnessMiddleware.cs      ← NEW: serves embedded assets + config endpoint
+├── ApiTestSpark/             ← NEW: .NET class library project
+│   ├── ApiTestSpark.csproj   ← NEW: embeds build/** as EmbeddedResource
+│   ├── ApiTestSparkExtensions.cs      ← NEW: MapApiTestSpark() extension method
+│   ├── ApiTestSparkOptions.cs         ← NEW: HarnessOptions configuration class
+│   └── ApiTestSparkMiddleware.cs      ← NEW: serves embedded assets + config endpoint
 │
 └── scripts/
     └── build/
@@ -139,7 +139,7 @@ No constitution violations. All gates satisfied by design:
 
 **Decision**: Use `EmbeddedResource` in `.csproj` + `EmbeddedFileProvider` from `Microsoft.Extensions.FileProviders.Embedded` to serve files via `UseStaticFiles`.
 
-**Rationale**: This is the exact pattern used by Scalar (`Scalar.AspNetCore`), Swagger UI (`Swashbuckle.AspNetCore.SwaggerUI`), and ASP.NET Core's own Razor Pages. `EmbeddedFileProvider` handles resource name mapping automatically. The `StaticFileOptions.RequestPath` scopes serving to `/api-test-harness`.
+**Rationale**: This is the exact pattern used by Scalar (`Scalar.AspNetCore`), Swagger UI (`Swashbuckle.AspNetCore.SwaggerUI`), and ASP.NET Core's own Razor Pages. `EmbeddedFileProvider` handles resource name mapping automatically. The `StaticFileOptions.RequestPath` scopes serving to `/api-test-spark`.
 
 **Pattern**:
 
@@ -151,11 +151,11 @@ No constitution violations. All gates satisfied by design:
 
 // In extension method
 var provider = new EmbeddedFileProvider(
-    typeof(ApiTestHarnessExtensions).Assembly,
-    "WebSpark.ApiTestHarness.build");
+    typeof(ApiTestSparkExtensions).Assembly,
+    "ApiTestSpark.build");
 app.UseStaticFiles(new StaticFileOptions {
     FileProvider = provider,
-    RequestPath = "/api-test-harness"
+    RequestPath = "/api-test-spark"
 });
 ```
 
@@ -170,11 +170,11 @@ app.UseStaticFiles(new StaticFileOptions {
 
 **Rationale**: Vite bakes the base path into all asset `<script src>` and `<link href>` references in `index.html` at build time. The browser router `basename` ensures client-side navigation routes resolve correctly under the sub-path. These two settings must stay in sync.
 
-**Standalone SWA compatibility**: Standalone build sets no env var → base is `/` → existing SWA deployment unchanged (SC-004). NuGet pack build sets `VITE_BASE_PATH=/api-test-harness/`. Both builds are produced from the same source; `pack.ps1` sets the env var.
+**Standalone SWA compatibility**: Standalone build sets no env var → base is `/` → existing SWA deployment unchanged (SC-004). NuGet pack build sets `VITE_BASE_PATH=/api-test-spark/`. Both builds are produced from the same source; `pack.ps1` sets the env var.
 
 ### R-003: Config endpoint design
 
-**Decision**: Expose `GET /api-test-harness/config` as a Minimal API endpoint (`app.MapGet`) returning `application/json`.
+**Decision**: Expose `GET /api-test-spark/config` as a Minimal API endpoint (`app.MapGet`) returning `application/json`.
 
 **Rationale**: Minimal API endpoint is simpler than middleware for a single JSON response. It participates in ASP.NET Core's routing and logging pipeline naturally. The response is serialized from `HarnessOptions` — only safe metadata fields are exposed (never tokens/keys).
 
@@ -202,7 +202,7 @@ app.UseStaticFiles(new StaticFileOptions {
 
 ### R-005: Standalone SWA deployment compatibility
 
-**Decision**: `VITE_BASE_PATH` environment variable defaults to `/`. Standalone build produces a SPA rooted at `/`. NuGet pack build produces a SPA rooted at `/api-test-harness/`.
+**Decision**: `VITE_BASE_PATH` environment variable defaults to `/`. Standalone build produces a SPA rooted at `/`. NuGet pack build produces a SPA rooted at `/api-test-spark/`.
 
 **Implementation**: `vite.config.ts` reads `process.env.VITE_BASE_PATH ?? '/'`. `App.tsx` reads `import.meta.env.BASE_URL` for the `BrowserRouter basename`.
 
@@ -216,17 +216,17 @@ See `data-model.md` for full entity definitions. Summary:
 
 | Entity | Layer | Description |
 |--------|-------|-------------|
-| `HarnessConfig` | `src/types/host-api.ts` | Runtime config fetched from `/api-test-harness/config` |
+| `HarnessConfig` | `src/types/host-api.ts` | Runtime config fetched from `/api-test-spark/config` |
 | `DiscoveredEndpoint` | `src/types/host-api.ts` | Single API endpoint parsed from OpenAPI v3 doc |
 | `OpenApiV3Doc` | `src/types/host-api.ts` | Minimal TypeScript shape for OpenAPI v3 JSON |
-| `HarnessOptions` | `WebSpark.ApiTestHarness/ApiTestHarnessOptions.cs` | .NET config object passed by host app |
+| `HarnessOptions` | `ApiTestSpark/ApiTestSparkOptions.cs` | .NET config object passed by host app |
 | `ConfigResponse` | .NET DTO | Serialized JSON response from config endpoint |
 
 ### Interface Contracts
 
 See `contracts/config-endpoint.md` for the full contract. Key points:
 
-**Config endpoint** `GET /api-test-harness/config`:
+**Config endpoint** `GET /api-test-spark/config`:
 
 - Always returns HTTP 200
 - `openApiUrl`: relative path or absolute URL to OpenAPI v3 JSON; `null` if not configured
@@ -234,7 +234,7 @@ See `contracts/config-endpoint.md` for the full contract. Key points:
 - `defaultHeaders`: object of string→string; empty object `{}` if none configured
 - `baseUrl`: the host app's base URL (derived from request `Host` header if not explicitly set)
 
-**Static assets** `GET /api-test-harness/{*path}`:
+**Static assets** `GET /api-test-spark/{*path}`:
 
 - Served from embedded resources
 - Cache-Control: `public, max-age=31536000, immutable` for hashed asset files
@@ -245,18 +245,18 @@ See `contracts/config-endpoint.md` for the full contract. Key points:
 
 ```csharp
 // 1. Install
-// dotnet add package WebSpark.ApiTestHarness
+// dotnet add package ApiTestSpark
 
 // 2. Program.cs — minimal setup
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 var app = builder.Build();
 app.MapOpenApi();
-app.MapApiTestHarness();  // serves at /api-test-harness/
+app.MapApiTestSpark();  // serves at /api-test-spark/
 app.Run();
 
 // 3. Program.cs — with auth and custom headers
-app.MapApiTestHarness(options => {
+app.MapApiTestSpark(options => {
     options.OpenApiUrl = "/openapi.json";
     options.AuthScheme = "Bearer";
     options.DefaultHeaders["X-Tenant-Id"] = "acme";

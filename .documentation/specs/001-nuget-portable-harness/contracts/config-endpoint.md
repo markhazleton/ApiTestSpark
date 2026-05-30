@@ -5,7 +5,7 @@
 ## Endpoint
 
 ```
-GET /api-test-harness/config
+GET /api-test-spark/config
 ```
 
 ## Purpose
@@ -71,7 +71,7 @@ The SPA fetches this endpoint once on startup via `useHarnessConfig` hook (TanSt
 
 **Startup sequence**:
 
-1. SPA mounts → `useHarnessConfig` fires `GET /api-test-harness/config`
+1. SPA mounts → `useHarnessConfig` fires `GET /api-test-spark/config`
 2. On success → `harnessConfigStore.setConfig(config)` + `setConfigStatus('ready')`
 3. If `config.openApiUrl` is non-null → fetch OpenAPI doc → parse → `setEndpoints(endpoints)`
 4. If `config.openApiUrl` is null → `setOpenApiStatus('skipped')` → show built-in examples only
@@ -83,21 +83,21 @@ The config endpoint handler emits the following structured log events:
 
 | Event | Level | Message |
 |-------|-------|---------|
-| Request received | `Information` | `"ApiTestHarness config requested from {RemoteIp}"` |
-| Response sent | `Debug` | `"ApiTestHarness config served: openApiUrl={OpenApiUrl} authScheme={AuthScheme}"` |
+| Request received | `Information` | `"ApiTestSpark config requested from {RemoteIp}"` |
+| Response sent | `Debug` | `"ApiTestSpark config served: openApiUrl={OpenApiUrl} authScheme={AuthScheme}"` |
 
 ## Static Asset Serving Contract
 
-All other requests under `/api-test-harness/` are handled by the embedded static file middleware:
+All other requests under `/api-test-spark/` are handled by the embedded static file middleware:
 
 | Path pattern | Behaviour |
 |---|---|
-| `/api-test-harness/` | Serves `index.html` (SPA entry point) |
-| `/api-test-harness/index.html` | Serves `index.html`; Cache-Control: `no-cache` |
-| `/api-test-harness/assets/{hash}.js` | Serves hashed asset; Cache-Control: `public, max-age=31536000, immutable` |
-| `/api-test-harness/assets/{hash}.css` | Same as above |
-| `/api-test-harness/{*unmatched}` | Falls back to `index.html` (client-side routing) |
-| `/api-test-harness/config` | Handled by `MapGet` before static middleware |
+| `/api-test-spark/` | Serves `index.html` (SPA entry point) |
+| `/api-test-spark/index.html` | Serves `index.html`; Cache-Control: `no-cache` |
+| `/api-test-spark/assets/{hash}.js` | Serves hashed asset; Cache-Control: `public, max-age=31536000, immutable` |
+| `/api-test-spark/assets/{hash}.css` | Same as above |
+| `/api-test-spark/{*unmatched}` | Falls back to `index.html` (client-side routing) |
+| `/api-test-spark/config` | Handled by `MapGet` before static middleware |
 
 ## Static Asset ILogger Events (.NET)
 
@@ -105,8 +105,8 @@ Every static asset request emits a structured log event via `ILogger` (FR-012c):
 
 | Event        | Level   | Message                                                        |
 |:-------------|:--------|:---------------------------------------------------------------|
-| Asset served | `Debug` | `"ApiTestHarness static asset served: {Path} ({StatusCode})"` |
-| SPA fallback | `Debug` | `"ApiTestHarness SPA fallback: {RequestPath} -> index.html"`  |
+| Asset served | `Debug` | `"ApiTestSpark static asset served: {Path} ({StatusCode})"` |
+| SPA fallback | `Debug` | `"ApiTestSpark SPA fallback: {RequestPath} -> index.html"`  |
 
 ## SPA `defaultHeaders` Scope
 

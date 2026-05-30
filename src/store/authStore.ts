@@ -21,7 +21,7 @@ import type { AuthTokenResponse } from '../types/api';
 import { v4 as uuidv4 } from 'uuid';
 import useDebugStore from './debugStore';
 
-const AUTH_STORAGE_KEY = 'api-test-harness-auth-config';
+const AUTH_STORAGE_KEY = 'api-test-spark-auth-config';
 
 function createDefaultAuthConfig(): AuthEnvironmentConfigs {
   const makeDefault = (): AuthConfigSet => ({

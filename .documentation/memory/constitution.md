@@ -29,11 +29,11 @@ Templates updated:
 Deferred items  : none
 -->
 
-# API Test Harness Constitution
+# API Test Spark Constitution
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-05-18
+**Version**: 1.0.0 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-05-30
 
-> This constitution defines the non-negotiable engineering principles for the API Test Harness project.
+> This constitution defines the non-negotiable engineering principles for the API Test Spark project.
 > All pull requests, AI-assisted code generation, and architectural decisions MUST comply with these principles.
 > Amendments require team discussion and a version bump per the governance policy below.
 
@@ -139,9 +139,9 @@ Zustand stores are focused, action-gated, and buffer-bounded.
 
 | Store | Concern | Storage Key | Persists |
 |-------|---------|-------------|---------|
-| `useUnifiedConfigStore` | API endpoint config per environment | `api-test-harness-config` | Full config |
-| `useAuthStore` | Auth configuration + audit trail | `api-test-harness-auth-config` | Config only |
-| `useDebugStore` | Request/response/error/metrics capture | `api-test-harness-debug` | Enabled flag only |
+| `useUnifiedConfigStore` | API endpoint config per environment | `api-test-spark-config` | Full config |
+| `useAuthStore` | Auth configuration + audit trail | `api-test-spark-auth-config` | Config only |
+| `useDebugStore` | Request/response/error/metrics capture | `api-test-spark-debug` | Enabled flag only |
 
 **Rationale**: Focused stores prevent cross-concern mutation bugs. Action-gating makes state
 changes traceable. FIFO limits prevent unbounded memory growth in long debug sessions.
@@ -175,7 +175,7 @@ This project operates without a test framework by deliberate design.
   `src/utils/exporters.ts`) as the project matures (SHOULD)
 - If a test framework is introduced, it MUST be added via a constitution amendment (MUST)
 
-**Rationale**: The API Test Harness is a lightweight developer tool where rapid iteration and
+**Rationale**: The API Test Spark is a lightweight developer tool where rapid iteration and
 build-time safety (TypeScript strict + ESLint) provide sufficient quality assurance for the
 current scope. Introducing a test framework is a significant complexity trade-off that requires
 explicit team agreement.

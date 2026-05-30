@@ -1,4 +1,4 @@
-# Analyze Gate: Portable NuGet Package for API Test Harness
+# Analyze Gate: Portable NuGet Package for API Test Spark
 
 ```yaml
 gate: analyze
@@ -36,8 +36,8 @@ summary: "17 findings across two runs — all resolved. Second run (2026-05-29):
 
 | Requirement | Has Task? | Task IDs | Notes |
 |-------------|-----------|----------|-------|
-| FR-001: Serve SPA at `/api-test-harness/` | ✅ | T023, T024 | |
-| FR-002: `MapApiTestHarness()` extension method | ✅ | T023 | |
+| FR-001: Serve SPA at `/api-test-spark/` | ✅ | T023, T024 | |
+| FR-002: `MapApiTestSpark()` extension method | ✅ | T023 | |
 | FR-003: Public config endpoint | ✅ | T023 | |
 | FR-004: SPA fetches config on startup | ✅ | T013 | |
 | FR-005: Parse OpenAPI v3 → endpoint list | ✅ | T010, T013, T016 | |
@@ -104,15 +104,15 @@ findings:
     recommended_action: "Reword edge case 3 to scope it to the default path only."
     execution_mode: auto
     status: resolved
-    outcome: "Edge case 3 reworded in spec.md to scope to /api-test-harness/ only."
+    outcome: "Edge case 3 reworded in spec.md to scope to /api-test-spark/ only."
 
   - finding_id: analyze-C-003
     severity: high
-    description: "US4 deferred note implied a path parameter in MapApiTestHarness() that was not defined anywhere."
+    description: "US4 deferred note implied a path parameter in MapApiTestSpark() that was not defined anywhere."
     recommended_action: "Clarify the method signature explicitly."
     execution_mode: manual
     status: resolved
-    outcome: "US4 deferred note updated in spec.md: no path parameter in this release; signature is MapApiTestHarness(this WebApplication app, Action<ApiTestHarnessOptions>? configure = null)."
+    outcome: "US4 deferred note updated in spec.md: no path parameter in this release; signature is MapApiTestSpark(this WebApplication app, Action<ApiTestSparkOptions>? configure = null)."
 
   - finding_id: analyze-U-001
     severity: medium
@@ -125,10 +125,10 @@ findings:
   - finding_id: analyze-U-002
     severity: medium
     description: "FR-011 environment gating had no implementation task."
-    recommended_action: "Add environment check to MapApiTestHarness() task."
+    recommended_action: "Add environment check to MapApiTestSpark() task."
     execution_mode: auto
     status: resolved
-    outcome: "Environment gating folded into T023 (ApiTestHarnessExtensions.cs)."
+    outcome: "Environment gating folded into T023 (ApiTestSparkExtensions.cs)."
 
   - finding_id: analyze-U-003
     severity: medium
@@ -176,7 +176,7 @@ findings:
     recommended_action: "Use $env:VITE_BASE_PATH in pack.ps1."
     execution_mode: auto
     status: resolved
-    outcome: "T004 updated to use $env:VITE_BASE_PATH = '/api-test-harness/' PowerShell syntax."
+    outcome: "T004 updated to use $env:VITE_BASE_PATH = '/api-test-spark/' PowerShell syntax."
 
   - finding_id: analyze-D-001
     severity: low

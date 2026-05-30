@@ -16,7 +16,7 @@ import type {
 } from "../types/state";
 import { createDefaultConfig } from "./migrations/configMigration";
 
-const STORAGE_KEY = "api-test-harness-config";
+const STORAGE_KEY = "api-test-spark-config";
 
 function validateConfigStatus(
   config: ApiConfigSet,

@@ -27,7 +27,7 @@ export function HostApiScreen() {
           <p className="text-sm font-semibold text-red-700">Failed to load harness configuration</p>
           <p className="text-xs text-red-600 mt-1 font-mono">{configError}</p>
           <p className="text-xs text-gray-500 mt-2">
-            Check that the host app is running and <code>/api-test-harness/config</code> is accessible.
+            Check that the host app is running and <code>/api-test-spark/config</code> is accessible.
           </p>
         </div>
       </div>

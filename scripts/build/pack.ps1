@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# Pack script for WebSpark.ApiTestHarness NuGet package.
+# Pack script for ApiTestSpark NuGet package.
 # Runs npm audit, builds the React SPA with the embedded base path,
 # then packs the .NET project with the npm version as the NuGet version.
 
@@ -10,19 +10,19 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-Write-Host "WebSpark.ApiTestHarness — NuGet Pack Pipeline" -ForegroundColor Cyan
+Write-Host "ApiTestSpark — NuGet Pack Pipeline" -ForegroundColor Cyan
 
 # 1. npm audit (warn on high, fail on critical only — avoids false-positive dev-dep blocks)
 if (-not $SkipAudit) {
     Write-Host "`n[1/4] Running npm audit..." -ForegroundColor Blue
-    $auditOutput = npm audit --audit-level=critical --json 2>&1
+    npm audit --audit-level=critical --json 2>&1 | Out-Null
     $auditExitCode = $LASTEXITCODE
     if ($auditExitCode -ne 0) {
         Write-Error "npm audit found CRITICAL vulnerabilities. Fix before packing. Run 'npm audit' for details."
         exit 1
     }
     # Warn on high but do not block
-    $highOutput = npm audit --audit-level=high --json 2>&1
+    npm audit --audit-level=high --json 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "npm audit found HIGH vulnerabilities. Review 'npm audit' output — not blocking for now."
     }
@@ -32,8 +32,8 @@ if (-not $SkipAudit) {
 }
 
 # 2. Build the React SPA with embedded base path
-Write-Host "`n[2/4] Building React SPA (VITE_BASE_PATH=/api-test-harness/)..." -ForegroundColor Blue
-$env:VITE_BASE_PATH = '/api-test-harness/'
+Write-Host "`n[2/4] Building React SPA (VITE_BASE_PATH=/api-test-spark/)..." -ForegroundColor Blue
+$env:VITE_BASE_PATH = '/api-test-spark/'
 try {
     npm run build
     if ($LASTEXITCODE -ne 0) {
@@ -63,7 +63,7 @@ Write-Host "  npm version: $rawVersion → NuGet version: $nugetVersion" -Foregr
 
 # 4. Pack the .NET project
 Write-Host "`n[4/4] Running dotnet pack..." -ForegroundColor Blue
-dotnet pack WebSpark.ApiTestHarness/WebSpark.ApiTestHarness.csproj `
+dotnet pack ApiTestSpark/ApiTestSpark.csproj `
     --configuration Release `
     /p:Version=$nugetVersion `
     --output ./nupkg
@@ -73,10 +73,10 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-Write-Host "`nPack complete! Output: ./nupkg/WebSpark.ApiTestHarness.$nugetVersion.nupkg" -ForegroundColor Green
+Write-Host "`nPack complete! Output: ./nupkg/ApiTestSpark.$nugetVersion.nupkg" -ForegroundColor Green
 
 # Size check against SC-006 (2 MB budget)
-$nupkgPath = "./nupkg/WebSpark.ApiTestHarness.$nugetVersion.nupkg"
+$nupkgPath = "./nupkg/ApiTestSpark.$nugetVersion.nupkg"
 if (Test-Path $nupkgPath) {
     $sizeMB = [math]::Round((Get-Item $nupkgPath).Length / 1MB, 2)
     if ($sizeMB -gt 2) {

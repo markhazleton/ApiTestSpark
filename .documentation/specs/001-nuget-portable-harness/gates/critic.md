@@ -1,4 +1,4 @@
-# Critic Gate: Portable NuGet Package for API Test Harness
+# Critic Gate: Portable NuGet Package for API Test Spark
 
 ```yaml
 gate: critic
@@ -109,10 +109,10 @@ findings:
     description: "Per-asset ILogger.LogDebug floods logs if consumer sets Debug globally; no way to filter."
     base_severity: high
     effective_severity: high
-    recommended_action: "Use ILogger<ApiTestHarnessMiddleware> category; make asset logging opt-in via EnableVerboseLogging."
+    recommended_action: "Use ILogger<ApiTestSparkMiddleware> category; make asset logging opt-in via EnableVerboseLogging."
     execution_mode: selective
     status: resolved
-    outcome: "T009 updated: EnableVerboseLogging property added to ApiTestHarnessOptions. T024 updated: asset logging only when EnableVerboseLogging=true using ILogger<ApiTestHarnessMiddleware>. data-model.md updated."
+    outcome: "T009 updated: EnableVerboseLogging property added to ApiTestSparkOptions. T024 updated: asset logging only when EnableVerboseLogging=true using ILogger<ApiTestSparkMiddleware>. data-model.md updated."
 
   - finding_id: critic-008
     category: testing_strategy
@@ -124,7 +124,7 @@ findings:
     recommended_action: "Add minimal .NET xUnit integration test project with WebApplicationFactory."
     execution_mode: manual
     status: resolved
-    outcome: "T039 added: WebSpark.ApiTestHarness.Tests xUnit project with 5 integration test cases covering resource names, config endpoint shape, SPA serving, SPA fallback, and 404 for unknown file extensions."
+    outcome: "T039 added: ApiTestSpark.Tests xUnit project with 5 integration test cases covering resource names, config endpoint shape, SPA serving, SPA fallback, and 404 for unknown file extensions."
 
   - finding_id: critic-009
     category: documentation
@@ -133,7 +133,7 @@ findings:
     description: "No NuGet package README, Description, or release notes; package appears incomplete on nuget.org."
     base_severity: high
     effective_severity: high
-    recommended_action: "Create WebSpark.ApiTestHarness/README.md; add csproj metadata fields."
+    recommended_action: "Create ApiTestSpark/README.md; add csproj metadata fields."
     execution_mode: auto
     status: resolved
     outcome: "T003 updated: csproj metadata fields added (<PackageReadmeFile>, <Description>, <RepositoryUrl>, <PackageTags>). T038 added: NuGet README creation task."
@@ -224,7 +224,7 @@ findings:
 
 ### Questionable Assumptions
 
-1. **"EmbeddedFileProvider namespace prefix will be `WebSpark.ApiTestHarness.build`"** → Failure mode: On Windows, backslash path separators in `<EmbeddedResource Include="build\**">` produce manifest names with dots replacing separators. The actual name depends on the root namespace and the path. If the root namespace differs from the assembly name, the prefix breaks. Verify with `GetManifestResourceNames()` before shipping.
+1. **"EmbeddedFileProvider namespace prefix will be `ApiTestSpark.build`"** → Failure mode: On Windows, backslash path separators in `<EmbeddedResource Include="build\**">` produce manifest names with dots replacing separators. The actual name depends on the root namespace and the path. If the root namespace differs from the assembly name, the prefix breaks. Verify with `GetManifestResourceNames()` before shipping.
 
 2. **"The SPA will be under 2MB total"** → Failure mode: The current standalone build (without App Insights) already has vendor-react (~178KB gzip), vendor-state (~15KB), index (~80KB), plus screen chunks. With App Insights vendor (~41KB) and the new host-api screen bundle, the total uncompressed JS will be ~450-500KB. NuGet embeds these as resources (not compressed). The `.nupkg` uses zip compression, so 2MB for the package is achievable — but the embedded resources in the DLL will be larger (~1.5-2MB uncompressed). This is fine for correctness but worth measuring explicitly.
 
@@ -232,7 +232,7 @@ findings:
 
 4. **"US2 is a validation-only phase"** → Failure mode: If T014 (useHostApi) is incomplete or has bugs, US2's single validation task (T025) will fail and there is no remediation task. The dependency is correct in direction but the single-task phase has no fallback.
 
-5. **"No test framework needed for .NET code"** → Failure mode: Constitution VII explicitly applies only to the React SPA quality gates. The .NET library (`WebSpark.ApiTestHarness.csproj`) is a separate project with no stated testing constraint. Shipping a NuGet library without at least a smoke-test harness is a significant operational risk for library maintenance.
+5. **"No test framework needed for .NET code"** → Failure mode: Constitution VII explicitly applies only to the React SPA quality gates. The .NET library (`ApiTestSpark.csproj`) is a separate project with no stated testing constraint. Shipping a NuGet library without at least a smoke-test harness is a significant operational risk for library maintenance.
 
 ---
 
@@ -282,7 +282,7 @@ findings:
 
 - Add `npm audit --audit-level=high` to `pack.ps1` (critic-006)
 - Set `timeout: 5000, retry: 1` on `useHarnessConfig` `useQuery` (critic-005)
-- Use `ILogger<ApiTestHarnessMiddleware>` for independent log filtering; consider opt-in verbose asset logging (critic-007)
+- Use `ILogger<ApiTestSparkMiddleware>` for independent log filtering; consider opt-in verbose asset logging (critic-007)
 - Add startup WARNING if `DefaultHeaders` contains `Authorization` or similar sensitive header names (critic-010)
 - Add NuGet package README and metadata task to Phase 6 (critic-009)
 - Define NuGet version sync strategy in `pack.ps1` (critic-011)

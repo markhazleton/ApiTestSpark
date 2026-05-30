@@ -1,4 +1,4 @@
-# API Test Harness - AI Coding Agent Instructions
+# API Test Spark - AI Coding Agent Instructions
 
 ## Quick Reference
 
@@ -10,8 +10,8 @@ JokeAPI (https://jokeapi.dev/) is included as a working reference implementation
 | What | Where |
 |------|-------|
 | Source code | /src |
-| .NET NuGet library | /WebSpark.ApiTestHarness/ |
-| .NET integration tests | /WebSpark.ApiTestHarness.Tests/ |
+| .NET NuGet library | /ApiTestSpark/ |
+| .NET integration tests | /ApiTestSpark.Tests/ |
 | Active feature specs | /.documentation/specs/ |
 | Scripts | /scripts/build/, /scripts/lint/, /scripts/test/ |
 
@@ -19,7 +19,7 @@ JokeAPI (https://jokeapi.dev/) is included as a working reference implementation
 
     .\scripts\build\dev.ps1      # Start dev server
     .\scripts\build\build.ps1    # Production build (tsc -b + vite)
-    .\scripts\build\pack.ps1     # Build React SPA + pack NuGet (WebSpark.ApiTestHarness)
+    .\scripts\build\pack.ps1     # Build React SPA + pack NuGet (ApiTestSpark)
     .\scripts\build\clean.ps1    # Clean (-Full for node_modules)
     .\scripts\lint\lint.ps1      # ESLint check
     .\scripts\lint\fix.ps1       # Auto-fix linting
@@ -81,12 +81,12 @@ Each environment stores: base URL and API key. Persisted in localStorage via Zus
 
 ## NuGet Package Notes
 
-The `WebSpark.ApiTestHarness` .NET class library embeds the React SPA as resources.
+The `ApiTestSpark` .NET class library embeds the React SPA as resources.
 
-- **Vite base path**: Controlled by `VITE_BASE_PATH` env var (unset = `/` for SWA; `/api-test-harness/` for NuGet build)
+- **Vite base path**: Controlled by `VITE_BASE_PATH` env var (unset = `/` for SWA; `/api-test-spark/` for NuGet build)
 - **`pack.ps1`**: Always use this script — it sets `VITE_BASE_PATH`, runs npm audit, builds React, then `dotnet pack`
-- **Public API surface**: Changes to `MapApiTestHarness`, `ApiTestHarnessOptions`, or `ApiTestHarnessExtensions` require updating `PublicAPI.Shipped.txt` and a semver decision (SEMVER: MAJOR/MINOR in PR title)
-- **Integration tests**: `WebSpark.ApiTestHarness.Tests/` uses xUnit with `WebApplicationFactory` — run with `dotnet test`
+- **Public API surface**: Changes to `MapApiTestSpark`, `ApiTestSparkOptions`, or `ApiTestSparkExtensions` require updating `PublicAPI.Shipped.txt` and a semver decision (SEMVER: MAJOR/MINOR in PR title)
+- **Integration tests**: `ApiTestSpark.Tests/` uses MSTest with `WebApplicationFactory` — run with `dotnet test`
 
 ## AI Agent Checklist
 
