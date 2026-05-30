@@ -22,11 +22,8 @@ if ($version -match '^(\d+)\.(\d+)\.(\d+)$') {
     $minor = [int]$matches[2]
     $patch = [int]$matches[3]
 } else {
-    Write-Host "Invalid version format in package.json: $version" -ForegroundColor Red
-    Write-Host "Initializing version to 1.0.0" -ForegroundColor Yellow
-    $major = 1
-    $minor = 0
-    $patch = 0
+    Write-Error "Invalid version format in package.json: '$version'. Expected major.minor.patch (e.g. 1.0.0)."
+    exit 1
 }
 
 $shouldIncrement = $Increment -or (-not $Dev)

@@ -25,14 +25,13 @@ try {
   }
   const packageJson = JSON.parse(packageJsonContent);
 
-  // Parse current version
+  // Parse current version — must be strict semver major.minor.patch
   const version = packageJson.version;
   const versionMatch = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
-  
+
   if (!versionMatch) {
-    console.error(`Invalid version format in package.json: ${version}`);
-    console.warn('Initializing version to 1.0.0');
-    packageJson.version = '1.0.0';
+    console.error(`Invalid version format in package.json: '${version}'. Expected major.minor.patch (e.g. 1.0.0).`);
+    process.exit(1);
   } else if (shouldIncrement) {
     // Increment patch version
     const major = parseInt(versionMatch[1]);

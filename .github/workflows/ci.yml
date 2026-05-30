@@ -36,7 +36,9 @@ jobs:
               run: dotnet restore ApiTestSpark.slnx
 
             - name: Build solution
-              run: dotnet build ApiTestSpark.slnx --configuration Release --no-restore
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  dotnet build ApiTestSpark.slnx --configuration Release --no-restore /p:Version=$VERSION
 
             - name: Run integration tests
               run: >

@@ -28,6 +28,9 @@ jobs:
             - name: Install npm dependencies
               run: npm ci
 
+            - name: Build React SPA
+              run: npm run build
+
             - name: Setup .NET 10
               uses: actions/setup-dotnet@v4
               with:
@@ -36,10 +39,10 @@ jobs:
             - name: Restore .NET dependencies
               run: dotnet restore ApiTestSpark.slnx
 
-            - name: Build solution (triggers React SPA build via MSBuild target)
-              # MSBuild's BuildReactSpa target calls "npm run build" (lint + vite build)
-              # before dotnet build. Node.js must be in PATH (provided by setup-node above).
-              run: dotnet build ApiTestSpark.slnx --configuration Release --no-restore
+            - name: Build solution
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  dotnet build ApiTestSpark.slnx --configuration Release --no-restore /p:Version=$VERSION
 
             - name: Run integration tests
               run: >
@@ -48,7 +51,6 @@ jobs:
                   --no-build
                   --verbosity normal
                   --logger "trx"
-                  --collect:"XPlat Code Coverage"
                   --results-directory ./TestResults
 
             - name: Upload test results
@@ -66,14 +68,13 @@ jobs:
               run: npm audit --audit-level=high
 
             - name: Pack NuGet package
-              # --no-build: React build already ran via MSBuild target above.
-              # ValidateSpaAssets MSBuild target (BeforeTargets="Pack") will fail loudly
-              # if build/ is empty, preventing a broken package from being published.
-              run: >
-                  dotnet pack ApiTestSpark/ApiTestSpark.csproj
-                  --configuration Release
-                  --no-build
-                  --output ./nupkg
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  dotnet pack ApiTestSpark/ApiTestSpark.csproj \
+                    --configuration Release \
+                    --no-build \
+                    /p:Version=$VERSION \
+                    --output ./nupkg
 
             - name: Verify package contents
               run: |
