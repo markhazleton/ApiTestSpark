@@ -11,12 +11,35 @@
     <PackageId>ApiTestSpark</PackageId>
     <Version>1.0.0</Version>
     <Authors>Mark Hazleton</Authors>
-    <Description>Embed the API Test Spark React SPA into any .NET 10 Minimal API project with a single MapApiTestSpark() call. Autodiscovers OpenAPI v3 endpoints and renders an interactive test UI at /api-test-spark/.</Description>
-    <PackageTags>api;test;spark;openapi;minimal-api;developer-tools;react;spa</PackageTags>
+    <Company>MarkHazleton</Company>
+    <Copyright>Copyright © Mark Hazleton 2026</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <Title>API Test Spark — Interactive API Test UI for .NET 10 Minimal APIs</Title>
+    <Description>Embed the API Test Spark React SPA into any .NET 10 Minimal API project with a single MapApiTestSpark() call. Autodiscovers OpenAPI v3 endpoints and renders an interactive test UI at /api-test-spark/. Includes sortable response tables, editable object forms, curl command generation, a draggable debug panel, and Azure Application Insights integration. Zero configuration required — just add MapApiTestSpark() to your startup.</Description>
+    <PackageTags>api;test;spark;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://apitest.makeboldspark.com</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MarkHazleton/ApiTestSpark</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReleaseNotes>1.0.0 — Initial release. MapApiTestSpark() embeds an interactive React API test UI at /api-test-spark/ in any .NET 10 Minimal API. Autodiscovers OpenAPI v3 endpoints. Renders sortable response tables and editable object forms. Generates curl commands. Includes draggable debug panel and Azure Application Insights integration. See CHANGELOG.md for full history.</PackageReleaseNotes>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <!-- Build quality -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Symbol packages and Source Link for debuggability -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- Package API compatibility validation -->
+    <EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +51,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- Source Link: enables step-through debugging into this package's source -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <!-- PublicApiAnalyzers: enforces public API surface tracking via PublicAPI.Shipped.txt -->
   </ItemGroup>
 
   <!-- Embed the compiled React SPA assets from the repo root build/ directory -->
@@ -35,6 +61,8 @@
     <EmbeddedResource Include="$(MSBuildProjectDirectory)\..\build\**"
                       Link="build\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <!--
