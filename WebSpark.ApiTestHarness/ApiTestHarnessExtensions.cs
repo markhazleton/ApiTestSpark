@@ -169,7 +169,7 @@ public static class ApiTestHarnessExtensions
             ctx.Response.Headers["Cache-Control"] = "no-cache";
             ctx.Response.Headers["Content-Security-Policy"] =
                 "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-                "connect-src 'self' https://*.applicationinsights.azure.com https://*.monitor.azure.com";
+                "connect-src 'self' https://*.applicationinsights.azure.com https://*.monitor.azure.com https://v2.jokeapi.dev https://jsonplaceholder.typicode.com";
 
             var indexFile = fileProvider.GetFileInfo("index.html");
             if (!indexFile.Exists)
