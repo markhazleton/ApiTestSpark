@@ -140,6 +140,15 @@ public static class ApiTestSparkExtensions
                 return;
             }
 
+            // Redirect /api-test-spark → /api-test-spark/ so React Router basename matches.
+            // React Router with basename="/api-test-spark/" requires the URL to start with
+            // the basename including the trailing slash; without it the router renders nothing.
+            if (ctx.Request.Path.Value == MountPath)
+            {
+                ctx.Response.Redirect(MountPath + "/" + ctx.Request.QueryString, permanent: false);
+                return;
+            }
+
             var subPath = ctx.Request.Path.Value ?? string.Empty;
             var hasExtension = Path.HasExtension(subPath);
 
