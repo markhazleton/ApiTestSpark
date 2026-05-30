@@ -24,6 +24,9 @@ jobs:
             - name: Install npm dependencies
               run: npm ci
 
+            - name: Build React SPA
+              run: npm run build
+
             - name: Setup .NET 10
               uses: actions/setup-dotnet@v4
               with:
@@ -32,7 +35,7 @@ jobs:
             - name: Restore .NET dependencies
               run: dotnet restore ApiTestSpark.slnx
 
-            - name: Build solution (triggers React SPA build via MSBuild target)
+            - name: Build solution
               run: dotnet build ApiTestSpark.slnx --configuration Release --no-restore
 
             - name: Run integration tests
