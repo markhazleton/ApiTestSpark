@@ -1,6 +1,15 @@
 # API Test Spark
 
+**Live Site**: [https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)
+
 A lightweight React + TypeScript developer tool for testing and debugging REST APIs with real-time request inspection. Embedded in the [ApiTestSpark NuGet package](ApiTestSpark/README.md) for drop-in use in any .NET 10 Minimal API.
+
+## About
+
+API Test Spark is a developer tool for testing and debugging REST APIs. It ships as a NuGet package that embeds the full React SPA into any .NET 10 Minimal API with a single method call — `MapApiTestSpark()`. The live demo runs at [https://apitest.makeboldspark.com](https://apitest.makeboldspark.com).
+
+> Built by [Mark Hazleton](https://markhazleton.com) — Mark Hazleton, Solutions Architect
+> ApiTestSpark is part of the [Make Bold Spark](https://makeboldspark.com) portfolio of technical demonstrations.
 
 ## What It Does
 
