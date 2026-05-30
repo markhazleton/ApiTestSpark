@@ -61,7 +61,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <!-- Source Link: enables step-through debugging into this package's source -->
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
     <!-- PublicApiAnalyzers: enforces public API surface tracking via PublicAPI.Shipped.txt -->
   </ItemGroup>
 
@@ -72,8 +72,7 @@
 
   <!-- Embed the compiled React SPA assets from the repo root build/ directory -->
   <ItemGroup>
-    <EmbeddedResource Include="$(RepoRoot)/build/**"
-      Link="build/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="$(RepoRoot)/build/**" Link="build/%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="NUGET-PACKAGE-WALKTHROUGH.md" Pack="true" PackagePath="/" />
     <None Include="icon.png" Pack="true" PackagePath="/" />
@@ -99,13 +98,9 @@
     <_SpaSources Include="$(RepoRoot)/package.json" />
   </ItemGroup>
 
-  <Target Name="BuildReactSpa"
-    BeforeTargets="Build"
-    Inputs="@(_SpaSources)"
-    Outputs="$(_SpaSentinel)">
+  <Target Name="BuildReactSpa" BeforeTargets="Build" Inputs="@(_SpaSources)" Outputs="$(_SpaSentinel)">
     <Message Text="ApiTestSpark: building React SPA (base=/api-test-spark/)..." Importance="high" />
-    <Exec Command="npm run build"
-      WorkingDirectory="$(RepoRoot)" />
+    <Exec Command="npm run build" WorkingDirectory="$(RepoRoot)" />
     <Touch Files="$(_SpaSentinel)" AlwaysCreate="true" />
   </Target>
 
@@ -114,9 +109,7 @@
     <ItemGroup>
       <_SpaFiles Include="$(RepoRoot)/build/**/*.*" />
     </ItemGroup>
-    <Error
-      Condition="'@(_SpaFiles)' == ''"
-      Text="ApiTestSpark: build/ directory is empty. Run pack.ps1 which builds the React SPA before dotnet pack. Packing with no assets would silently produce a broken NuGet package." />
+    <Error Condition="'@(_SpaFiles)' == ''" Text="ApiTestSpark: build/ directory is empty. Run pack.ps1 which builds the React SPA before dotnet pack. Packing with no assets would silently produce a broken NuGet package." />
   </Target>
 
 </Project>
