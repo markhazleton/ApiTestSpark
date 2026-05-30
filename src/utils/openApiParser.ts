@@ -34,6 +34,7 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
 
   const combiner = node['oneOf'] ?? node['anyOf'];
   if (Array.isArray(combiner)) {
+    // For oneOf/anyOf, pick the first non-null branch (handles .NET 10 nullable wrappers)
     for (const branch of combiner) {
       const resolved = resolveSchema(branch, doc, depth + 1);
       if (resolved !== null) return resolved;
@@ -43,16 +44,22 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
 
   const result: ResolvedSchema = {};
 
+  // Normalise type — .NET 10 emits nullable as ["null", "string"]
   const rawType = node['type'];
   if (typeof rawType === 'string') {
+    if (rawType === 'null') return null; // bare null type — skip
     result.type = rawType;
   } else if (Array.isArray(rawType)) {
-    result.type = (rawType as string[]).find((t) => t !== 'null') ?? 'string';
+    const nonNull = (rawType as string[]).filter((t) => t !== 'null');
+    result.type = nonNull[0] ?? 'string';
+    if ((rawType as string[]).includes('null')) result.nullable = true;
   }
 
   if (typeof node['format'] === 'string')      result.format      = node['format'];
   if (typeof node['description'] === 'string') result.description = node['description'];
   if (node['example'] !== undefined)           result.example     = node['example'];
+  if (node['default'] !== undefined)           result.default     = node['default'];
+  if (node['nullable'] === true)               result.nullable    = true;
   if (Array.isArray(node['enum']))             result.enum        = node['enum'] as string[];
   if (Array.isArray(node['required']))         result.required    = node['required'] as string[];
   if (typeof node['minimum'] === 'number')     result.minimum     = node['minimum'];
@@ -76,15 +83,25 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
   return result;
 }
 
-/** Build a JSON scaffold string from resolved schema properties for use as a body textarea default. */
+/**
+ * Build a JSON scaffold string from a resolved schema.
+ * Priority order for each field value: example → default → enum[0] → type-based placeholder.
+ */
 export function buildJsonScaffold(schema: ResolvedSchema | null): string {
   if (!schema?.properties) return '{}';
   const obj: Record<string, unknown> = {};
   for (const [key, prop] of Object.entries(schema.properties)) {
     if (prop.example !== undefined) {
       obj[key] = prop.example;
+    } else if (prop.default !== undefined) {
+      obj[key] = prop.default;
     } else if (prop.enum?.length) {
       obj[key] = prop.enum[0];
+    } else if (prop.type === 'object' && prop.properties) {
+      // Recursively scaffold nested objects
+      try { obj[key] = JSON.parse(buildJsonScaffold(prop)); } catch { obj[key] = {}; }
+    } else if (prop.type === 'array' && prop.items?.properties) {
+      try { obj[key] = [JSON.parse(buildJsonScaffold(prop.items))]; } catch { obj[key] = []; }
     } else {
       switch (prop.type) {
         case 'integer':
@@ -92,7 +109,7 @@ export function buildJsonScaffold(schema: ResolvedSchema | null): string {
         case 'boolean': obj[key] = false; break;
         case 'array':   obj[key] = []; break;
         case 'object':  obj[key] = {}; break;
-        default:        obj[key] = '';
+        default:        obj[key] = prop.nullable ? null : '';
       }
     }
   }
@@ -125,6 +142,10 @@ function parseOperation(
       maximum: p.schema?.maximum,
       minLength: p.schema?.minLength,
       maxLength: p.schema?.maxLength,
+      default: p.schema?.default,
+      nullable: Array.isArray(p.schema?.type)
+        ? (p.schema?.type as string[]).includes('null')
+        : (p.schema?.nullable ?? false),
     },
     description: p.description ?? '',
     example: p.example != null ? String(p.example) : undefined,
@@ -132,6 +153,7 @@ function parseOperation(
 
   let requestBodySchema: ResolvedSchema | null = null;
   const requestBodyRequired = op.requestBody?.required ?? false;
+  const requestBodyDescription = op.requestBody?.description ?? '';
   if (op.requestBody?.content) {
     const firstContent = Object.values(op.requestBody.content)[0];
     if (firstContent?.schema) {
@@ -139,7 +161,7 @@ function parseOperation(
     }
   }
 
-  // Parse all documented response codes
+  // Parse all documented response codes, sorted numerically
   const responseCodes: ResponseCode[] = [];
   let responseSchema: ResolvedSchema | null = null;
 
@@ -157,20 +179,23 @@ function parseOperation(
         responseSchema = schema;
       }
     }
-    // Sort: success codes first, then client errors, then server errors
     responseCodes.sort((a, b) => Number(a.status) - Number(b.status));
   }
+
+  const operationId = op.operationId ?? '';
 
   return {
     method: method.toUpperCase() as DiscoveredEndpoint['method'],
     path,
-    summary: op.summary ?? op.operationId ?? `${method.toUpperCase()} ${path}`,
+    operationId,
+    summary: op.summary ?? (operationId || `${method.toUpperCase()} ${path}`),
     description: op.description ?? '',
     deprecated: op.deprecated ?? false,
     tags: op.tags ?? [],
     parameters,
     requestBodySchema,
     requestBodyRequired,
+    requestBodyDescription,
     responseSchema,
     responseCodes,
   };
@@ -206,5 +231,8 @@ export function parseApiInfo(doc: OpenApiV3Doc): ApiInfo {
     description: doc.info.description,
     contactName: doc.info.contact?.name,
     contactUrl: doc.info.contact?.url,
+    contactEmail: doc.info.contact?.email,
+    licenseName: doc.info.license?.name,
+    licenseUrl: doc.info.license?.url,
   };
 }

@@ -3,6 +3,7 @@ import type { DiscoveredEndpoint, EndpointParameter, ResponseCode, ResolvedSchem
 import { useHostApi } from '../../hooks';
 import { useHarnessConfigStore } from '../../store';
 import { buildJsonScaffold } from '../../utils/openApiParser';
+import { renderMarkdown } from '../../utils/renderMarkdown';
 
 const METHOD_COLORS: Record<string, string> = {
   GET:    'bg-blue-100 text-blue-800',
@@ -34,25 +35,33 @@ function ParamField({
   onChange: (v: string) => void;
 }) {
   const labelId = `param-${param.in}-${param.name}`;
-  const placeholder = param.example ?? param.schema.type;
+  // Use example → default → type as placeholder
+  const placeholder = param.example
+    ?? (param.schema.default != null ? String(param.schema.default) : undefined)
+    ?? param.schema.type;
 
   const constraints: string[] = [];
-  if (param.schema.minimum != null) constraints.push(`min: ${param.schema.minimum}`);
-  if (param.schema.maximum != null) constraints.push(`max: ${param.schema.maximum}`);
-  if (param.schema.minLength != null) constraints.push(`minLen: ${param.schema.minLength}`);
-  if (param.schema.maxLength != null) constraints.push(`maxLen: ${param.schema.maxLength}`);
+  if (param.schema.minimum != null)   constraints.push(`min ${param.schema.minimum}`);
+  if (param.schema.maximum != null)   constraints.push(`max ${param.schema.maximum}`);
+  if (param.schema.minLength != null) constraints.push(`≥${param.schema.minLength} chars`);
+  if (param.schema.maxLength != null) constraints.push(`≤${param.schema.maxLength} chars`);
+  if (param.schema.nullable)          constraints.push('nullable');
+
+  // Pre-fill default value on first render if field is empty
+  const effectiveValue = value !== '' ? value
+    : (param.schema.default != null ? String(param.schema.default) : value);
 
   return (
     <div>
       <label htmlFor={labelId} className="text-xs font-semibold text-gray-600 flex items-center gap-1 flex-wrap mb-1">
         <span className="font-mono">{param.name}</span>
-        {param.required && <span className="text-red-500 text-xs">*</span>}
+        {param.required && <span className="text-red-500">*</span>}
         <span className="text-gray-400 font-normal">({param.in})</span>
         {param.schema.format && (
-          <span className="text-gray-400 font-normal font-mono text-[10px]">{param.schema.format}</span>
+          <span className="text-purple-400 font-normal font-mono text-[10px]">{param.schema.format}</span>
         )}
         {constraints.map((c) => (
-          <span key={c} className="text-gray-300 font-normal font-mono text-[10px]">{c}</span>
+          <span key={c} className="text-gray-300 font-normal font-mono text-[10px] bg-gray-50 px-1 rounded">{c}</span>
         ))}
       </label>
       {param.description && (
@@ -61,7 +70,7 @@ function ParamField({
       {param.schema.enum?.length ? (
         <select
           id={labelId}
-          value={value}
+          value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
           className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
         >
@@ -73,7 +82,7 @@ function ParamField({
       ) : param.schema.type === 'boolean' ? (
         <select
           id={labelId}
-          value={value}
+          value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
           className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
         >
@@ -85,7 +94,7 @@ function ParamField({
         <input
           id={labelId}
           type={param.schema.type === 'integer' || param.schema.type === 'number' ? 'number' : 'text'}
-          value={value}
+          value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -104,36 +113,57 @@ function SchemaTable({ schema, title }: { schema: ResolvedSchema; title: string 
   const required = schema.type === 'array'
     ? (schema.items?.required ?? [])
     : (schema.required ?? []);
+  const schemaDesc = schema.type === 'array'
+    ? schema.items?.description
+    : schema.description;
 
   if (!props) return null;
 
   return (
     <div>
       <p className="text-xs font-semibold text-gray-500 mb-1">
-        {title} {schema.type === 'array' ? '(array of objects)' : '(object)'}
+        {title}
+        <span className="font-normal text-gray-400 ml-1">
+          ({schema.type === 'array' ? 'array of objects' : 'object'})
+        </span>
       </p>
+      {schemaDesc && (
+        <p className="text-xs text-gray-400 italic mb-1">{schemaDesc}</p>
+      )}
       <div className="border border-gray-100 rounded overflow-hidden text-xs">
         {Object.entries(props).map(([key, prop]) => {
+          const isRequired = required.includes(key);
+          const isNullable = prop.nullable ?? false;
           const constraints: string[] = [];
           if (prop.minimum != null)   constraints.push(`≥${prop.minimum}`);
           if (prop.maximum != null)   constraints.push(`≤${prop.maximum}`);
           if (prop.minLength != null) constraints.push(`min ${prop.minLength} chars`);
           if (prop.maxLength != null) constraints.push(`max ${prop.maxLength} chars`);
 
+          const typeLabel = prop.format
+            ? `${prop.type ?? ''}(${prop.format})`
+            : (prop.type ?? 'any');
+
           return (
             <div key={key} className="flex items-baseline gap-2 px-2 py-1.5 even:bg-gray-50 border-b border-gray-50 last:border-0">
               <span className="font-mono text-blue-700 shrink-0 w-28 truncate" title={key}>{key}</span>
-              <span className="text-gray-400 font-mono shrink-0 text-[10px]">
-                {prop.format ? `${prop.type ?? ''}(${prop.format})` : (prop.type ?? 'any')}
-              </span>
-              {required.includes(key) && (
+              <span className="text-gray-400 font-mono shrink-0 text-[10px]">{typeLabel}</span>
+              {isRequired && (
                 <span className="text-red-400 shrink-0 text-[10px] font-semibold">required</span>
+              )}
+              {isNullable && !isRequired && (
+                <span className="text-gray-300 shrink-0 text-[10px] font-mono">nullable</span>
+              )}
+              {prop.default !== undefined && (
+                <span className="text-amber-500 shrink-0 text-[10px] font-mono">
+                  default: {JSON.stringify(prop.default)}
+                </span>
               )}
               {constraints.map((c) => (
                 <span key={c} className="text-gray-300 shrink-0 text-[10px] font-mono">{c}</span>
               ))}
               {prop.enum && (
-                <span className="text-purple-400 shrink-0 text-[10px] font-mono truncate">
+                <span className="text-purple-400 shrink-0 text-[10px] font-mono truncate max-w-24" title={prop.enum.join(' | ')}>
                   {prop.enum.join(' | ')}
                 </span>
               )}
@@ -170,17 +200,18 @@ function ResponseCodeBadges({ codes }: { codes: ResponseCode[] }) {
               <button
                 type="button"
                 onClick={() => setExpanded(isOpen ? null : rc.status)}
-                className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded border ${colorClass} cursor-pointer hover:opacity-80 transition-opacity`}
-                title={rc.description}
+                className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded border ${colorClass} hover:opacity-80 transition-opacity`}
+                title={rc.schema ? `${rc.description} — click to expand schema` : rc.description}
               >
                 {rc.status}
                 {rc.description && (
                   <span className="font-normal ml-1 text-[10px] opacity-70">{rc.description}</span>
                 )}
+                {rc.schema && <span className="ml-1 opacity-50 text-[9px]">▾</span>}
               </button>
               {isOpen && rc.schema && (
                 <div className="mt-1 ml-1">
-                  <SchemaTable schema={rc.schema} title={`${rc.status} schema`} />
+                  <SchemaTable schema={rc.schema} title={`${rc.status} response schema`} />
                 </div>
               )}
             </div>
@@ -350,6 +381,7 @@ function ResponseView({ data }: { data: unknown }) {
 export function EndpointTester({ endpoint }: EndpointTesterProps) {
   const { config } = useHarnessConfigStore();
   const { mutate, isPending, data, error } = useHostApi();
+  const [copied, setCopied] = useState(false);
 
   const needsBody = ['POST', 'PUT', 'PATCH'].includes(endpoint.method);
   const [pathParams, setPathParams]   = useState<Record<string, string>>({});
@@ -374,19 +406,42 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
     mutate({ method: endpoint.method, path: endpoint.path, pathParams, queryParams, body, extraHeaders });
   }
 
+  function copyOperationId() {
+    navigator.clipboard.writeText(endpoint.operationId).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
   return (
     <div className="p-4 space-y-4">
 
-      {/* ── Header ── */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${METHOD_COLORS[endpoint.method] ?? 'bg-gray-100 text-gray-800'}`}>
+      {/* ── Header: method + path + operationId ── */}
+      <div className="flex items-start gap-2 flex-wrap">
+        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded shrink-0 ${METHOD_COLORS[endpoint.method] ?? 'bg-gray-100 text-gray-800'}`}>
           {endpoint.method}
         </span>
-        <span className="text-sm font-mono text-gray-800 break-all">{endpoint.path}</span>
+        <span className="text-sm font-mono text-gray-800 break-all flex-1">{endpoint.path}</span>
         {endpoint.deprecated && (
-          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">deprecated</span>
+          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium shrink-0">deprecated</span>
         )}
       </div>
+
+      {/* ── operationId — copyable identifier ── */}
+      {endpoint.operationId && (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-400 font-mono">operationId</span>
+          <button
+            type="button"
+            onClick={copyOperationId}
+            title="Click to copy operationId"
+            className="text-[11px] font-mono text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded hover:bg-gray-100 hover:text-gray-700 transition-colors"
+          >
+            {endpoint.operationId}
+          </button>
+          {copied && <span className="text-[10px] text-green-600">copied!</span>}
+        </div>
+      )}
 
       {/* ── Deprecated warning ── */}
       {endpoint.deprecated && (
@@ -400,17 +455,10 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
         <p className="text-sm font-semibold text-gray-800">{endpoint.summary}</p>
       )}
 
-      {/* ── Description (markdown-lite: bold + code + bullet lists) ── */}
+      {/* ── Description — full markdown renderer ── */}
       {endpoint.description && (
-        <div className="text-xs text-gray-600 leading-relaxed space-y-1">
-          {endpoint.description.split('\n').map((line, i) => {
-            if (!line.trim()) return null;
-            const html = line
-              .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-              .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-gray-700 px-0.5 rounded font-mono text-[10px]">$1</code>')
-              .replace(/^[-*]\s+/, '• ');
-            return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
-          })}
+        <div className="text-xs space-y-1">
+          {renderMarkdown(endpoint.description)}
         </div>
       )}
 
@@ -422,7 +470,7 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
       {/* ── Default headers from config ── */}
       {config?.defaultHeaders && Object.keys(config.defaultHeaders).length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 mb-1">Default headers (injected by config)</p>
+          <p className="text-xs font-semibold text-gray-500 mb-1">Default headers (from harness config)</p>
           <div className="flex flex-wrap gap-1">
             {Object.entries(config.defaultHeaders).map(([k, v]) => (
               <span key={k} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">
@@ -484,7 +532,8 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-xs font-semibold text-gray-600">
-              Request body (JSON){endpoint.requestBodyRequired && <span className="text-red-500 ml-1">*</span>}
+              Request body (JSON)
+              {endpoint.requestBodyRequired && <span className="text-red-500 ml-1">*</span>}
             </label>
             {endpoint.requestBodySchema?.properties && (
               <button
@@ -492,11 +541,17 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
                 onClick={() => setBodyText(buildJsonScaffold(endpoint.requestBodySchema))}
                 className="text-xs text-blue-600 hover:text-blue-800 underline"
               >
-                reset to scaffold
+                reset scaffold
               </button>
             )}
           </div>
-          {/* Property chips with description tooltip */}
+
+          {/* requestBody.description from the OpenAPI spec */}
+          {endpoint.requestBodyDescription && (
+            <p className="text-xs text-gray-400 mb-1.5 italic">{endpoint.requestBodyDescription}</p>
+          )}
+
+          {/* Schema property chips with type annotation */}
           {endpoint.requestBodySchema?.properties && (
             <div className="flex flex-wrap gap-1 mb-1.5">
               {Object.entries(endpoint.requestBodySchema.properties).map(([key, prop]) => (
@@ -514,16 +569,21 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
                       {prop.format ? `${prop.type}(${prop.format})` : prop.type}
                     </span>
                   )}
+                  {prop.default !== undefined && (
+                    <span className="text-amber-400 ml-1 opacity-70">={JSON.stringify(prop.default)}</span>
+                  )}
                 </span>
               ))}
             </div>
           )}
-          {/* Full schema table for body */}
+
+          {/* Full schema table */}
           {endpoint.requestBodySchema && (
             <div className="mb-2">
               <SchemaTable schema={endpoint.requestBodySchema} title="Request body schema" />
             </div>
           )}
+
           <textarea
             value={bodyText}
             onChange={(e) => setBodyText(e.target.value)}

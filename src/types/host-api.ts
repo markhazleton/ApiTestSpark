@@ -12,13 +12,26 @@ export interface ApiInfo {
   description?: string;
   contactName?: string;
   contactUrl?: string;
+  contactEmail?: string;
+  licenseName?: string;
+  licenseUrl?: string;
 }
 
 export interface EndpointParameter {
   name: string;
   in: 'path' | 'query' | 'header' | 'cookie';
   required: boolean;
-  schema: { type: string; format?: string; enum?: string[]; minimum?: number; maximum?: number; minLength?: number; maxLength?: number };
+  schema: {
+    type: string;
+    format?: string;
+    enum?: string[];
+    minimum?: number;
+    maximum?: number;
+    minLength?: number;
+    maxLength?: number;
+    default?: unknown;
+    nullable?: boolean;
+  };
   description: string;
   example?: string;
 }
@@ -33,6 +46,7 @@ export interface ResponseCode {
 export interface DiscoveredEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
+  operationId: string;
   summary: string;
   description: string;
   deprecated: boolean;
@@ -40,6 +54,7 @@ export interface DiscoveredEndpoint {
   parameters: EndpointParameter[];
   requestBodySchema: ResolvedSchema | null;
   requestBodyRequired: boolean;
+  requestBodyDescription: string;
   responseSchema: ResolvedSchema | null;
   /** All documented response codes for this operation. */
   responseCodes: ResponseCode[];
@@ -55,6 +70,8 @@ export interface ResolvedSchema {
   enum?: string[];
   description?: string;
   example?: unknown;
+  default?: unknown;
+  nullable?: boolean;
   minimum?: number;
   maximum?: number;
   minLength?: number;
@@ -73,7 +90,18 @@ export interface OpenApiV3Operation {
     name: string;
     in: string;
     required?: boolean;
-    schema?: { type?: string | string[]; format?: string; enum?: string[]; pattern?: string; minimum?: number; maximum?: number; minLength?: number; maxLength?: number };
+    schema?: {
+      type?: string | string[];
+      format?: string;
+      enum?: string[];
+      pattern?: string;
+      minimum?: number;
+      maximum?: number;
+      minLength?: number;
+      maxLength?: number;
+      default?: unknown;
+      nullable?: boolean;
+    };
     description?: string;
     example?: unknown;
   }>;
@@ -91,7 +119,13 @@ export type OpenApiV3PathItem = {
 
 export interface OpenApiV3Doc {
   openapi: string;
-  info: { title: string; version: string; description?: string; contact?: { name?: string; url?: string } };
+  info: {
+    title: string;
+    version: string;
+    description?: string;
+    contact?: { name?: string; url?: string; email?: string };
+    license?: { name?: string; url?: string };
+  };
   paths: Record<string, OpenApiV3PathItem>;
   components?: {
     schemas?: Record<string, unknown>;

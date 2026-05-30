@@ -3,6 +3,7 @@ import { useHarnessConfig } from '../../hooks';
 import { useHarnessConfigStore } from '../../store';
 import { EndpointList } from './EndpointList';
 import { EndpointTester } from './EndpointTester';
+import { renderMarkdown } from '../../utils/renderMarkdown';
 import type { DiscoveredEndpoint } from '../../types';
 
 export function HostApiScreen() {
@@ -38,7 +39,7 @@ export function HostApiScreen() {
   return (
     <div className="flex flex-col h-full">
 
-      {/* ── Header: API info from OpenAPI info block ── */}
+      {/* ── API info header ── */}
       <div className="px-6 py-4 border-b border-gray-200 shrink-0">
         <div className="flex items-baseline gap-2 flex-wrap">
           <h1 className="text-lg font-semibold text-gray-900">
@@ -55,19 +56,36 @@ export function HostApiScreen() {
             </span>
           )}
         </div>
-        {apiInfo?.description && !apiInfo.description.includes('##') && (
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{apiInfo.description}</p>
+
+        {/* Contact + license meta row */}
+        {(apiInfo?.contactName || apiInfo?.licenseName) && (
+          <div className="flex flex-wrap gap-3 mt-1">
+            {apiInfo.contactName && (
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                <span className="text-gray-300">✉</span>
+                {apiInfo.contactUrl
+                  ? <a href={apiInfo.contactUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{apiInfo.contactName}</a>
+                  : apiInfo.contactName}
+                {apiInfo.contactEmail && (
+                  <a href={`mailto:${apiInfo.contactEmail}`} className="text-blue-400 hover:underline">
+                    {apiInfo.contactEmail}
+                  </a>
+                )}
+              </span>
+            )}
+            {apiInfo?.licenseName && (
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                <span className="text-gray-300">⚖</span>
+                {apiInfo.licenseUrl
+                  ? <a href={apiInfo.licenseUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{apiInfo.licenseName}</a>
+                  : apiInfo.licenseName}
+              </span>
+            )}
+          </div>
         )}
+
         {!apiInfo && (
           <p className="text-xs text-gray-400 mt-0.5">Autodiscovered from the host app's OpenAPI v3 document</p>
-        )}
-        {apiInfo?.contactName && (
-          <p className="text-xs text-gray-400 mt-0.5">
-            Contact:{' '}
-            {apiInfo.contactUrl
-              ? <a href={apiInfo.contactUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{apiInfo.contactName}</a>
-              : apiInfo.contactName}
-          </p>
         )}
       </div>
 
@@ -117,18 +135,14 @@ export function HostApiScreen() {
             {selected ? (
               <EndpointTester key={`${selected.method}-${selected.path}`} endpoint={selected} />
             ) : (
-              <div className="p-8 text-center">
-                <p className="text-sm text-gray-400">Select an endpoint from the list to test it.</p>
+              /* Empty state: show API description rendered as full markdown */
+              <div className="p-8">
+                <p className="text-sm text-gray-400 mb-4 text-center">Select an endpoint to test it.</p>
                 {apiInfo?.description && (
-                  <div className="mt-4 text-left max-w-lg mx-auto bg-gray-50 border border-gray-100 rounded p-4">
-                    <p className="text-xs font-semibold text-gray-600 mb-2">About this API</p>
-                    <div className="text-xs text-gray-500 leading-relaxed space-y-1">
-                      {apiInfo.description.split('\n').filter(Boolean).slice(0, 12).map((line, i) => {
-                        const html = line
-                          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/`(.+?)`/g, '<code class="bg-gray-100 text-gray-700 px-0.5 rounded font-mono">$1</code>');
-                        return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
-                      })}
+                  <div className="max-w-2xl mx-auto bg-white border border-gray-100 rounded-lg p-5 shadow-sm">
+                    <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">About this API</p>
+                    <div className="text-xs space-y-1.5">
+                      {renderMarkdown(apiInfo.description)}
                     </div>
                   </div>
                 )}
