@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.0.1] - 2026-05-30
+
+### Added
+
+- **API Doc Builder** (`/api-docs`): new screen that lets developers select endpoints, capture live curl commands and real HTTP responses, annotate sections with prose notes, then generate complete markdown documentation targeted at front-end developer agents — includes table of contents, parameters table, request body schema table, response codes table, and fenced curl + JSON response blocks
+- **OpenAPI metadata renderer**: full markdown renderer (`renderMarkdown.tsx`) supporting `**bold**`, `*italic*`, `` `code` ``, `## headings`, `- bullet lists`, `1. numbered lists`, ` ```fenced code blocks``` `, and `| markdown tables |`
+- **operationId chip**: copyable `operationId` button shown in the endpoint tester header — useful for SDK codegen and cross-referencing API docs
+- **Response codes panel**: all documented status codes shown as coloured badges (green 2xx, yellow 4xx, red 5xx); click a badge to expand the inline response schema
+- **Schema constraints in UI**: `default`, `nullable`, `minimum`/`maximum`, `minLength`/`maxLength` from OpenAPI schema now shown in property tables and property chips; scaffold pre-fills `default` values
+- **API info header**: `info.contact.email` (mailto link) and `info.license` (name + URL) now rendered in the HostApiScreen header
+- **Accordion default-collapsed**: endpoint list starts collapsed when 3+ namespaces are present; "expand all / collapse all" buttons appear in the search bar
+- **Relational seed data** in SampleApi: `Customer` gains `Address` (street/city/state/postal/country) and `Company` fields; `Product` gains `Category`, `Description`, `StockQuantity`; `OrderCache` seeded with 7 orders across all 5 customers covering every `OrderStatus` value
+- **New SampleApi endpoints**: `GET /products/categories`, `GET /products/category/{cat}`, `GET /orders/status/{status}`
+- **Tag-based accordion grouping**: SampleApi endpoint tags changed to `"Products: Catalog"`, `"Customers: Accounts"`, `"Orders: Lifecycle"` — feeds the `splitTag()` accordion logic for clean three-level grouping
+- **NuGet badges**: `[![NuGet](...)]` version and download count badges added to root `README.md` and `ApiTestSpark/README.md`
+
+### Changed
+
+- **EndpointTester description rendering** now uses the shared `renderMarkdown` utility — fenced code blocks, markdown tables, and italic text in OpenAPI descriptions render correctly instead of as raw text
+- **`buildJsonScaffold`**: priority order changed to `example → default → enum[0] → type placeholder`; nested objects and arrays now recursively scaffolded; nullable strings scaffold as `null` instead of `""`
+- **`openApiParser`**: `default` and `nullable` extracted from schemas; `operationId` and `requestBodyDescription` parsed from operations; `info.license` and `contact.email` extracted by `parseApiInfo()`; `null` type in arrays normalised with `nullable: true` flag
+- **HostApiScreen empty state**: shows full markdown-rendered API `info.description` when no endpoint is selected
+- **`harnessConfigStore`**: gains `apiInfo` field populated from the OpenAPI `info` block after fetch
+
+### Fixed
+
+- **`Microsoft.OpenApi` version**: upgraded from `2.0.0` to `2.7.6` (latest non-deprecated 2.x; `3.x` breaks the `Microsoft.AspNetCore.OpenApi` 10.0.8 source generator)
+- **`Microsoft.SourceLink.GitHub`**: updated to `10.0.300`
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.0.0] - 2026-05-30
 
 ### Added
@@ -52,5 +85,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.1...HEAD
+[v1.0.1]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/MarkHazleton/ApiTestSpark/releases/tag/v1.0.0
