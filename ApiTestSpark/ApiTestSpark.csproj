@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ApiTestSpark</RootNamespace>
+    <AssemblyName>ApiTestSpark</AssemblyName>
+
+    <!-- NuGet package metadata -->
+    <PackageId>ApiTestSpark</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Mark Hazleton</Authors>
+    <Description>Embed the API Test Spark React SPA into any .NET 10 Minimal API project with a single MapApiTestSpark() call. Autodiscovers OpenAPI v3 endpoints and renders an interactive test UI at /api-test-spark/.</Description>
+    <PackageTags>api;test;spark;openapi;minimal-api;developer-tools;react;spa</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/MarkHazleton/ApiTestSpark</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Embed the compiled React SPA assets from the repo root build/ directory -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildProjectDirectory)\..\build\**"
+                      Link="build\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Pre-pack guard: fail loudly if build/ is empty (resource name mismatch trap) -->
+  <Target Name="ValidateSpaAssets" BeforeTargets="Pack">
+    <ItemGroup>
+      <_SpaFiles Include="$(MSBuildProjectDirectory)\..\build\**\*.*" />
+    </ItemGroup>
+    <Error
+      Condition="'@(_SpaFiles)' == ''"
+      Text="ApiTestSpark: build/ directory is empty. Run pack.ps1 which builds the React SPA before dotnet pack. Packing with no assets would silently produce a broken NuGet package." />
+  </Target>
+
+</Project>
