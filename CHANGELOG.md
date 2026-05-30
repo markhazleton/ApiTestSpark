@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2026.04.30.1] - 2026-05-30
+
+### Added
+
+- **Portable NuGet Harness**: `MapApiTestSpark()` extension on `WebApplication` — single-call registration embeds the React SPA into any .NET Minimal API project at `/api-test-spark/`
+- **Config endpoint**: `GET /api-test-spark/config` bridges host .NET options to the SPA (OpenAPI URL, auth scheme, default headers, base URL)
+- **OpenAPI v3 autodiscovery**: SPA fetches the host app's OpenAPI document on startup and renders discovered endpoints grouped by tag with operation summaries
+- **`ApiTestSparkOptions`**: `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, `Environments`, `EnableVerboseLogging`, `CorsOrigins`
+- **Environment gating**: restrict harness to specific environments (e.g., `Development` only)
+- **Built-in CORS support**: no host `AddCors()` required — controlled via `CorsOrigins` option
+- **Content-Security-Policy** headers on SPA fallback responses (includes App Insights `connect-src`)
+- **`EnableVerboseLogging`** option for per-asset debug output via `ILogger`
+- **MSBuild targets**: `BuildReactSpa` (auto-build before `dotnet build`), `ValidateSpaAssets` (guard `dotnet pack` against empty `build/`)
+- **Dual-build strategy**: `VITE_BASE_PATH` env var produces standalone (`/`) and NuGet (`/api-test-spark/`) builds from one source
+- **Smart response rendering**: array → sortable table, object → editable form, other → raw pre block
+- **`$ref` resolution**: full dereferencing including .NET 10 nullable wrapper (`oneOf: [null, $ref]`)
+- **Integration tests**: `ApiTestSpark.Tests` with MSTest + `WebApplicationFactory` covering 200/404/SPA-fallback/config-shape/embedded-resource-prefix
+
+### Architectural Decisions
+
+- **ADR-001**: Embedded Resource SPA serving via `EmbeddedFileProvider`
+- **ADR-002**: Dual-build strategy via `VITE_BASE_PATH` environment variable
+- **ADR-003**: Config endpoint as Minimal API `MapGet`
+- **ADR-004**: Lightweight bespoke OpenAPI v3 parser (no third-party dependency)
+
+### Contributors
+
+- Mark Hazleton
+
 ## [1.0.0] - 2026-05-30
 
 ### Added
@@ -48,5 +77,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smart response rendering: sortable table, editable form, raw fallback (2026-05-30)
 - SampleApi refactored into vertical slices (Products + Home) as live demo site (2026-05-30)
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2026.04.30.1...HEAD
+[v2026.04.30.1]: https://github.com/MarkHazleton/ApiTestSpark/releases/tag/v2026.04.30.1
 [1.0.0]: https://github.com/MarkHazleton/ApiTestSpark/releases/tag/v1.0.0

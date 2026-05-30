@@ -1,0 +1,34 @@
+{
+  "version": "2026.04.30.1",
+  "releaseDate": "2026-05-30",
+  "release": {
+    "from": "2026-05-18",
+    "to": "2026-05-30"
+  },
+  "commitRange": {
+    "baseRef": null,
+    "baseSha": "",
+    "headRef": "HEAD",
+    "headSha": "ae918af2692923fa72272864e9cd581648fb6b51",
+    "rangeSpec": "HEAD"
+  },
+  "previousVersion": null,
+  "features": {
+    "completed": 1,
+    "deferred": 0
+  },
+  "quickfixes": 0,
+  "pullRequests": {
+    "merged": 0,
+    "numbers": [],
+    "filesChanged": 0,
+    "testsAdded": 0,
+    "breakingChanges": 0,
+    "resolvedHighFindings": 11
+  },
+  "adrs": 4,
+  "commits": 74,
+  "contributors": 1,
+  "specs": ["001-nuget-portable-harness"],
+  "timestamp": "2026-05-30T19:56:30Z"
+}
