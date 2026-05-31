@@ -107,6 +107,52 @@ public static class HomeEndpoints
                 .badge { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem 0.85rem; font-size: 0.82rem; color: #475569; display: flex; align-items: center; gap: 0.4rem; }
                 .badge strong { color: #0f172a; }
 
+                /* ── Package metadata card ── */
+                .pkg-card { background: white; border: 2px solid #0ea5e9; border-radius: 16px; padding: 2rem 2.5rem; box-shadow: 0 4px 24px rgba(14,165,233,0.10); margin-bottom: 2rem; }
+                .pkg-header { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+                .pkg-icon { font-size: 2.5rem; line-height: 1; }
+                .pkg-title { flex: 1 1 auto; }
+                .pkg-title h2 { font-size: 1.6rem; margin-bottom: 0.15rem; color: #0f172a; }
+                .pkg-title .pkg-version { display: inline-block; background: #0ea5e9; color: white; border-radius: 6px; padding: 0.2rem 0.75rem; font-size: 0.82rem; font-weight: 700; letter-spacing: .03em; margin-bottom: 0.25rem; }
+                .pkg-title p { color: #475569; font-size: 0.95rem; margin-top: 0.3rem; }
+                .pkg-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+                .pkg-meta-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
+                .pkg-meta-item .label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 0.2rem; }
+                .pkg-meta-item .value { font-size: 0.95rem; font-weight: 600; color: #0f172a; }
+                .pkg-meta-item .value a { color: #0ea5e9; text-decoration: none; }
+                .pkg-meta-item .value a:hover { text-decoration: underline; }
+                .pkg-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+                .pkg-tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+                .pkg-tag { background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.75rem; font-family: 'Courier New', monospace; }
+
+                /* ── Best-practices section ── */
+                .bp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+                .bp-card { background: white; border: 1px solid #e2e8f0; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1.25rem 1.5rem; }
+                .bp-card h3 { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.35rem; }
+                .bp-card p { color: #475569; font-size: 0.88rem; margin-bottom: 0.6rem; }
+                .bp-card ul { margin: 0; padding-left: 1.1rem; color: #475569; font-size: 0.88rem; }
+                .bp-card ul li { margin-bottom: 0.2rem; }
+                .bp-card.gold { border-left-color: #f59e0b; }
+                .bp-card.green { border-left-color: #10b981; }
+                .bp-card.purple { border-left-color: #8b5cf6; }
+                .bp-card.red { border-left-color: #ef4444; }
+                .impact-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 1.25rem; }
+                .impact-table th { background: #f1f5f9; padding: 0.65rem 1rem; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e2e8f0; }
+                .impact-table td { padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+                .impact-table tr:last-child td { border-bottom: none; }
+                .impact-table td:first-child { font-family: 'Courier New', monospace; color: #0c4a6e; font-size: 0.82rem; white-space: nowrap; }
+                .impact-table td:nth-child(2) { color: #475569; }
+                .pill { display: inline-block; border-radius: 999px; padding: 0.1rem 0.6rem; font-size: 0.72rem; font-weight: 700; }
+                .pill-high { background: #dcfce7; color: #15803d; }
+                .pill-med  { background: #fef9c3; color: #854d0e; }
+                .pill-low  { background: #f1f5f9; color: #64748b; }
+                .diff-block { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+                .diff-block pre { margin: 0; }
+                .diff-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 0.3rem; }
+                .diff-label.bad  { color: #ef4444; }
+                .diff-label.good { color: #10b981; }
+                @media (max-width: 700px) { .diff-block { grid-template-columns: 1fr; } }
+
                 /* ── Footer ── */
                 footer { background: #0f172a; color: #64748b; padding: 2rem; text-align: center; font-size: 0.85rem; }
                 footer a { color: #38bdf8; text-decoration: none; }
@@ -129,6 +175,7 @@ public static class HomeEndpoints
                 <a href="#features">Features</a>
                 <a href="#options">Options</a>
                 <a href="#demo">Live Demo</a>
+                <a href="#best-practices">Best Practices</a>
                 <a href="https://www.nuget.org/packages/ApiTestSpark" target="_blank" rel="noopener">NuGet</a>
                 <a href="https://github.com/markhazleton/ApiTestSpark" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -155,6 +202,74 @@ public static class HomeEndpoints
         </div>
 
         <div class="container">
+
+            <!-- ── NuGet Package Card ── -->
+            <section id="package" style="padding-top:3rem;padding-bottom:1rem;">
+                <div class="pkg-card">
+                    <div class="pkg-header">
+                        <div class="pkg-icon">📦</div>
+                        <div class="pkg-title">
+                            <span class="pkg-version">v1.0.2</span>
+                            <h2>ApiTestSpark</h2>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated May 30, 2026</p>
+                        </div>
+                    </div>
+                    <div class="pkg-meta-grid">
+                        <div class="pkg-meta-item">
+                            <div class="label">Version</div>
+                            <div class="value">1.0.2</div>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <div class="label">Framework</div>
+                            <div class="value">.NET 10.0</div>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <div class="label">License</div>
+                            <div class="value">MIT</div>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <div class="label">Package Size</div>
+                            <div class="value">181 KB</div>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <div class="label">Dependencies</div>
+                            <div class="value">None</div>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <div class="label">Author</div>
+                            <div class="value"><a href="https://markhazleton.com" target="_blank" rel="noopener">Mark Hazleton</a></div>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <div class="label">NuGet</div>
+                            <div class="value"><a href="https://www.nuget.org/packages/ApiTestSpark" target="_blank" rel="noopener">nuget.org/packages/ApiTestSpark</a></div>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <div class="label">Repository</div>
+                            <div class="value"><a href="https://github.com/markhazleton/apitestspark" target="_blank" rel="noopener">github.com/markhazleton/apitestspark</a></div>
+                        </div>
+                    </div>
+                    <div class="pkg-actions">
+                        <a href="https://www.nuget.org/packages/ApiTestSpark" class="btn-primary" target="_blank" rel="noopener" style="padding:0.6rem 1.5rem;font-size:0.9rem;">View on NuGet →</a>
+                        <a href="https://github.com/markhazleton/apitestspark" class="btn-secondary" target="_blank" rel="noopener" style="padding:0.6rem 1.5rem;font-size:0.9rem;">GitHub Source</a>
+                    </div>
+                    <div class="pkg-tag-list">
+                        <span class="pkg-tag">api</span>
+                        <span class="pkg-tag">openapi-v3</span>
+                        <span class="pkg-tag">minimal-api</span>
+                        <span class="pkg-tag">aspnetcore</span>
+                        <span class="pkg-tag">net10</span>
+                        <span class="pkg-tag">react</span>
+                        <span class="pkg-tag">spa</span>
+                        <span class="pkg-tag">developer-tools</span>
+                        <span class="pkg-tag">api-testing</span>
+                        <span class="pkg-tag">embedded-ui</span>
+                        <span class="pkg-tag">curl</span>
+                        <span class="pkg-tag">swagger-ui-alternative</span>
+                        <span class="pkg-tag">api-documentation</span>
+                        <span class="pkg-tag">local-development</span>
+                    </div>
+                </div>
+            </section>
 
             <!-- ── Features ── -->
             <section id="features">
@@ -193,6 +308,11 @@ public static class HomeEndpoints
                         <div class="feature-icon">🔒</div>
                         <h3>Environment Gating</h3>
                         <p>Restrict the harness to specific environments such as Development or Staging. One option keeps the harness out of production entirely.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎛️</div>
+                        <h3>Demo Integration Toggle</h3>
+                        <p>Set <code class="inline">EnableDemoIntegrations = false</code> to hide the built-in JokeAPI and JSONPlaceholder screens. Present a clean harness showing only your host API and API Doc Builder — no sample data, no external noise.</p>
                     </div>
                 </div>
             </section>
@@ -256,6 +376,7 @@ app.<span class="cm">MapApiTestSpark</span>(options =>
 {
     options.OpenApiUrl = <span class="st">"/openapi/v1.json"</span>;
     options.Environments = [<span class="st">"Development"</span>];
+    options.EnableDemoIntegrations = <span class="kw">false</span>; <span class="c">// hide demos, show only your API</span>
 });
 
 app.<span class="cm">Run</span>();</pre>
@@ -310,6 +431,11 @@ app.<span class="cm">Run</span>();</pre>
                             <td>EnableVerboseLogging</td>
                             <td>false</td>
                             <td>Emits <code class="inline">ILogger.LogDebug</code> for every static asset served and every SPA fallback. Alternatively set <code class="inline">Logging:LogLevel:ApiTestSpark=Debug</code> in appsettings without redeploying.</td>
+                        </tr>
+                        <tr>
+                            <td>EnableDemoIntegrations</td>
+                            <td>true</td>
+                            <td>When <code class="inline">false</code>, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes (<code class="inline">/joke-api</code>, <code class="inline">/json-placeholder</code>). The home page shows only <strong>Host API Explorer</strong> and <strong>API Doc Builder</strong>. Default <code class="inline">true</code> — existing installs are unaffected.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -385,8 +511,9 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> NuGet package</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.0.2 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
+                        <div class="badge">⚖️ <strong>No dependencies</strong> — 181 KB</div>
                     </div>
                 </div>
             </section>
@@ -415,7 +542,8 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
   "baseUrl": "https://your-api.example.com",
   "openApiUrl": "/openapi/v1.json",
   "authScheme": "Bearer",
-  "defaultHeaders": { "X-Tenant-Id": "acme" }
+  "defaultHeaders": { "X-Tenant-Id": "acme" },
+  "enableDemoIntegrations": false
 }</pre>
                         </div>
                     </div>
@@ -426,6 +554,202 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                             <p>Extensionless paths under <code class="inline">/api-test-spark/</code> fall back to <code class="inline">index.html</code> so client-side routing works. Requests for unknown file extensions return HTTP 404 — the SPA never silently swallows asset 404s.</p>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- ── Best Practices ── -->
+            <section id="best-practices">
+                <h2>Maximising your API Test Spark experience</h2>
+                <p class="section-intro">
+                    API Test Spark's entire input is your OpenAPI v3 document. Everything it renders —
+                    endpoint groups, descriptions, request scaffolds, response schemas, status codes —
+                    comes directly from that document. The richer your OpenAPI metadata, the better
+                    your test harness. This page is itself a live example: every section below is
+                    demonstrated by the running <strong>Products</strong>, <strong>Customers</strong>,
+                    and <strong>Orders</strong> API.
+                    <a href="/api-test-spark/" style="color:#0ea5e9;">Open the harness</a> alongside
+                    this guide to see each technique in action.
+                </p>
+
+                <!-- Impact table -->
+                <table class="impact-table">
+                    <thead>
+                        <tr><th>OpenAPI feature</th><th>What API Test Spark does with it</th><th>Impact</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>operation <code>tags</code> with "Namespace: Label" format</td><td>Two-level collapsible accordion groups on the left nav</td><td><span class="pill pill-high">High</span></td></tr>
+                        <tr><td>operation <code>summary</code></td><td>Bold title shown on every endpoint card</td><td><span class="pill pill-high">High</span></td></tr>
+                        <tr><td>operation <code>description</code> (markdown)</td><td>Rendered markdown below the summary — bold, lists, code, tables</td><td><span class="pill pill-high">High</span></td></tr>
+                        <tr><td><code>operationId</code> / <code>WithName()</code></td><td>Copyable chip beside each endpoint; used in API Doc Builder references</td><td><span class="pill pill-high">High</span></td></tr>
+                        <tr><td>request body schema with <code>example</code> / <code>default</code></td><td>JSON scaffold pre-filled in the request body editor</td><td><span class="pill pill-high">High</span></td></tr>
+                        <tr><td>schema property <code>description</code></td><td>Shown in the schema property table beside each field</td><td><span class="pill pill-high">High</span></td></tr>
+                        <tr><td><code>Produces&lt;T&gt;</code> per status code</td><td>Coloured response-code badges with expandable inline schemas</td><td><span class="pill pill-high">High</span></td></tr>
+                        <tr><td><code>info.title</code>, <code>info.version</code>, <code>info.contact</code></td><td>API info header at the top of the Host API screen</td><td><span class="pill pill-med">Medium</span></td></tr>
+                        <tr><td><code>info.description</code> (markdown)</td><td>Rendered in the API info header — ideal for workflow walkthroughs</td><td><span class="pill pill-med">Medium</span></td></tr>
+                        <tr><td>parameter <code>description</code> + <code>example</code></td><td>Shown in the parameter table; example pre-fills path/query fields</td><td><span class="pill pill-med">Medium</span></td></tr>
+                        <tr><td>schema constraints (<code>minLength</code>, <code>maximum</code>, <code>enum</code>)</td><td>Displayed in schema property tables; enum drives a select input</td><td><span class="pill pill-med">Medium</span></td></tr>
+                        <tr><td><code>deprecated: true</code></td><td>Endpoint visually flagged as deprecated in the accordion</td><td><span class="pill pill-low">Low</span></td></tr>
+                        <tr><td><code>info.license</code></td><td>Shown in the API info header</td><td><span class="pill pill-low">Low</span></td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Card grid -->
+                <div class="bp-grid" style="margin-top:2.5rem;">
+
+                    <div class="bp-card">
+                        <h3>1 — Tag your endpoints with a two-level group name</h3>
+                        <p>API Test Spark parses tags in <code class="inline">"Namespace: Label"</code> format into a two-level accordion. Without this pattern all endpoints land in a single flat list.</p>
+                        <ul>
+                            <li>Use <code class="inline">WithTags("Products: Catalog")</code> on your route group</li>
+                            <li>Or apply <code class="inline">[Tags("Orders: Lifecycle")]</code> on a controller</li>
+                            <li>The colon + space is the separator — anything before it is the group, anything after is the sub-label</li>
+                            <li>Consistent casing matters: <code class="inline">"Auth: Tokens"</code> and <code class="inline">"auth: tokens"</code> become separate groups</li>
+                        </ul>
+                    </div>
+
+                    <div class="bp-card gold">
+                        <h3>2 — Write a summary and a description for every operation</h3>
+                        <p><code class="inline">summary</code> is the title shown on every card. <code class="inline">description</code> accepts full markdown and renders inline — use it to explain behaviour, constraints, and cross-references.</p>
+                        <ul>
+                            <li><strong>Summary</strong> — short imperative phrase: <em>"List all products"</em>, <em>"Place a new order"</em></li>
+                            <li><strong>Description</strong> — explain what the response contains, valid input ranges, seeded test data, and what to try next</li>
+                            <li>Markdown bold (<code class="inline">**text**</code>), inline code, bullet lists, fenced code blocks, and tables all render</li>
+                            <li>Embed a <strong>workflow callout</strong> in your POST description linking to the next step in a typical flow</li>
+                        </ul>
+                    </div>
+
+                    <div class="bp-card green">
+                        <h3>3 — Name every operation with <code style="font-size:0.9em">WithName()</code></h3>
+                        <p><code class="inline">operationId</code> (set via <code class="inline">WithName()</code> on Minimal APIs) is surfaced as a copyable chip on each endpoint card and used as the section heading in exported API Doc Builder documents.</p>
+                        <ul>
+                            <li>Use PascalCase verb-noun: <code class="inline">GetProductById</code>, <code class="inline">CreateOrder</code>, <code class="inline">UpdateOrderStatus</code></li>
+                            <li>Must be unique across the entire document</li>
+                            <li>On controllers, the method name becomes the <code class="inline">operationId</code> automatically</li>
+                            <li>Clients and generated code also use this — it doubles as your SDK method name</li>
+                        </ul>
+                    </div>
+
+                    <div class="bp-card purple">
+                        <h3>4 — Declare every response code with <code style="font-size:0.9em">Produces&lt;T&gt;</code></h3>
+                        <p>Each <code class="inline">.Produces&lt;T&gt;(statusCode)</code> call adds a coloured badge in the harness. Click the badge to expand the inline schema. Undeclared status codes produce no badge — testers have to guess.</p>
+                        <ul>
+                            <li>Always declare 200/201 with the response type</li>
+                            <li>Declare 400 with <code class="inline">Produces&lt;string&gt;(400)</code> or a problem-details type</li>
+                            <li>Declare 404 for any lookup by ID</li>
+                            <li>Use <code class="inline">TypedResults</code> — it declares response types automatically without extra <code class="inline">.Produces()</code> calls</li>
+                            <li>On controllers, use <code class="inline">[ProducesResponseType]</code> attributes</li>
+                        </ul>
+                    </div>
+
+                    <div class="bp-card">
+                        <h3>5 — Annotate your schema types with descriptions and constraints</h3>
+                        <p>API Test Spark renders a property table for every request body and response schema. <code class="inline">[Description]</code>, <code class="inline">[Range]</code>, <code class="inline">[MinLength]</code>, and <code class="inline">[MaxLength]</code> all appear as columns in that table.</p>
+                        <ul>
+                            <li>Add <code class="inline">[Description("...")]</code> from <code class="inline">System.ComponentModel</code> to every public property</li>
+                            <li>Use <code class="inline">[Range(min, max)]</code> for numeric bounds — displayed in the constraints column</li>
+                            <li>Use <code class="inline">[MinLength] / [MaxLength]</code> for string lengths</li>
+                            <li>Use <code class="inline">[Required]</code> — surfaced as a <strong>required</strong> marker in the table</li>
+                            <li><code class="inline">enum</code> types render as a select input in the scaffold editor</li>
+                        </ul>
+                    </div>
+
+                    <div class="bp-card gold">
+                        <h3>6 — Set examples and defaults on schema properties</h3>
+                        <p>API Test Spark pre-fills the JSON scaffold from <code class="inline">example → default → enum[0] → type placeholder</code>. Without examples, every field shows a generic placeholder. With examples, testers can run requests immediately.</p>
+                        <ul>
+                            <li>Add <code class="inline">[DefaultValue("acme")]</code> to pre-fill string fields</li>
+                            <li>For records, set default parameter values: <code class="inline">int StockQuantity = 0</code></li>
+                            <li>Use <code class="inline">WithOpenApi(op => { op.RequestBody.Content["application/json"].Example = ... })</code> for a full example body</li>
+                            <li>Realistic test data (real-looking IDs, prices, names) makes the harness immediately usable</li>
+                        </ul>
+                    </div>
+
+                    <div class="bp-card green">
+                        <h3>7 — Use <code style="font-size:0.9em">info.description</code> for workflow documentation</h3>
+                        <p>The API-level <code class="inline">info.description</code> field renders as markdown in the Host API screen header. Use it to describe the overall API, link resource groups together, and provide a step-by-step workflow for testers.</p>
+                        <ul>
+                            <li>Set it via <code class="inline">AddDocumentTransformer</code> in <code class="inline">AddOpenApi()</code></li>
+                            <li>Include a markdown table of resource groups and their endpoint counts</li>
+                            <li>Add a numbered workflow walkthrough: create customer → create product → place order → advance status</li>
+                            <li>Mention seeded test data (IDs, values) so testers don't have to explore blind</li>
+                        </ul>
+                    </div>
+
+                    <div class="bp-card red">
+                        <h3>8 — What degrades the experience</h3>
+                        <p>Avoid these patterns — they leave testers with empty or misleading harness UI.</p>
+                        <ul>
+                            <li><strong>No tags</strong> — all endpoints collapse into one unsorted list with no groups</li>
+                            <li><strong>No summary</strong> — card titles show the raw HTTP method + path only</li>
+                            <li><strong>No response types</strong> — no schema badges, no inline schema preview</li>
+                            <li><strong>No property descriptions</strong> — schema table has blank description column</li>
+                            <li><strong>Returning <code class="inline">IResult</code> without TypedResults</strong> — response type information is lost; use <code class="inline">Results&lt;Ok&lt;T&gt;, NotFound&gt;</code> instead</li>
+                            <li><strong>Anonymous objects as response types</strong> — schema is inferred as empty object</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <!-- Before / after code comparison -->
+                <h3 style="margin-top:1rem;">Before and after — Minimal API endpoint</h3>
+                <p class="section-intro" style="margin-bottom:1rem;">The difference between a bare endpoint and a fully-annotated one.</p>
+
+                <div class="diff-block">
+                    <div>
+                        <div class="diff-label bad">✗ Bare — minimal harness value</div>
+<pre><span class="c">// No tags, no name, no summary,</span>
+<span class="c">// no description, no response type</span>
+app.<span class="cm">MapGet</span>(<span class="st">"/products/{id}"</span>,
+    (int id, ProductCache cache) =>
+        cache.GetById(id) ??
+        (IResult)Results.NotFound()
+);</pre>
+                    </div>
+                    <div>
+                        <div class="diff-label good">✓ Annotated — full harness value</div>
+<pre>app.<span class="cm">MapGet</span>(<span class="st">"/products/{id}"</span>, GetById)
+   .<span class="cm">WithName</span>(<span class="st">"GetProductById"</span>)
+   .<span class="cm">WithSummary</span>(<span class="st">"Get a product by ID"</span>)
+   .<span class="cm">WithDescription</span>(<span class="st">"Returns a single product. "</span>
+       + <span class="st">"Seeded IDs are **1–10**. "</span>
+       + <span class="st">"Returns 404 if not found."</span>)
+   .<span class="cm">Produces</span>&lt;<span class="ty">Product</span>&gt;(<span class="ty">200</span>)
+   .<span class="cm">Produces</span>(<span class="ty">404</span>);
+
+<span class="c">// Handler uses TypedResults so the</span>
+<span class="c">// return type is inferred automatically</span>
+<span class="kw">static</span> Results&lt;Ok&lt;<span class="ty">Product</span>&gt;, NotFound&gt;
+GetById(<span class="kw">int</span> id, ProductCache cache) =>
+    cache.GetById(id) <span class="kw">is</span> { } p
+        ? TypedResults.Ok(p)
+        : TypedResults.NotFound();</pre>
+                    </div>
+                </div>
+
+                <!-- Controller-based APIs callout -->
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:1.25rem 1.5rem;margin-top:1.5rem;">
+                    <h3 style="color:#15803d;margin-bottom:0.5rem;">Controller-based APIs</h3>
+                    <p style="color:#166534;font-size:0.9rem;margin-bottom:0.75rem;">The same principles apply — just use attributes instead of fluent calls.</p>
+<pre style="font-size:0.84rem;"><span class="c">/// &lt;summary&gt;Get a product by ID.&lt;/summary&gt;</span>
+<span class="c">/// &lt;remarks&gt;Seeded IDs are **1–10**. Returns 404 if not found.&lt;/remarks&gt;</span>
+[<span class="ty">HttpGet</span>(<span class="st">"{id}"</span>)]
+[<span class="ty">Tags</span>(<span class="st">"Products: Catalog"</span>)]
+[<span class="ty">ProducesResponseType</span>(<span class="kw">typeof</span>(<span class="ty">Product</span>), <span class="ty">200</span>)]
+[<span class="ty">ProducesResponseType</span>(<span class="ty">404</span>)]
+<span class="kw">public</span> ActionResult&lt;<span class="ty">Product</span>&gt; GetById(<span class="kw">int</span> id) { ... }</pre>
+                </div>
+
+                <!-- Live example link -->
+                <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:1.25rem 1.5rem;margin-top:1.5rem;">
+                    <h3 style="color:#1d4ed8;margin-bottom:0.5rem;">This site is the live reference</h3>
+                    <p style="color:#1e40af;font-size:0.9rem;">
+                        Every best practice above is implemented in this demo. The Products, Customers, and Orders
+                        source code is available in the
+                        <a href="https://github.com/markhazleton/apitestspark/tree/main/SampleApi" style="color:#0ea5e9;" target="_blank" rel="noopener">SampleApi folder on GitHub</a>.
+                        Open the harness and compare what you see against the source to understand exactly
+                        what each annotation produces.
+                    </p>
+                    <a href="/api-test-spark/" class="btn-primary" style="display:inline-block;margin-top:0.75rem;padding:0.6rem 1.5rem;font-size:0.9rem;">⚡ Open the harness</a>
                 </div>
             </section>
 
@@ -456,6 +780,14 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div>
                         <h3>Can I generate API documentation from test runs?</h3>
                         <p style="color:#475569;margin-top:0.25rem;">Yes — the <strong>API Doc Builder</strong> at <code class="inline">/api-docs</code> lets you select endpoints, capture live requests and responses, annotate sections, and export a complete markdown document targeted at front-end developer agents. It includes exact curl commands, full JSON responses, parameter tables, and schema tables.</p>
+                    </div>
+                    <div>
+                        <h3>Can I hide the JokeAPI and JSONPlaceholder demo screens?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">Yes — set <code class="inline">options.EnableDemoIntegrations = false</code> when calling <code class="inline">MapApiTestSpark()</code>. The home page will show only the <strong>Host API Explorer</strong> and <strong>API Doc Builder</strong>, and the demo routes (<code class="inline">/joke-api</code>, <code class="inline">/json-placeholder</code>) are disabled entirely. This is the recommended setting for teams using API Test Spark to test their own APIs rather than as a general-purpose demo tool.</p>
+                    </div>
+                    <div>
+                        <h3>What does this site use for EnableDemoIntegrations?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">This demo site sets <code class="inline">EnableDemoIntegrations = true</code> so you can explore all features including the built-in JokeAPI and JSONPlaceholder integrations. In a real installation you would typically set this to <code class="inline">false</code> to present a focused harness for your own API.</p>
                     </div>
                 </div>
             </section>
