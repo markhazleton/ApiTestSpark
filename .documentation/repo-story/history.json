@@ -1,0 +1,699 @@
+{
+  "generated_at": "2026-05-31T12:25:43.4833075+00:00",
+  "audit_parameters": {
+    "months": 12,
+    "scope": "full",
+    "compare_baseline": "2025-05",
+    "since_date": "2025-05-31",
+    "start_month": "2025-05",
+    "end_month": "2026-05"
+  },
+  "repo": {
+    "name": "ApiTestSpark",
+    "root": "C:/GitHub/MarkHazleton/ApiTestSpark",
+    "remote_origin": "https://github.com/markhazleton/ApiTestSpark.git",
+    "default_branch": "main"
+  },
+  "summary": {
+    "total_commits": 100,
+    "total_commits_in_window": 100,
+    "total_contributors": 1,
+    "total_tags": 1,
+    "history_span_days": 12
+  },
+  "timeline": {
+    "first_commit": {
+      "sha": "0371c3ce1e67b9d942ff6fc00fadf03d38ca157c",
+      "date": "2026-05-18T17:51:53-05:00",
+      "role": "Lead Architect",
+      "subject": "chore: initial project configuration"
+    },
+    "latest_commit": {
+      "sha": "4a239c0ff367c7ea42cf2da279b837f96762967b",
+      "date": "2026-05-31T07:25:12-05:00",
+      "role": "Lead Architect",
+      "subject": "fix(observability): correct ErrorBoundary error category and remove redundant trackException"
+    },
+    "commits_by_year": {
+      "2026": 100
+    },
+    "commits_by_month": {
+      "2026-05": 100
+    }
+  },
+  "contributors": {
+    "top": [
+      {
+        "role": "Lead Architect",
+        "commits": 100
+      }
+    ],
+    "all_count": 1,
+    "monthly_by_role": {
+      "2026-05": {
+        "Lead Architect": 100
+      }
+    }
+  },
+  "contributor_census": {
+    "role_assignments": [
+      {
+        "role": "Lead Architect",
+        "commits": 100
+      }
+    ]
+  },
+  "volume_metrics": {
+    "total_commits": 100,
+    "monthly_commit_distribution": {
+      "2026-05": 100
+    },
+    "merged_pr_count": 0,
+    "file_types_top": [
+      {
+        "extension": "md",
+        "touched_files": 376
+      },
+      {
+        "extension": "ts",
+        "touched_files": 121
+      },
+      {
+        "extension": "tsx",
+        "touched_files": 71
+      },
+      {
+        "extension": "ps1",
+        "touched_files": 57
+      },
+      {
+        "extension": "cs",
+        "touched_files": 55
+      },
+      {
+        "extension": "json",
+        "touched_files": 43
+      },
+      {
+        "extension": "csproj",
+        "touched_files": 29
+      },
+      {
+        "extension": "sh",
+        "touched_files": 22
+      },
+      {
+        "extension": "txt",
+        "touched_files": 13
+      },
+      {
+        "extension": "vsidx",
+        "touched_files": 8
+      },
+      {
+        "extension": "yml",
+        "touched_files": 7
+      },
+      {
+        "extension": "gitignore",
+        "touched_files": 6
+      },
+      {
+        "extension": "bin",
+        "touched_files": 6
+      },
+      {
+        "extension": "yaml",
+        "touched_files": 6
+      },
+      {
+        "extension": "js",
+        "touched_files": 5
+      },
+      {
+        "extension": "(no-ext)",
+        "touched_files": 4
+      },
+      {
+        "extension": "xml",
+        "touched_files": 4
+      },
+      {
+        "extension": "gitkeep",
+        "touched_files": 4
+      },
+      {
+        "extension": "v2",
+        "touched_files": 4
+      },
+      {
+        "extension": "slnx",
+        "touched_files": 3
+      }
+    ],
+    "largest_merges": [
+      {
+        "sha": "45423ee75ef0551b7b827ea1e0848f0532f66edb",
+        "subject": "feat: add WebSpark.ApiTestHarness NuGet package (001-nuget-portable-harness)",
+        "files_changed": 164,
+        "additions": 6131,
+        "deletions": 1647,
+        "total_lines": 7778
+      }
+    ]
+  },
+  "commit_message_metrics": {
+    "conventional_commit_count": 91,
+    "informal_commit_count": 0,
+    "spec_reference_commit_count": 0
+  },
+  "test_metrics": {
+    "test_file_count": 184,
+    "test_related_commit_count": 25
+  },
+  "governance_maturity": {
+    "constitution_path": "C:\\GitHub\\MarkHazleton\\ApiTestSpark\\.documentation\\memory\\constitution.md",
+    "constitution_exists": true,
+    "constitution_version": "",
+    "constitution_amendment_count": 6,
+    "active_spec_count": 0,
+    "archived_spec_directory_count": 0,
+    "governance_artifact_count": 3
+  },
+  "milestones": {
+    "tags": [],
+    "readme_evolution": {
+      "total_readme_commits": 6,
+      "commits": [
+        {
+          "sha": "697a00870231fd4d42fc87457a4b615fdece130c",
+          "date": "2026-05-31T07:05:48-05:00",
+          "role": "Lead Architect",
+          "subject": "docs: overhaul all documentation and repo packaging"
+        },
+        {
+          "sha": "a440f998695509dbe63c2edce061a202d293ea88",
+          "date": "2026-05-30T18:10:48-05:00",
+          "role": "Lead Architect",
+          "subject": "docs: update all documentation to v1.0.1 — 100% current to code"
+        },
+        {
+          "sha": "e308f13f7501f95d3a8bcd81e92d3f5ab5d8ecfb",
+          "date": "2026-05-30T16:44:01-05:00",
+          "role": "Lead Architect",
+          "subject": "docs: add NuGet URL and badges now that package is live"
+        },
+        {
+          "sha": "bbffe5d4ad130a75c23d9bc639663c8d252e4837",
+          "date": "2026-05-30T14:51:41-05:00",
+          "role": "Lead Architect",
+          "subject": "docs: add live site link and About attribution to root README"
+        },
+        {
+          "sha": "41100176cc4b2da717637a4ad4bda802c6c002bc",
+          "date": "2026-05-30T13:58:00-05:00",
+          "role": "Lead Architect",
+          "subject": "docs: fix stale 'API Test Harness' references across README and source"
+        },
+        {
+          "sha": "c5c6d99512d81d2fa0c344a8e2cac41106c502ad",
+          "date": "2026-05-18T17:52:08-05:00",
+          "role": "Lead Architect",
+          "subject": "docs: add project documentation"
+        }
+      ]
+    }
+  },
+  "change_patterns": {
+    "subject_type_estimates": {
+      "fixes": 22,
+      "features": 22,
+      "chore": 10,
+      "refactor": 11,
+      "tests": 4,
+      "other": 6,
+      "docs": 19,
+      "ci_build": 6
+    },
+    "hotspots": [
+      {
+        "path": "ApiTestSpark/ApiTestSpark.csproj",
+        "changes": 14
+      },
+      {
+        "path": "package.json",
+        "changes": 12
+      },
+      {
+        "path": "src/public/build-info.json",
+        "changes": 11
+      },
+      {
+        "path": "SampleApi/Program.cs",
+        "changes": 10
+      },
+      {
+        "path": "src/api/jsonPlaceholderClient.ts",
+        "changes": 7
+      },
+      {
+        "path": "src/api/jokeApiClient.ts",
+        "changes": 6
+      },
+      {
+        "path": "src/components/HomeScreen.tsx",
+        "changes": 6
+      },
+      {
+        "path": "DEPLOYMENT.md",
+        "changes": 6
+      },
+      {
+        "path": "src/App.tsx",
+        "changes": 6
+      },
+      {
+        "path": "src/components/index.ts",
+        "changes": 6
+      },
+      {
+        "path": "README.md",
+        "changes": 6
+      },
+      {
+        "path": "ApiTestSpark/README.md",
+        "changes": 6
+      },
+      {
+        "path": "src/components/host-api/HostApiScreen.tsx",
+        "changes": 6
+      },
+      {
+        "path": ".gitignore",
+        "changes": 6
+      },
+      {
+        "path": "WebSpark.ApiTestHarness/ApiTestHarnessExtensions.cs",
+        "changes": 5
+      },
+      {
+        "path": "src/components/host-api/EndpointTester.tsx",
+        "changes": 5
+      },
+      {
+        "path": "src/api/index.ts",
+        "changes": 5
+      },
+      {
+        "path": "scripts/build/pack.ps1",
+        "changes": 5
+      },
+      {
+        "path": "CHANGELOG.md",
+        "changes": 5
+      },
+      {
+        "path": "WebSpark.ApiTestHarness/WebSpark.ApiTestHarness.csproj",
+        "changes": 5
+      },
+      {
+        "path": "WebSpark.ApiTestHarness.Tests/WebSpark.ApiTestHarness.Tests.csproj",
+        "changes": 5
+      },
+      {
+        "path": "src/types/host-api.ts",
+        "changes": 5
+      },
+      {
+        "path": "src/store/unifiedConfigStore.ts",
+        "changes": 5
+      },
+      {
+        "path": ".documentation/specs/001-nuget-portable-harness/spec.md",
+        "changes": 5
+      },
+      {
+        "path": "src/hooks/useJokeApi.ts",
+        "changes": 5
+      },
+      {
+        "path": "src/hooks/useJsonPlaceholder.ts",
+        "changes": 5
+      },
+      {
+        "path": ".github/copilot-instructions.md",
+        "changes": 5
+      },
+      {
+        "path": ".documentation/specs/001-nuget-portable-harness/tasks.md",
+        "changes": 5
+      },
+      {
+        "path": "src/components/joke-api/JokeApiScreen.tsx",
+        "changes": 4
+      },
+      {
+        "path": "src/hooks/index.ts",
+        "changes": 4
+      },
+      {
+        "path": "src/utils/openApiParser.ts",
+        "changes": 4
+      },
+      {
+        "path": "src/types/state.ts",
+        "changes": 4
+      },
+      {
+        "path": "src/api/client.ts",
+        "changes": 4
+      },
+      {
+        "path": "src/components/host-api/EndpointList.tsx",
+        "changes": 4
+      },
+      {
+        "path": "src/components/json-placeholder/JsonPlaceholderScreen.tsx",
+        "changes": 4
+      },
+      {
+        "path": "ApiTestSpark/ApiTestSparkExtensions.cs",
+        "changes": 4
+      },
+      {
+        "path": "SampleApi/Home/HomeEndpoints.cs",
+        "changes": 4
+      },
+      {
+        "path": ".documentation/specs/001-nuget-portable-harness/data-model.md",
+        "changes": 4
+      },
+      {
+        "path": ".documentation/memory/constitution.md",
+        "changes": 4
+      },
+      {
+        "path": ".documentation/specs/001-section-engine-refactor/spec.md",
+        "changes": 4
+      },
+      {
+        "path": "src/components/UnifiedConfigurationScreen.tsx",
+        "changes": 4
+      },
+      {
+        "path": ".documentation/specs/001-section-engine-refactor/tasks.md",
+        "changes": 4
+      },
+      {
+        "path": ".documentation/specs/001-nuget-portable-harness/gates/critic.md",
+        "changes": 4
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "changes": 4
+      },
+      {
+        "path": "SampleApi/SampleApi.csproj",
+        "changes": 4
+      },
+      {
+        "path": "vite.config.ts",
+        "changes": 4
+      },
+      {
+        "path": "CLAUDE.md",
+        "changes": 3
+      },
+      {
+        "path": "src/store/migrations/configMigration.ts",
+        "changes": 3
+      },
+      {
+        "path": "src/config/sections.ts",
+        "changes": 3
+      },
+      {
+        "path": "SampleApi/Products/ProductEndpoints.cs",
+        "changes": 3
+      }
+    ]
+  },
+  "technical_signals": {
+    "language_presence": {
+      "python": true,
+      "javascript": true,
+      "typescript": true,
+      "powershell": true,
+      "shell": true,
+      "markdown": true
+    },
+    "has_pyproject_toml": false,
+    "has_package_json": true,
+    "has_dockerfile": false,
+    "has_github_actions": true
+  },
+  "recent": {
+    "commits": [
+      {
+        "sha": "4a239c0ff367c7ea42cf2da279b837f96762967b",
+        "date": "2026-05-31T07:25:12-05:00",
+        "role": "Lead Architect",
+        "subject": "fix(observability): correct ErrorBoundary error category and remove redundant trackException"
+      },
+      {
+        "sha": "cb78bf244f6274c407cff8f2d88d630f53021b9b",
+        "date": "2026-05-31T07:21:17-05:00",
+        "role": "Lead Architect",
+        "subject": "fix(types): tighten ErrorCategory union and ErrorRecord/ErrorResponse types"
+      },
+      {
+        "sha": "1a15cad6bcda2791443bc74a5dd8e09db4ea896d",
+        "date": "2026-05-31T07:11:55-05:00",
+        "role": "Lead Architect",
+        "subject": "docs(constitution): amend to v1.1.0 via CAP-2026-001 and CAP-2026-002"
+      },
+      {
+        "sha": "f289bd466c2b10868aec1ae6d09709e5be692579",
+        "date": "2026-05-31T07:06:02-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: add OpenAPI best-practices content across all public surfaces"
+      },
+      {
+        "sha": "697a00870231fd4d42fc87457a4b615fdece130c",
+        "date": "2026-05-31T07:05:48-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: overhaul all documentation and repo packaging"
+      },
+      {
+        "sha": "ca0a4845d3f91ab13e1bbc44e2754a9cf2d75b08",
+        "date": "2026-05-31T07:05:34-05:00",
+        "role": "Lead Architect",
+        "subject": "feat: add EnableDemoIntegrations option to hide built-in demo screens"
+      },
+      {
+        "sha": "03d7c587a29dbfd3e3e46aea0d612c4540829877",
+        "date": "2026-05-30T18:40:02-05:00",
+        "role": "Lead Architect",
+        "subject": "fix: redirect /api-test-spark to /api-test-spark/ (trailing slash)"
+      },
+      {
+        "sha": "ac7dd650a19cac0169ae4cf007eabefedf812fa2",
+        "date": "2026-05-30T18:38:08-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: release archive for v1.0.2"
+      },
+      {
+        "sha": "8eb95fc436d4e681030274afa118ec82767d2f2f",
+        "date": "2026-05-30T18:30:02-05:00",
+        "role": "Lead Architect",
+        "subject": "fix: allow localhost CSP connections in Development — fixes blank harness"
+      },
+      {
+        "sha": "a440f998695509dbe63c2edce061a202d293ea88",
+        "date": "2026-05-30T18:10:48-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: update all documentation to v1.0.1 — 100% current to code"
+      },
+      {
+        "sha": "bbad458b6c52c7917c839dd38c558b0889911003",
+        "date": "2026-05-30T18:05:52-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: release v1.0.1"
+      },
+      {
+        "sha": "e468fef92105fba3c4d872f8a0e81d7f0249fcfb",
+        "date": "2026-05-30T18:03:27-05:00",
+        "role": "Lead Architect",
+        "subject": "fix: update Microsoft.SourceLink.GitHub to version 10.0.300 and clean up project file formatting"
+      },
+      {
+        "sha": "cf441015b742102a8deeee662970f3f7a43d713f",
+        "date": "2026-05-30T17:53:57-05:00",
+        "role": "Lead Architect",
+        "subject": "chore(deps): upgrade Microsoft.OpenApi 2.0.0 → 2.7.6"
+      },
+      {
+        "sha": "812d5d89a0ca6426942040419c1caf9e78146615",
+        "date": "2026-05-30T17:42:44-05:00",
+        "role": "Lead Architect",
+        "subject": "feat(api-doc): API Doc Builder — generate markdown for front-end developer agents"
+      },
+      {
+        "sha": "1aa58dec000f9795bc79da9bb2362e805c6bc406",
+        "date": "2026-05-30T17:36:53-05:00",
+        "role": "Lead Architect",
+        "subject": "feat(ui): surface all standard OpenAPI metadata in the host API tester"
+      },
+      {
+        "sha": "f9660695d509b870a7e088e0f61f1606dd742dc5",
+        "date": "2026-05-30T17:23:42-05:00",
+        "role": "Lead Architect",
+        "subject": "feat: accordion endpoint grouping, relational seed data, and rich UI"
+      },
+      {
+        "sha": "d91cf7e3e92a2ee858b2d970f7cfbd6ebbc46cfa",
+        "date": "2026-05-30T17:13:30-05:00",
+        "role": "Lead Architect",
+        "subject": "feat(sample-api): enrich OpenAPI annotations for all three resource groups"
+      },
+      {
+        "sha": "abd5366193d29bb1e5aa735d1be01bdcb0e839ed",
+        "date": "2026-05-30T17:04:13-05:00",
+        "role": "Lead Architect",
+        "subject": "feat(sample-api): add Customers and Orders API slices"
+      },
+      {
+        "sha": "a5d806ab52ef1b4e0cc1d4627c60f45db3865e0f",
+        "date": "2026-05-30T16:59:59-05:00",
+        "role": "Lead Architect",
+        "subject": "feat(host-api): two-level collapsible endpoint list with search"
+      },
+      {
+        "sha": "e308f13f7501f95d3a8bcd81e92d3f5ab5d8ecfb",
+        "date": "2026-05-30T16:44:01-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: add NuGet URL and badges now that package is live"
+      },
+      {
+        "sha": "715fd60711eca362b52528193780aa58e3fccbdf",
+        "date": "2026-05-30T16:37:24-05:00",
+        "role": "Lead Architect",
+        "subject": "chore: adopt strict semver — version 1.0.0"
+      },
+      {
+        "sha": "66309c96a8a7f45966980528218a4e168bbc4a25",
+        "date": "2026-05-30T15:21:50-05:00",
+        "role": "Lead Architect",
+        "subject": "fix(ci): build React SPA as an explicit step before dotnet build"
+      },
+      {
+        "sha": "e6274b02514f8d74fd985adb205bd9270fd8914f",
+        "date": "2026-05-30T15:20:13-05:00",
+        "role": "Lead Architect",
+        "subject": "fix(ci): use GetFullPath to resolve repo root in csproj — fixes EmbeddedResource on Linux"
+      },
+      {
+        "sha": "3d2f4d6063f7e35af37da600695da68d4f2e8658",
+        "date": "2026-05-30T15:18:17-05:00",
+        "role": "Lead Architect",
+        "subject": "fix(ci): use forward slashes in csproj paths for Linux compatibility"
+      },
+      {
+        "sha": "19e0a40c170315dc911f655d186b2590d7f40d06",
+        "date": "2026-05-30T15:14:59-05:00",
+        "role": "Lead Architect",
+        "subject": "fix(ci): commit package-lock.json so npm ci and Node cache work in GitHub Actions"
+      },
+      {
+        "sha": "3e889a4f3e319a2b61d12db134ea060b1fa41d05",
+        "date": "2026-05-30T15:13:04-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: release v2026.04.30.1"
+      },
+      {
+        "sha": "ae918af2692923fa72272864e9cd581648fb6b51",
+        "date": "2026-05-30T14:55:37-05:00",
+        "role": "Lead Architect",
+        "subject": "style: standardize string quotes in branding constants"
+      },
+      {
+        "sha": "7ae6f3c45207de3e4f00020a605732f403dc07a9",
+        "date": "2026-05-30T14:52:53-05:00",
+        "role": "Lead Architect",
+        "subject": "docs(deployment): remove leftover Azure SWA sections from rewrite"
+      },
+      {
+        "sha": "bbffe5d4ad130a75c23d9bc639663c8d252e4837",
+        "date": "2026-05-30T14:51:41-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: add live site link and About attribution to root README"
+      },
+      {
+        "sha": "41100176cc4b2da717637a4ad4bda802c6c002bc",
+        "date": "2026-05-30T13:58:00-05:00",
+        "role": "Lead Architect",
+        "subject": "docs: fix stale 'API Test Harness' references across README and source"
+      },
+      {
+        "sha": "6f05cb1768578ace58aa31c551c8a15ee99a722b",
+        "date": "2026-05-30T13:53:40-05:00",
+        "role": "Lead Architect",
+        "subject": "docs(deployment): rewrite to reflect actual deployment targets"
+      },
+      {
+        "sha": "94d7579b71be26786612edbb32cf3fd9107cf738",
+        "date": "2026-05-30T13:45:13-05:00",
+        "role": "Lead Architect",
+        "subject": "style: apply formatter/editor normalizations (no logic changes)"
+      },
+      {
+        "sha": "db98a9c8bd87fcfc01db2de76931eb5e9cddb138",
+        "date": "2026-05-30T13:42:17-05:00",
+        "role": "Lead Architect",
+        "subject": "docs(nuget): add technical package walkthrough and link from README"
+      },
+      {
+        "sha": "7ddf16dcef86c0397d6ede57833b02c49c3192ac",
+        "date": "2026-05-30T13:35:53-05:00",
+        "role": "Lead Architect",
+        "subject": "build(pack): expand pack.ps1 to 7-step quality pipeline"
+      },
+      {
+        "sha": "6c81c184276dcaa89733fec4a9239d715931f185",
+        "date": "2026-05-30T13:35:43-05:00",
+        "role": "Lead Architect",
+        "subject": "ci: add GitHub Actions workflows for CI and NuGet publish"
+      },
+      {
+        "sha": "efe8081ad43d82d10f62f7beec9ad6953132b48e",
+        "date": "2026-05-30T13:35:35-05:00",
+        "role": "Lead Architect",
+        "subject": "chore(repo): add CHANGELOG, global.json SDK pin, and nuget.config"
+      },
+      {
+        "sha": "08db9253ca3c5aad98afed8101262abe1d8c0a35",
+        "date": "2026-05-30T13:35:30-05:00",
+        "role": "Lead Architect",
+        "subject": "feat(nuget): first-class NuGet package metadata and packaging"
+      },
+      {
+        "sha": "b359155f78634b8792956e92d5935648cdff4ef6",
+        "date": "2026-05-30T11:58:16-05:00",
+        "role": "Lead Architect",
+        "subject": "update npm packages"
+      },
+      {
+        "sha": "3a9856b75c3879167aa66d2e786d7c4203c7b266",
+        "date": "2026-05-30T11:19:12-05:00",
+        "role": "Lead Architect",
+        "subject": "refactor: reorganise SampleApi into vertical slices (Products + Home)"
+      },
+      {
+        "sha": "f03e2fa70510deb211992562ee7dea797431e159",
+        "date": "2026-05-30T10:55:25-05:00",
+        "role": "Lead Architect",
+        "subject": "fix: make /api-test-spark/ the default Vite base path — no env var needed"
+      }
+    ]
+  }
+}
