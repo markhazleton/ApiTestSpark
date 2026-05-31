@@ -52,7 +52,7 @@ const useDebugStore = create<DebugState>()((set, get) => ({
 
     // Track categorized error to Application Insights
     trackCategorizedError(
-      error.category as 'Network' | 'API' | 'Configuration' | 'React',
+      error.category,
       error.message,
       error.context
     );

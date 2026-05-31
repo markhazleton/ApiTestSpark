@@ -11,6 +11,18 @@ Method          : /devspark.evolve-constitution + /devspark.constitution
 Date            : 2026-05-31
 Source          : audit 2026-05-28 (CAP-2026-001) + codebase analysis (CAP-2026-002)
 
+Version change  : 1.1.0 → 1.1.1
+Method          : /devspark.constitution (full-repo review)
+Date            : 2026-05-31
+Source          : full-repo review covering React SPA + .NET NuGet library + SampleApi demo site
+Changes         :
+  §IV  — Added createRestCaller as a constitutionally recognised client pattern alongside
+         class-based ApiClient extension. Both satisfy the same invariants.
+  §V   — Added useHarnessConfigStore to canonical store registry (non-persisted, session-only).
+  §VI  — Expanded ErrorCategory union to include 'React' (for ErrorBoundary-layer errors).
+         Clarified the App Insights integration relationship with the debug store.
+         Fixed code: ErrorRecord.category now typed as ErrorCategory (was string).
+
 Added sections  :
   I.   TypeScript Strict Compilation (MANDATORY)
   II.  Code Quality — ESLint Only, No Prettier (MANDATORY)
@@ -36,7 +48,7 @@ Deferred items  : none
 
 # API Test Spark Constitution
 
-**Version**: 1.1.0 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-05-31
+**Version**: 1.1.1 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-05-31
 
 > This constitution defines the non-negotiable engineering principles for the API Test Spark project.
 > All pull requests, AI-assisted code generation, and architectural decisions MUST comply with these principles.
@@ -112,21 +124,34 @@ define clear public contracts between layers and prevent deep import path coupli
 
 ## IV. API Client Pattern (MANDATORY)
 
-All API integrations MUST follow the extend-`ApiClient` + per-call-instantiation + UUID-correlation
-pattern. `JokeApiClient` is the canonical reference implementation.
+All API integrations MUST use one of the two constitutionally recognised client patterns.
+Both satisfy the same invariants: per-call scope, UUID correlation, debug callbacks, and timing.
 
-- All API clients MUST extend `ApiClient` from `src/api/client.ts` (MUST)
+**Pattern A — class-based (extend `ApiClient`)**: Use when the client needs constructor-level
+config, custom header logic, or cancellation support. `JokeApiClient` and `HostApiClient` are
+the canonical reference implementations.
+
+**Pattern B — functional factory (`createRestCaller`)**: Use when no extra constructor logic
+is needed — the factory returns a typed caller with `get/post/put/patch/delete` methods.
+All requests flow through `executeRequest`, which provides identical UUID, timing, and callback
+behaviour to Pattern A.
+
+Both patterns share these invariants:
+
 - API clients MUST be instantiated per-mutation-call, not as singletons (MUST)
-- Debug callbacks (`onRequest`, `onResponse`, `onError`) MUST be injected at instantiation
+- Debug callbacks (`onRequest`, `onResponse`, `onError`) MUST be injected at call-site
   from the debug store (MUST)
 - Every request MUST receive a `uuid v4` for correlation across request → response → error → metrics (MUST)
 - All API calls MUST use TanStack Query `useMutation` — no raw `fetch` calls in hooks or components (MUST)
 - Performance timing (`performance.now()`) MUST be captured per mutation and submitted
   via `addMetric` to the debug store (MUST)
+- Raw `fetch` calls outside of `executeRequest` MUST NOT be added — they bypass UUID, timing,
+  and debug capture (MUST)
 
 **Rationale**: Per-call instantiation with injected callbacks ensures every API interaction is
 automatically captured in the debug panel without manual instrumentation. UUID correlation makes
-request/response/error tracing deterministic.
+request/response/error tracing deterministic. Recognising both patterns removes ambiguity between
+`JokeApiClient` (class) and the functional clients that use `createRestCaller`. *(Amended: 1.1.1)*
 
 ---
 
@@ -147,6 +172,12 @@ Zustand stores are focused, action-gated, and buffer-bounded.
 | `useUnifiedConfigStore` | API endpoint config per environment | `api-test-spark-config` | Full config |
 | `useAuthStore` | Auth configuration + audit trail | `api-test-spark-auth-config` | Config only |
 | `useDebugStore` | Request/response/error/metrics capture | `api-test-spark-debug` | Enabled flag only |
+| `useHarnessConfigStore` | Runtime harness config + discovered OpenAPI endpoints | *(none — session only)* | No |
+
+`useHarnessConfigStore` is **not persisted** — its config is always re-fetched from
+`/api-test-spark/config` on app load. It holds the `HarnessConfig` from the .NET layer,
+parsed `ApiInfo`, and the `DiscoveredEndpoint[]` list. It MUST NOT be wrapped in `persist`
+middleware. *(Added: 1.1.1)*
 
 **Rationale**: Focused stores prevent cross-concern mutation bugs. Action-gating makes state
 changes traceable. FIFO limits prevent unbounded memory growth in long debug sessions.
@@ -164,7 +195,17 @@ All observability flows through the debug store and Application Insights. `conso
   using the appropriate error category (MUST)
 - Application Insights MUST remain opt-in — the connection string defaults to empty,
   disabling telemetry for local development (MUST)
-- Error categories MUST use the typed union: `'Network' | 'API' | 'Configuration' | 'Unknown'` (MUST)
+- Error categories MUST use the typed union: `'Network' | 'API' | 'Configuration' | 'React' | 'Unknown'` (MUST)
+  - `'Network'` — fetch failed before a response was received
+  - `'API'` — server returned a non-2xx status
+  - `'Configuration'` — harness config or OpenAPI document could not be loaded
+  - `'React'` — unhandled render error caught by `ErrorBoundary`
+  - `'Unknown'` — all other uncategorised errors
+
+**App Insights integration**: `useDebugStore.addError()` automatically forwards every error to
+`trackCategorizedError()` in `src/utils/appInsights.ts`. Callers MUST NOT call
+`trackCategorizedError` directly — route through `addError` so the debug panel and App Insights
+stay in sync. App Insights is a no-op when `CONNECTION_STRING` is empty (local development). *(Added: 1.1.1)*
 
 **Defining "unrecoverable"**: An error is unrecoverable only when the current operation cannot
 complete and there is no meaningful fallback — e.g., a fatal render error in `ErrorBoundary` or
@@ -272,3 +313,4 @@ at any time. SHOULD be run before major releases.
 |---------|------|---------|
 | 1.0.0 | 2026-05-18 | Initial constitution — 8 principles discovered from 45-file codebase analysis |
 | 1.1.0 | 2026-05-31 | CAP-2026-001: Clarified Principle VI — defined "unrecoverable", expanded routing scope to all of `src/`. CAP-2026-002: Updated Principle VII — split into per-artifact stances; formally recognised .NET MSTest suite as a MUST quality gate |
+| 1.1.1 | 2026-05-31 | Full-repo review: §IV recognised `createRestCaller` as second valid client pattern; §V added `useHarnessConfigStore` to store registry; §VI expanded `ErrorCategory` union to include `'React'`, added App Insights integration guidance. Code fix: `ErrorRecord.category` typed as `ErrorCategory` (was `string`). |

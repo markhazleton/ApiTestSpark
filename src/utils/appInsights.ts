@@ -77,7 +77,7 @@ export const trackApiCall = (
 
 // Error categorization telemetry
 export const trackCategorizedError = (
-  category: 'Network' | 'API' | 'Configuration' | 'React',
+  category: 'Network' | 'API' | 'Configuration' | 'React' | 'Unknown',
   message: string,
   context: Record<string, unknown>
 ) => {

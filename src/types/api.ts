@@ -8,7 +8,7 @@ export * from './auth';
 // Used by the debug panel and all API clients.
 // ---------------------------------------------------------------------------
 
-export type ErrorCategory = 'Network' | 'API' | 'Configuration' | 'Unknown';
+export type ErrorCategory = 'Network' | 'API' | 'Configuration' | 'React' | 'Unknown';
 
 export interface ApiRequest {
   id: string;
@@ -39,7 +39,7 @@ export interface PerformanceMetrics {
 
 export interface ErrorResponse {
   id?: string;
-  category: string;
+  category: ErrorCategory;
   message: string;
   timestamp: Date;
   context?: Record<string, unknown>;

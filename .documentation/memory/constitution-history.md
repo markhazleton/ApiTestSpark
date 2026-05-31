@@ -2,9 +2,9 @@
 
 ## Current Version
 
-**Version**: 1.0.0
+**Version**: 1.1.1
 **Ratified**: 2026-05-18
-**Last Updated**: 2026-05-30
+**Last Updated**: 2026-05-31
 
 ## Pending Proposals
 
@@ -18,6 +18,9 @@
 |---|---|---|---|---|---|
 | 1.1.0 | 2026-05-31 | CLARIFY | VI. Observability & Logging | CAP-2026-001 | APPLIED |
 | 1.1.0 | 2026-05-31 | MODIFY | VII. Testing Stance | CAP-2026-002 | APPLIED |
+| 1.1.1 | 2026-05-31 | CLARIFY | IV. API Client Pattern | (direct) | APPLIED |
+| 1.1.1 | 2026-05-31 | CLARIFY | V. State Management | (direct) | APPLIED |
+| 1.1.1 | 2026-05-31 | CLARIFY | VI. Observability & Logging | (direct) | APPLIED |
 
 ## Rejected Proposals
 

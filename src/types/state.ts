@@ -1,4 +1,4 @@
-import type { ApiRequest, ApiResponse, PerformanceMetrics } from "./api";
+import type { ApiRequest, ApiResponse, PerformanceMetrics, ErrorCategory } from "./api";
 
 // Configuration State
 export type Environment = "localhost" | "test" | "other";
@@ -92,7 +92,7 @@ export interface AuthStoreState {
 
 export interface ErrorRecord {
   id: string;
-  category: string;
+  category: ErrorCategory;
   message: string;
   timestamp: Date;
   context: Record<string, unknown>;
