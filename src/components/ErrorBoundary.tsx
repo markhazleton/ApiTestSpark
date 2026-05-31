@@ -1,7 +1,6 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { useDebugStore } from '../store';
-import { trackException } from '../utils/appInsights';
 
 interface Props {
   children: ReactNode;
@@ -31,17 +30,11 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
 
-    // Track to Application Insights
-    trackException(error, {
-      category: 'Unknown',
-      componentStack: errorInfo.componentStack,
-    });
-
-    // Log to debug store
+    // addError routes to debug panel and auto-forwards to App Insights via trackCategorizedError
     const debugStore = useDebugStore.getState();
     debugStore.addError({
       id: `error-${Date.now()}`,
-      category: 'Unknown',
+      category: 'React',
       message: error.message,
       timestamp: new Date(),
       context: {
