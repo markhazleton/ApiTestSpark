@@ -26,8 +26,8 @@
     <PackageTags>
       api;test;spark;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development;api-documentation;markdown;curl;swagger-ui-alternative</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://www.nuget.org/packages/ApiTestSpark</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/MarkHazleton/ApiTestSpark</RepositoryUrl>
+    <PackageProjectUrl>https://apitest.makeboldspark.com</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/markhazleton/apitestspark</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
@@ -58,13 +58,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Source Link: enables step-through debugging into this package's source -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+    <!-- PublicApiAnalyzers: enforces public API surface tracking via PublicAPI.Shipped.txt -->
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <!-- Source Link: enables step-through debugging into this package's source -->
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
-    <!-- PublicApiAnalyzers: enforces public API surface tracking via PublicAPI.Shipped.txt -->
   </ItemGroup>
 
   <!-- Resolve repo root using GetFullPath to handle the ../ on all platforms -->
@@ -76,7 +76,6 @@
   <ItemGroup>
     <EmbeddedResource Include="$(RepoRoot)/build/**" Link="build/%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="README.md" Pack="true" PackagePath="/" />
-    <None Include="NUGET-PACKAGE-WALKTHROUGH.md" Pack="true" PackagePath="/" />
     <None Include="icon.png" Pack="true" PackagePath="/" />
     <None Include="$(RepoRoot)/LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>

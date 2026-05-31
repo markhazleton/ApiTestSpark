@@ -40,7 +40,7 @@ The `publish-nuget.yml` workflow fires, runs the full quality gate, packs the li
 #         ./nupkg/ApiTestSpark.{version}.snupkg
 ```
 
-See [ApiTestSpark/NUGET-PACKAGE-WALKTHROUGH.md](ApiTestSpark/NUGET-PACKAGE-WALKTHROUGH.md) for the full technical explanation of how the package is built.
+See [NUGET-PACKAGE-WALKTHROUGH.md](NUGET-PACKAGE-WALKTHROUGH.md) for the full technical explanation of how the package is built.
 
 ---
 

@@ -152,7 +152,7 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 | Property | Value | Rationale |
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
-| `Version` | `1.0.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Version` | `1.0.2` | SemVer; set via `/p:Version` at pack time from `package.json` |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
 | `PackageIcon` | `icon.png` | 128×128 transparent PNG packed at root |
 | `PackageReadmeFile` | `README.md` | Rendered on nuget.org package page |
@@ -177,7 +177,7 @@ Files packed at the `.nupkg` root:
 Source Link lets consumers step into the library's source code from within Visual Studio or Rider without manually downloading anything.
 
 ```xml
-<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
 
 <PublishRepositoryUrl>true</PublishRepositoryUrl>
 <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -211,13 +211,24 @@ Two files control this:
 - **`PublicAPI.Unshipped.txt`** — symbols added since the last release. New public members appear here automatically via IDE code fix, then are moved to `Shipped.txt` when the next version is tagged.
 
 ```
-# PublicAPI.Shipped.txt (v1.0.0 baseline)
+# PublicAPI.Shipped.txt (v1.0.2 baseline)
+#nullable enable
 ApiTestSpark.ApiTestSparkExtensions
 ApiTestSpark.ApiTestSparkOptions
-static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(
-    this Microsoft.AspNetCore.Builder.WebApplication! app,
-    System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null)
-    -> Microsoft.AspNetCore.Builder.WebApplication!
+ApiTestSpark.ApiTestSparkOptions.ApiTestSparkOptions() -> void
+ApiTestSpark.ApiTestSparkOptions.AuthScheme.get -> string?
+ApiTestSpark.ApiTestSparkOptions.AuthScheme.set -> void
+ApiTestSpark.ApiTestSparkOptions.CorsOrigins.get -> string![]!
+ApiTestSpark.ApiTestSparkOptions.CorsOrigins.set -> void
+ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
+ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.set -> void
+ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.get -> bool
+ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.set -> void
+ApiTestSpark.ApiTestSparkOptions.Environments.get -> string![]!
+ApiTestSpark.ApiTestSparkOptions.Environments.set -> void
+ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.get -> string?
+ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.set -> void
+static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!
 ```
 
 If you add a new public method in `ApiTestSparkExtensions.cs`, the build produces RS0016 ("Symbol is not part of the declared public API") until you add it to `PublicAPI.Unshipped.txt`.

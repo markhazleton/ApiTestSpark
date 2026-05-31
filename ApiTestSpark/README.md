@@ -2,18 +2,16 @@
 
 [![NuGet](https://img.shields.io/nuget/v/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/markhazleton/apitestspark/blob/main/LICENSE)
 
-**NuGet**: [https://www.nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark)
-**Live Site**: [https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)
+Embed the **API Test Spark** React SPA into any **.NET 10 Minimal API** with a single method call.
+Autodiscovers your OpenAPI v3 endpoints and renders a full-featured interactive test harness at `/api-test-spark/`.
 
-Embed the **API Test Spark** React SPA into any **.NET 10 Minimal API** project with a single method call. Autodiscovers your OpenAPI v3 endpoints and renders a full-featured interactive test harness at `/api-test-spark/`.
+**[Live Demo](https://apitest.makeboldspark.com)** &nbsp;·&nbsp;
+**[GitHub](https://github.com/markhazleton/apitestspark)** &nbsp;·&nbsp;
+**[NuGet](https://www.nuget.org/packages/ApiTestSpark)**
 
-## About
-
-API Test Spark is a lightweight developer tool for testing and debugging REST APIs. Install it into any .NET Minimal API project and it automatically discovers your endpoints via OpenAPI v3, rendering an interactive test harness at `/api-test-spark/`.
-
-> Built by [Mark Hazleton](https://markhazleton.com) — Solutions Architect
-> API Test Spark is part of the [Make Bold Spark](https://makeboldspark.com) portfolio.
+---
 
 ## Install
 
@@ -24,73 +22,128 @@ dotnet add package ApiTestSpark
 ## Quickstart
 
 ```csharp
-// Program.cs — minimal setup
+using ApiTestSpark;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
+
 var app = builder.Build();
-app.MapOpenApi();
-app.MapApiTestSpark();   // serves at /api-test-spark/
+app.MapOpenApi();          // /openapi/v1.json
+app.MapApiTestSpark();     // /api-test-spark/
+
 app.Run();
 ```
 
-Navigate to `https://localhost:{port}/api-test-spark/` to open the harness.
+Navigate to `https://localhost:{port}/api-test-spark/` — the harness autodiscovers all your endpoints.
 
-## With auth and custom headers
+---
 
-```csharp
-app.MapApiTestSpark(options =>
-{
-    options.OpenApiUrl      = "/openapi.json";
-    options.AuthScheme      = "Bearer";
-    options.DefaultHeaders["X-Tenant-Id"] = "acme";
-    options.Environments    = ["Development", "Staging"];
-});
-```
+## Configuration
 
-## What's in the SPA
-
-### Endpoint discovery and testing
-
-- **Collapsible accordion groups** — endpoints grouped by OpenAPI tag using the `"Namespace: Label"` convention (e.g. `"Products: Catalog"` → `Products > Catalog`). All groups start collapsed when 3+ are present; search filter narrows results in real time.
-- **Full OpenAPI metadata surface** — operation description rendered as markdown (bold, italic, code, headings, numbered lists, fenced code blocks, tables); `operationId` shown as a copyable chip; all documented response codes as coloured badges with expandable inline schemas.
-- **Schema tables** — request body and response schemas displayed with field names, types, formats, `required` markers, `default` values, `nullable` hints, and `min`/`max`/`minLength`/`maxLength` constraints.
-- **JSON scaffold** — request body pre-filled from schema: `example → default → enum[0] → type placeholder`. Nested objects and arrays scaffolded recursively.
-- **Response rendering** — arrays render as sortable tables; objects render as editable forms with copy-to-JSON; primitives and raw text render in a pre block.
-- **API info header** — title, version, endpoint count, contact name/email/URL, and license from the OpenAPI `info` block shown in the screen header.
-
-### API Doc Builder (`/api-docs`)
-
-Generate complete markdown documentation targeted at front-end developer agents:
-
-1. Select endpoints from the collapsible accordion
-2. Capture live HTTP responses (stores the exact curl command + full JSON response)
-3. Add prose annotations per section
-4. Export a `.md` file with table of contents, parameter tables, request body schema tables, response code tables, and fenced curl + response examples
-
-### Debug panel
-
-- Always-on side panel (drag-resizable) capturing every request, response, metric, and error
-- cURL snippet generation for every request
-- Performance metrics: average latency, success rate, total count
-- FIFO buffers: 50 requests/responses/errors, 100 metrics
-
-### Built-in reference integrations
-
-- **JokeAPI** (`/joke-api`) — JokeAPI v2 reference integration
-- **JSONPlaceholder** (`/json-placeholder`) — JSONPlaceholder reference integration
-
-## Local development (Vite dev server)
-
-If the React dev server (`localhost:5151`) and your .NET API run on different ports, the SPA's config fetch will be blocked by same-origin policy. Allow your dev origin:
+All options are optional. Pass an `Action<ApiTestSparkOptions>` to configure:
 
 ```csharp
 app.MapApiTestSpark(options =>
 {
-    options.CorsOrigins = ["http://localhost:5151"];
+    options.OpenApiUrl             = "/openapi/v1.json";        // default: "/openapi.json"
+    options.AuthScheme             = "Bearer";                  // pre-populates auth field
+    options.DefaultHeaders["X-Tenant-Id"] = "acme";            // injected into every SPA request
+    options.Environments           = ["Development", "Staging"]; // empty = all environments
+    options.EnableDemoIntegrations = false;                     // hide JokeAPI + JSONPlaceholder
 });
 ```
 
-## Behind a reverse proxy
+### Options reference
+
+| Property | Default | Description |
+|---|---|---|
+| `OpenApiUrl` | `"/openapi.json"` | URL of your OpenAPI v3 JSON document. `null` disables autodiscovery. |
+| `AuthScheme` | `null` | `"Bearer"`, `"ApiKey"`, or `"Basic"` — metadata only, never a token value. |
+| `DefaultHeaders` | `{}` | Headers injected into every SPA request. Must not contain credentials — values are served publicly via the config endpoint. |
+| `Environments` | `[]` (all) | Environment names where the harness is active. Empty = everywhere. Example: `["Development", "Staging"]` keeps it off production. |
+| `CorsOrigins` | `[]` (same-origin) | Extra origins allowed to call the config endpoint. Use when the Vite dev server and .NET API run on different ports. |
+| `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback. Alternatively set `Logging:LogLevel:ApiTestSpark=Debug` in appsettings. |
+| `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes. Set to `false` to present a clean harness showing only your host API and API Doc Builder. |
+
+---
+
+## Features
+
+- **OpenAPI autodiscovery** — endpoints grouped by tag in a collapsible accordion; real-time search filter
+- **Full metadata surface** — descriptions rendered as markdown, response codes as coloured badges with expandable inline schemas, `operationId` as a copyable chip, schema constraint tables
+- **JSON scaffold** — request body pre-filled from `example → default → enum[0] → type placeholder`; nested objects and arrays scaffolded recursively
+- **Response rendering** — arrays as sortable tables, objects as editable forms, primitives in pre blocks
+- **API Doc Builder** (`/api-docs`) — select endpoints, capture live curl + responses, annotate sections, export markdown
+- **Debug panel** — drag-resizable, captures every request/response/error/metric; cURL snippet per request; FIFO buffered
+- **Environment gating** — one option keeps the harness off production
+- **Demo integration toggle** — set `EnableDemoIntegrations = false` to hide the built-in JokeAPI and JSONPlaceholder screens; show only your host API and the API Doc Builder
+- **Zero extra dependencies** — 181 KB package, no `wwwroot` changes, nothing copied to your project
+
+### Clean install — your API only
+
+Set `EnableDemoIntegrations = false` to remove the JokeAPI and JSONPlaceholder demo screens entirely.
+The home page shows only **Host API Explorer** and **API Doc Builder** — no sample data, no external API noise.
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.OpenApiUrl             = "/openapi/v1.json";
+    options.Environments           = ["Development", "Staging"];
+    options.EnableDemoIntegrations = false;
+});
+```
+
+---
+
+## Getting the most out of API Test Spark
+
+API Test Spark reads your OpenAPI v3 document. Every annotation you add to your API is surfaced directly in the harness. The more metadata you provide, the richer the testing experience.
+
+**Tag endpoints with `"Namespace: Label"` format** — creates a two-level collapsible accordion:
+
+```csharp
+app.MapGroup("/products").WithTags("Products: Catalog").MapProducts();
+app.MapGroup("/orders").WithTags("Orders: Lifecycle").MapOrders();
+```
+
+**Name, summarise, and describe every operation** — summary is the card title; description renders as markdown:
+
+```csharp
+group.MapGet("/{id}", GetById)
+     .WithName("GetProductById")
+     .WithSummary("Get a product by ID")
+     .WithDescription("Returns a single product. Seeded IDs are **1–10**. Returns **404** if not found.");
+```
+
+**Declare every response code** — each becomes a coloured badge with an expandable inline schema:
+
+```csharp
+.Produces<Product>(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound)
+```
+
+Or use `TypedResults` — it infers response types automatically without extra `.Produces()` calls.
+
+**Annotate your schema types** — `[Description]`, `[Required]`, `[Range]`, `[MinLength]`, `[MaxLength]` all appear as columns in the schema property table:
+
+```csharp
+public record Product(
+    [property: Description("Display name.")][property: Required][property: MaxLength(100)]
+    string Name,
+    [property: Description("Unit price in USD.")][property: Range(0.01, 99999.99)]
+    decimal Price
+);
+```
+
+**Set examples or defaults** — the JSON scaffold fills from `example → default → enum[0] → type placeholder`. Without examples every field shows a generic placeholder; with them testers can fire requests immediately.
+
+**Add a workflow walkthrough to `info.description`** — renders as markdown in the API info header; ideal for linking resource groups and describing end-to-end flows.
+
+See the [live demo](https://apitest.makeboldspark.com) and [full best-practices guide](https://github.com/markhazleton/apitestspark#maximising-your-api-test-spark-experience) for annotated source examples.
+
+---
+
+## Reverse proxy
 
 Call `UseForwardedHeaders()` **before** `MapApiTestSpark()` so the config endpoint reports the correct public base URL:
 
@@ -99,7 +152,18 @@ app.UseForwardedHeaders();
 app.MapApiTestSpark();
 ```
 
-## Diagnostics / logging
+## Local development (Vite dev server)
+
+If your React dev server and .NET API run on different ports, allow the dev origin:
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.CorsOrigins = ["http://localhost:5151"];
+});
+```
+
+## Diagnostics
 
 ```json
 {
@@ -111,38 +175,8 @@ app.MapApiTestSpark();
 }
 ```
 
-Or set `options.EnableVerboseLogging = true` in code to emit per-asset request logs.
-
-## ApiTestSparkOptions reference
-
-| Property | Default | Description |
-| -------- | ------- | ----------- |
-| `OpenApiUrl` | `"/openapi.json"` | Relative or absolute URL to your OpenAPI v3 JSON document. `null` disables autodiscovery. |
-| `AuthScheme` | `null` | `"Bearer"`, `"ApiKey"`, or `"Basic"` — pre-populates the auth field. Never a token value. |
-| `DefaultHeaders` | `{}` | Key-value headers injected into every request the SPA makes to your API. |
-| `Environments` | `[]` (all) | Environment names where the harness is active. Empty = all environments. |
-| `CorsOrigins` | `[]` (same-origin) | Extra origins allowed to call the config endpoint (e.g. Vite dev server). |
-| `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every static asset served. |
-
-## SPA routing note
-
-All extensionless paths under `/api-test-spark/` return HTTP 200 with `index.html`. WAF rules should not expect HTTP 404 for SPA routes.
-
-## Semver policy
-
-- **Patch** (x.y.Z): bug fixes, no public API changes
-- **Minor** (x.Y.0): additive features, no breaking changes
-- **Major** (X.0.0): breaking changes to `MapApiTestSpark`, `ApiTestSparkOptions`, or `ApiTestSparkExtensions`
-
-PR titles for changes touching `PublicAPI.Shipped.txt` must include `SEMVER: MAJOR` or `SEMVER: MINOR`.
-
-## How this package is built
-
-See [NUGET-PACKAGE-WALKTHROUGH.md](NUGET-PACKAGE-WALKTHROUGH.md) for the full technical walkthrough: MSBuild/Vite bridge, embedded resources, Source Link, public API tracking, CI/CD pipeline, and security configuration.
-
-**NuGet**: [https://www.nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark)
-**Source**: [github.com/MarkHazleton/ApiTestSpark](https://github.com/MarkHazleton/ApiTestSpark)
+---
 
 ## License
 
-MIT
+MIT — [github.com/markhazleton/apitestspark](https://github.com/markhazleton/apitestspark)
