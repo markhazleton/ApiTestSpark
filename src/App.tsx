@@ -10,6 +10,7 @@ import {
   ErrorBoundary,
   Footer,
 } from './components';
+import { useHarnessConfigStore } from './store/harnessConfigStore';
 
 // Route-level screens are lazy-loaded so each becomes its own chunk.
 // Shell components above stay eager (they render on every page).
@@ -28,6 +29,32 @@ const queryClient = new QueryClient({
     mutations: { retry: 0 },
   },
 });
+
+function AppRoutes() {
+  const config = useHarnessConfigStore((s) => s.config);
+  // Default true so routes are available before config loads (avoids flash-redirect).
+  const showDemos = config?.enableDemoIntegrations ?? true;
+
+  return (
+    <Routes>
+      <Route path="/"           element={<HomeScreen />} />
+      <Route path="/how-to-use" element={<HowToUseScreen />} />
+      <Route path="/about"      element={<AboutScreen />} />
+
+      <Route path="/config"              element={<Navigate to="/" replace />} />
+      <Route path="/conversation-config" element={<Navigate to="/" replace />} />
+      <Route path="/unified-config"      element={<Navigate to="/" replace />} />
+
+      <Route path="/host-api" element={<HostApiScreen />} />
+      <Route path="/api-docs"  element={<ApiDocScreen />} />
+
+      {showDemos && <Route path="/joke-api"         element={<JokeApiScreen />} />}
+      {showDemos && <Route path="/json-placeholder" element={<JsonPlaceholderScreen />} />}
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 function App() {
   const [isDebugCollapsed, setIsDebugCollapsed] = useState(false);
@@ -79,23 +106,7 @@ function App() {
                       <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     </div>
                   }>
-                    <Routes>
-                    <Route path="/"          element={<HomeScreen />} />
-                    <Route path="/how-to-use" element={<HowToUseScreen />} />
-                    <Route path="/about"      element={<AboutScreen />} />
-
-                    {/* /config now redirects — config lives in each section screen */}
-                    <Route path="/config"             element={<Navigate to="/" replace />} />
-                    <Route path="/conversation-config" element={<Navigate to="/" replace />} />
-                    <Route path="/unified-config"      element={<Navigate to="/" replace />} />
-
-                    <Route path="/host-api" element={<HostApiScreen />} />
-                    <Route path="/api-docs" element={<ApiDocScreen />} />
-                    <Route path="/joke-api" element={<JokeApiScreen />} />
-                    <Route path="/json-placeholder" element={<JsonPlaceholderScreen />} />
-
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
+                    <AppRoutes />
                   </Suspense>
                 </div>
 

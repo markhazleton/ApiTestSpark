@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BRANDING } from "../utils";
 import { SECTION_CONFIGS } from "../config";
+import { useHarnessConfigStore } from "../store/harnessConfigStore";
 
 interface NavItem {
   icon: string;
@@ -18,38 +19,40 @@ interface NavSection {
 }
 
 // ---------------------------------------------------------------------------
-// Navigation sections — add your own feature sections below the sample
+// Static section — always visible
 // ---------------------------------------------------------------------------
-const SECTIONS: NavSection[] = [
-  {
-    label: "Sample Integration",
-    defaultOpen: true,
-    items: Object.values(SECTION_CONFIGS).map((cfg) => ({
-      icon: cfg.icon,
-      title: cfg.displayName,
-      description: cfg.description,
-      path: cfg.path,
-    })),
-  },
-  {
-    label: "Your App's APIs",
-    defaultOpen: true,
-    items: [
-      {
-        icon: "🔍",
-        title: "Host API Explorer",
-        description: "Autodiscovered endpoints from your app's OpenAPI v3 document. Test any endpoint interactively.",
-        path: "/host-api",
-      },
-      {
-        icon: "📄",
-        title: "API Doc Builder",
-        description: "Select endpoints, capture live curl + responses, and generate markdown documentation targeted at front-end developer agents.",
-        path: "/api-docs",
-      },
-    ],
-  },
-];
+const YOUR_API_SECTION: NavSection = {
+  label: "Your App's APIs",
+  defaultOpen: true,
+  items: [
+    {
+      icon: "🔍",
+      title: "Host API Explorer",
+      description: "Autodiscovered endpoints from your app's OpenAPI v3 document. Test any endpoint interactively.",
+      path: "/host-api",
+    },
+    {
+      icon: "📄",
+      title: "API Doc Builder",
+      description: "Select endpoints, capture live curl + responses, and generate markdown documentation targeted at front-end developer agents.",
+      path: "/api-docs",
+    },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Demo section — shown only when enableDemoIntegrations is true
+// ---------------------------------------------------------------------------
+const DEMO_SECTION: NavSection = {
+  label: "Sample Integrations",
+  defaultOpen: true,
+  items: Object.values(SECTION_CONFIGS).map((cfg) => ({
+    icon: cfg.icon,
+    title: cfg.displayName,
+    description: cfg.description,
+    path: cfg.path,
+  })),
+};
 
 // ---------------------------------------------------------------------------
 // Section group component
@@ -96,6 +99,12 @@ function SectionGroup({ section }: { section: NavSection }) {
 // Home Screen
 // ---------------------------------------------------------------------------
 export default function HomeScreen() {
+  const config = useHarnessConfigStore((s) => s.config);
+  const showDemos = config?.enableDemoIntegrations ?? true;
+  const sections = showDemos
+    ? [DEMO_SECTION, YOUR_API_SECTION]
+    : [YOUR_API_SECTION];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-8">
@@ -106,7 +115,7 @@ export default function HomeScreen() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <div key={section.label} className="bg-gray-50 rounded-lg border border-gray-200">
             <SectionGroup section={section} />
           </div>

@@ -122,6 +122,7 @@ public static class ApiTestSparkExtensions
                 openApiUrl = options.OpenApiUrl,
                 authScheme = options.AuthScheme,
                 defaultHeaders = options.DefaultHeaders,
+                enableDemoIntegrations = options.EnableDemoIntegrations,
             };
 
             logger.LogDebug(

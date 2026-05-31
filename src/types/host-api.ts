@@ -3,6 +3,7 @@ export interface HarnessConfig {
   openApiUrl: string | null;
   authScheme: 'Bearer' | 'ApiKey' | 'Basic' | null;
   defaultHeaders: Record<string, string>;
+  enableDemoIntegrations: boolean;
 }
 
 /** Metadata from the OpenAPI info block, surfaced in the UI header. */

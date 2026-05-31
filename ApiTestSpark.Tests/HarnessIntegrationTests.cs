@@ -1,5 +1,6 @@
 using System.Net;
 using System.Reflection;
+using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;
@@ -11,11 +12,13 @@ namespace ApiTestSpark.Tests;
 [TestClass]
 public class HarnessIntegrationTests
 {
-    private static WebApplication BuildTestApp(Action<ApiTestSparkOptions>? configure = null)
+    private static WebApplication BuildTestApp(
+        Action<ApiTestSparkOptions>? configure = null,
+        string environment = "Development")
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
-            EnvironmentName = Environments.Development,
+            EnvironmentName = environment,
         });
         builder.WebHost.UseTestServer();
         var app = builder.Build();
@@ -23,6 +26,8 @@ public class HarnessIntegrationTests
         app.StartAsync().GetAwaiter().GetResult();
         return app;
     }
+
+    // ── Existing: static file + SPA fallback ────────────────────────────────
 
     [TestMethod]
     public async Task RootPath_Returns200_WithHtml()
@@ -33,9 +38,50 @@ public class HarnessIntegrationTests
         var response = await client.GetAsync("/api-test-spark/");
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        var contentType = response.Content.Headers.ContentType?.MediaType;
-        Assert.AreEqual("text/html", contentType);
+        Assert.AreEqual("text/html", response.Content.Headers.ContentType?.MediaType);
     }
+
+    [TestMethod]
+    public async Task ExtensionlessSubPath_Returns200_WithHtmlFallback()
+    {
+        var app = BuildTestApp();
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/some-unknown-route");
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual("text/html", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [TestMethod]
+    public async Task UnknownFileExtension_Returns404_NotHtmlFallback()
+    {
+        var app = BuildTestApp();
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/nonexistent.js");
+
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // ── New: trailing-slash redirect ─────────────────────────────────────────
+
+    [TestMethod]
+    public async Task NoTrailingSlash_Redirects_ToTrailingSlash()
+    {
+        var app = BuildTestApp();
+        // Do not follow redirects so we can assert the 302 itself.
+        var client = app.GetTestClient();
+        client.BaseAddress = new Uri("http://localhost");
+
+        var response = await client.GetAsync("/api-test-spark");
+
+        Assert.AreEqual(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.IsNotNull(response.Headers.Location);
+        StringAssert.EndsWith(response.Headers.Location.ToString(), "/api-test-spark/");
+    }
+
+    // ── Existing: config endpoint ────────────────────────────────────────────
 
     [TestMethod]
     public async Task ConfigEndpoint_Returns200_WithExpectedKeys()
@@ -55,32 +101,216 @@ public class HarnessIntegrationTests
         StringAssert.Contains(body, "\"openApiUrl\"");
         StringAssert.Contains(body, "\"authScheme\"");
         StringAssert.Contains(body, "\"defaultHeaders\"");
+        StringAssert.Contains(body, "\"enableDemoIntegrations\"");
         StringAssert.Contains(body, "\"Bearer\"");
     }
 
+    // ── New: config values round-trip correctly ───────────────────────────────
+
     [TestMethod]
-    public async Task ExtensionlessPath_Returns200_WithHtmlFallback()
+    public async Task ConfigEndpoint_EnableDemoIntegrations_DefaultsToTrue()
     {
         var app = BuildTestApp();
         var client = app.GetTestClient();
 
-        var response = await client.GetAsync("/api-test-spark/some-unknown-route");
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.IsTrue(doc.RootElement.GetProperty("enableDemoIntegrations").GetBoolean());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_EnableDemoIntegrations_ReflectsFalse()
+    {
+        var app = BuildTestApp(o => o.EnableDemoIntegrations = false);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.IsFalse(doc.RootElement.GetProperty("enableDemoIntegrations").GetBoolean());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_OpenApiUrl_Null_SerializesAsJsonNull()
+    {
+        var app = BuildTestApp(o => o.OpenApiUrl = null);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.AreEqual(JsonValueKind.Null, doc.RootElement.GetProperty("openApiUrl").ValueKind);
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_DefaultHeaders_AppearsInBody()
+    {
+        var app = BuildTestApp(o => o.DefaultHeaders["X-Tenant-Id"] = "acme");
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+
+        StringAssert.Contains(body, "X-Tenant-Id");
+        StringAssert.Contains(body, "acme");
+    }
+
+    // ── New: config path passes through middleware, not SPA fallback ─────────
+
+    [TestMethod]
+    public async Task ConfigPath_NotHandledBySpaFallback_ReturnsJson()
+    {
+        var app = BuildTestApp();
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var contentType = response.Content.Headers.ContentType?.MediaType;
-        Assert.AreEqual("text/html", contentType);
+        Assert.AreEqual("application/json", contentType);
     }
 
+    // ── New: SPA fallback response headers ───────────────────────────────────
+
     [TestMethod]
-    public async Task UnknownFileExtension_Returns404_NotHtmlFallback()
+    public async Task SpaFallback_SetsCacheControlNoCache()
     {
         var app = BuildTestApp();
         var client = app.GetTestClient();
 
-        var response = await client.GetAsync("/api-test-spark/nonexistent.js");
+        var response = await client.GetAsync("/api-test-spark/");
+
+        Assert.IsTrue(
+            response.Headers.TryGetValues("Cache-Control", out var values),
+            "Cache-Control header missing");
+        StringAssert.Contains(string.Join(",", values), "no-cache");
+    }
+
+    [TestMethod]
+    public async Task SpaFallback_SetsContentSecurityPolicyHeader()
+    {
+        var app = BuildTestApp();
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/");
+
+        Assert.IsTrue(
+            response.Headers.TryGetValues("Content-Security-Policy", out var values),
+            "Content-Security-Policy header missing");
+        var csp = string.Join(" ", values);
+        StringAssert.Contains(csp, "default-src");
+        StringAssert.Contains(csp, "script-src");
+    }
+
+    [TestMethod]
+    public async Task SpaFallback_Development_CspAllowsLocalhostConnections()
+    {
+        var app = BuildTestApp(environment: Environments.Development);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/");
+
+        response.Headers.TryGetValues("Content-Security-Policy", out var values);
+        var csp = string.Join(" ", values ?? []);
+        StringAssert.Contains(csp, "ws://localhost:*");
+    }
+
+    [TestMethod]
+    public async Task SpaFallback_Production_CspDoesNotAllowLocalhostConnections()
+    {
+        var app = BuildTestApp(environment: Environments.Production);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/");
+
+        response.Headers.TryGetValues("Content-Security-Policy", out var values);
+        var csp = string.Join(" ", values ?? []);
+        Assert.IsFalse(csp.Contains("ws://localhost:*"),
+            "CSP should not include localhost WebSocket in Production");
+    }
+
+    // ── New: environment gating ───────────────────────────────────────────────
+
+    [TestMethod]
+    public async Task EnvironmentGating_SkipsRegistration_WhenEnvNotInList()
+    {
+        // Harness restricted to Staging; app runs as Production — should not mount.
+        var app = BuildTestApp(
+            o => o.Environments = ["Staging"],
+            environment: Environments.Production);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/");
 
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [TestMethod]
+    public async Task EnvironmentGating_MountsHarness_WhenEnvMatches()
+    {
+        var app = BuildTestApp(
+            o => o.Environments = ["Staging"],
+            environment: "Staging");
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/");
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    // ── New: CORS header behaviour ────────────────────────────────────────────
+
+    [TestMethod]
+    public async Task ConfigEndpoint_CorsHeader_PresentWhenOriginInAllowList()
+    {
+        var app = BuildTestApp(o => o.CorsOrigins = ["http://localhost:5151"]);
+        var client = app.GetTestClient();
+        client.DefaultRequestHeaders.Add("Origin", "http://localhost:5151");
+
+        var response = await client.GetAsync("/api-test-spark/config");
+
+        Assert.IsTrue(
+            response.Headers.TryGetValues("Access-Control-Allow-Origin", out var values),
+            "Access-Control-Allow-Origin header missing");
+        Assert.AreEqual("http://localhost:5151", values.First());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_CorsHeader_AbsentWhenOriginNotInAllowList()
+    {
+        var app = BuildTestApp(o => o.CorsOrigins = ["http://localhost:5151"]);
+        var client = app.GetTestClient();
+        client.DefaultRequestHeaders.Add("Origin", "http://evil.example.com");
+
+        var response = await client.GetAsync("/api-test-spark/config");
+
+        Assert.IsFalse(
+            response.Headers.Contains("Access-Control-Allow-Origin"),
+            "Access-Control-Allow-Origin should not be set for unlisted origin");
+    }
+
+    // ── New: ApiTestSparkOptions defaults ────────────────────────────────────
+
+    [TestMethod]
+    public void Options_DefaultValues_AreCorrect()
+    {
+        var options = new ApiTestSparkOptions();
+
+        Assert.AreEqual("/openapi.json", options.OpenApiUrl);
+        Assert.IsNull(options.AuthScheme);
+        Assert.IsNotNull(options.DefaultHeaders);
+        Assert.AreEqual(0, options.DefaultHeaders.Count);
+        Assert.AreEqual(0, options.Environments.Length);
+        Assert.AreEqual(0, options.CorsOrigins.Length);
+        Assert.IsFalse(options.EnableVerboseLogging);
+        Assert.IsTrue(options.EnableDemoIntegrations);
+    }
+
+    // ── Existing: embedded resources ─────────────────────────────────────────
 
     [TestMethod]
     public void EmbeddedResources_ContainExpectedPrefix()

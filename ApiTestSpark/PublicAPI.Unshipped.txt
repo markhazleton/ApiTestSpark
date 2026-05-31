@@ -1,1 +1,3 @@
 #nullable enable
+ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.get -> bool
+ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.set -> void

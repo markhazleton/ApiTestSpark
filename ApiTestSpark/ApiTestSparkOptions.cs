@@ -45,4 +45,12 @@ public class ApiTestSparkOptions
     /// e.g. new[] { "http://localhost:5151" }.
     /// </summary>
     public string[] CorsOrigins { get; set; } = [];
+
+    /// <summary>
+    /// When true, the SPA shows the built-in demo integrations (JokeAPI and JSONPlaceholder)
+    /// in the home screen and registers their routes. Set to false to hide these demos
+    /// and present only your host API and the API Doc Builder.
+    /// Default: true.
+    /// </summary>
+    public bool EnableDemoIntegrations { get; set; } = true;
 }
