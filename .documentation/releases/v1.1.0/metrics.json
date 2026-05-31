@@ -1,0 +1,37 @@
+{
+  "version": "1.1.0",
+  "releaseDate": "2026-05-31",
+  "release": {
+    "from": "2026-05-30",
+    "to": "2026-05-31"
+  },
+  "commitRange": {
+    "baseRef": "v1.0.2",
+    "baseSha": "8eb95fc436d4e681030274afa118ec82767d2f2f",
+    "headRef": "HEAD",
+    "headSha": "a80caf302741a2f8f4614b05e0e69c72dc93d0d6",
+    "rangeSpec": "v1.0.2..HEAD"
+  },
+  "previousVersion": "v1.0.2",
+  "features": {
+    "completed": 1,
+    "deferred": 0
+  },
+  "bugFixes": 2,
+  "typeSystemFixes": 3,
+  "pullRequests": {
+    "merged": 0,
+    "numbers": [],
+    "filesChanged": 0,
+    "testsAdded": 0,
+    "breakingChanges": 0,
+    "resolvedHighFindings": 4
+  },
+  "adrs": 0,
+  "commits": 9,
+  "contributors": 1,
+  "specs": [],
+  "constitutionVersion": "1.1.1",
+  "auditCompliance": "100%",
+  "timestamp": "2026-05-31T12:30:00Z"
+}

@@ -209,15 +209,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.0.2</span>
+                            <span class="pkg-version">v1.1.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated May 30, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated May 31, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.0.2</div>
+                            <div class="value">1.1.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -511,7 +511,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.0.2 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.1.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 181 KB</div>
                     </div>

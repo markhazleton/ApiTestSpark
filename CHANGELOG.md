@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.1.0] - 2026-05-31
+
+### Added
+
+- **`EnableDemoIntegrations` option** — new `bool` property on `ApiTestSparkOptions` (default `true`). Set to `false` to hide the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disable their routes entirely, leaving only the Host API Explorer and API Doc Builder. Ideal for production or team installs where the sample integrations add noise.
+
+### Changed
+
+- **`ErrorCategory` type expanded** — added `'React'` variant to the `ErrorCategory` union (`'Network' | 'API' | 'Configuration' | 'React' | 'Unknown'`). `'React'` is the correct category for unhandled render errors caught by `ErrorBoundary`.
+- **`ErrorRecord.category` and `ErrorResponse.category`** — both fields now typed as `ErrorCategory` (was loosely typed as `string`). Eliminates an unsafe `as` cast in `debugStore.addError`.
+- **`ErrorBoundary` observability** — `componentDidCatch` now uses `category: 'React'` (was `'Unknown'`) and routes exclusively through `useDebugStore.addError()`. The redundant direct `trackException()` call (which bypassed the debug panel) has been removed. `addError` already auto-forwards to App Insights via `trackCategorizedError`.
+- **Constitution v1.1.1** — three clarifications applied via full-repo review: §IV recognises `createRestCaller` as a second valid client pattern; §V adds `useHarnessConfigStore` to the canonical store registry (non-persisted); §VI expands `ErrorCategory` union definition and documents the App Insights integration relationship.
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.0.2] - 2026-05-30
 
 ### Fixed
@@ -95,7 +112,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.1.0...HEAD
+[v1.1.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.2...v1.1.0
 [v1.0.2]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.1...v1.0.2
 [v1.0.1]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/MarkHazleton/ApiTestSpark/releases/tag/v1.0.0

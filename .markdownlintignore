@@ -1,0 +1,10 @@
+
+# DevSpark framework files — boilerplate, not project docs
+.github/agents/**
+.claude/commands/**
+.devspark/**
+node_modules/**
+build/**
+bin/**
+obj/**
+nupkg/**

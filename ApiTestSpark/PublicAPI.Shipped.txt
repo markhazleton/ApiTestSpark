@@ -12,6 +12,8 @@ ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.set -> void
 ApiTestSpark.ApiTestSparkOptions.Environments.get -> string![]!
 ApiTestSpark.ApiTestSparkOptions.Environments.set -> void
+ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.get -> bool
+ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.set -> void
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.set -> void
 static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!

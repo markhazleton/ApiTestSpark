@@ -152,7 +152,7 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 | Property | Value | Rationale |
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
-| `Version` | `1.0.2` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Version` | `1.1.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
 | `PackageIcon` | `icon.png` | 128×128 transparent PNG packed at root |
 | `PackageReadmeFile` | `README.md` | Rendered on nuget.org package page |
@@ -207,11 +207,11 @@ Source Link lets consumers step into the library's source code from within Visua
 
 Two files control this:
 
-- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.0.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
+- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.1.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
 - **`PublicAPI.Unshipped.txt`** — symbols added since the last release. New public members appear here automatically via IDE code fix, then are moved to `Shipped.txt` when the next version is tagged.
 
 ```
-# PublicAPI.Shipped.txt (v1.0.2 baseline)
+# PublicAPI.Shipped.txt (v1.1.0 baseline)
 #nullable enable
 ApiTestSpark.ApiTestSparkExtensions
 ApiTestSpark.ApiTestSparkOptions

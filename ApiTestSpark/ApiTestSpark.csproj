@@ -9,7 +9,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <Authors>Mark Hazleton</Authors>
     <Company>MarkHazleton</Company>
     <Copyright>Copyright © Mark Hazleton 2026</Copyright>
@@ -31,9 +31,10 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>1.0.2 — Fix: Content-Security-Policy on the index.html SPA fallback now
-      allows localhost WebSocket and HTTP connections in Development so ASP.NET Core Browser Link
-      and hot-reload no longer block the harness from loading. No public API changes.
+    <PackageReleaseNotes>1.1.0 — New: EnableDemoIntegrations option hides the built-in JokeAPI and
+      JSONPlaceholder demo screens for a clean production install. Type system hardened: ErrorCategory
+      union expanded to include React; ErrorRecord.category and ErrorResponse.category now typed as
+      ErrorCategory (was string). ErrorBoundary observability corrected. Constitution amended to v1.1.1.
       See CHANGELOG.md for full history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 

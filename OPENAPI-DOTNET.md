@@ -98,12 +98,14 @@ app.MapOpenApi();                 // serves at /openapi/v1.json
 ```
 
 **What it does:**
+
 - Generates an OpenAPI 3.0 document from your endpoint definitions
 - Supports `IOpenApiDocumentTransformer` for customising the document
 - Supports multiple named documents (`AddOpenApi("v2")`)
 - Runtime generation (document built on first request) and build-time generation (via companion package)
 
 **What it does NOT do:**
+
 - It does not include a UI — you must add a renderer separately (Scalar, Swagger UI, etc.)
 - It does not generate client code
 
@@ -161,6 +163,7 @@ The most widely-installed OpenAPI package in the .NET ecosystem by a large margi
 | **10.x** | **8 / 9 / 10** | **v2.x** | **Current — requires migration** |
 
 The jump from v6 to v10 is significant:
+
 - The internal model migrated from `Microsoft.OpenApi` v1 to v2
 - `SwaggerGenOptions` configuration API changed in places
 - Swagger UI auth configuration changed (Bearer/ApiKey header setup is different)
@@ -197,6 +200,7 @@ c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { ... });
 **Total downloads:** 124 million
 
 NSwag predates both Swashbuckle 10 and `Microsoft.AspNetCore.OpenApi`. Its distinguishing features are:
+
 - Broadest framework support: .NET 8/9/10, .NET Standard 2.0, .NET Framework 4.6.2
 - Built-in TypeScript and C# client generation (does not require a separate tool)
 - NSwagStudio desktop tool for visual code generation
@@ -227,6 +231,7 @@ app.MapScalarApiReference();  // renders at /scalar/v1
 ```
 
 **Why developers are switching from Swagger UI to Scalar:**
+
 - No jQuery, no legacy CSS — modern component-based UI
 - Zero NuGet dependencies
 - Built-in dark mode, search, request sandbox
@@ -359,6 +364,7 @@ If you are on Swashbuckle 6.x and need .NET 10:
 ```
 
 Migration checklist:
+
 - Re-review all `SwaggerGenOptions` — the auth definition API changed
 - Replace `dotnet swagger` CLI with `Microsoft.Extensions.ApiDescription.Server` for build-time generation
 - Test all `SwaggerSchema` attribute usages — inheritance on `$ref` types is broken in some cases
@@ -459,6 +465,7 @@ function unwrapAllOf(schema: OpenApiSchema): OpenApiSchema {
 [**API Test Spark**](https://apitest.makeboldspark.com) is a NuGet package that embeds a React SPA into any .NET 10 Minimal API. Its `openApiParser.ts` consumes the OpenAPI document served by whatever generator the host application uses.
 
 **ApiTestSpark works with:**
+
 - `Microsoft.AspNetCore.OpenApi` (recommended — this is what the SampleApi demo uses)
 - Swashbuckle.AspNetCore 10.x
 - NSwag.AspNetCore 14.x
@@ -466,6 +473,7 @@ function unwrapAllOf(schema: OpenApiSchema): OpenApiSchema {
 **ApiTestSpark does not depend on** `Microsoft.AspNetCore.OpenApi`, Swashbuckle, or NSwag. The host application picks the generator; ApiTestSpark reads the output JSON. This design means ApiTestSpark is insulated from the package ecosystem churn described in this document.
 
 **What the SPA parser handles today:**
+
 - `$ref` resolution into `components/schemas`
 - `nullable: true` on schema objects
 - `allOf` with a single `$ref` (Swashbuckle style)

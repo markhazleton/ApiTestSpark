@@ -34,7 +34,7 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.0.2 |
+| **Version** | 1.1.0 |
 | **Author** | [Mark Hazleton](https://markhazleton.com) |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
@@ -137,7 +137,7 @@ app.MapApiTestSpark(options =>
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.0.2 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.1.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -160,6 +160,10 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 ---
 
 ## Release Notes
+
+### v1.1.0 — May 31, 2026
+
+New `EnableDemoIntegrations` option — set to `false` to hide the built-in JokeAPI and JSONPlaceholder demo screens and present only your host API and the API Doc Builder. TypeScript type system hardened: `ErrorCategory` union expanded with `'React'`; `ErrorRecord.category` and `ErrorResponse.category` now typed as `ErrorCategory` (was `string`). `ErrorBoundary` observability corrected to use `category: 'React'` and route exclusively through `addError`. Constitution amended to v1.1.1.
 
 ### v1.0.2 — May 30, 2026
 
