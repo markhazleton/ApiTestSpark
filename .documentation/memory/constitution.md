@@ -6,6 +6,11 @@ Method          : Promoted from constitution-draft.md via /devspark.constitution
 Date            : 2026-05-18
 Source          : /devspark.discover-constitution (8 questions, 45 files analyzed)
 
+Version change  : 1.0.0 → 1.1.0
+Method          : /devspark.evolve-constitution + /devspark.constitution
+Date            : 2026-05-31
+Source          : audit 2026-05-28 (CAP-2026-001) + codebase analysis (CAP-2026-002)
+
 Added sections  :
   I.   TypeScript Strict Compilation (MANDATORY)
   II.  Code Quality — ESLint Only, No Prettier (MANDATORY)
@@ -31,7 +36,7 @@ Deferred items  : none
 
 # API Test Spark Constitution
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-05-30
+**Version**: 1.1.0 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-05-31
 
 > This constitution defines the non-negotiable engineering principles for the API Test Spark project.
 > All pull requests, AI-assisted code generation, and architectural decisions MUST comply with these principles.
@@ -153,32 +158,66 @@ changes traceable. FIFO limits prevent unbounded memory growth in long debug ses
 All observability flows through the debug store and Application Insights. `console.log` is banned.
 
 - `console.log` MUST NOT appear anywhere in `src/` (MUST)
-- `console.error` MAY only appear inside `catch` blocks for unrecoverable errors (MUST)
-- All API request/response/error/metric data MUST be routed through `useDebugStore` (MUST)
+- `console.error` MAY only appear inside `catch` blocks for **unrecoverable** errors (MUST)
+- All diagnostic output from `src/` — API calls, storage failures, configuration warnings,
+  version mismatches, and component-level errors — MUST be routed through `useDebugStore.addError()`
+  using the appropriate error category (MUST)
 - Application Insights MUST remain opt-in — the connection string defaults to empty,
   disabling telemetry for local development (MUST)
 - Error categories MUST use the typed union: `'Network' | 'API' | 'Configuration' | 'Unknown'` (MUST)
 
+**Defining "unrecoverable"**: An error is unrecoverable only when the current operation cannot
+complete and there is no meaningful fallback — e.g., a fatal render error in `ErrorBoundary` or
+a network error where no retry is possible. Secondary operation failures (audit log write,
+telemetry flush, optional metadata load) are **recoverable** — `console.error` MUST NOT be used
+for them. For truly non-critical failures where no user action is needed, silently returning
+`null` or a safe default is preferred over debug-store noise.
+
 **Rationale**: Routing all observability through a single store ensures the debug panel always
 reflects the full picture of what the tool is doing. The opt-in App Insights pattern protects
-developers from inadvertently leaking debug data to production telemetry.
+developers from inadvertently leaking debug data to production telemetry. Clarifying
+"unrecoverable" and expanding the routing scope to all of `src/` closes the gap that produced
+audit findings OBS1–OBS3 and QUAL1 (2026-05-28). *(Amended: CAP-2026-001, 2026-05-31)*
 
 ---
 
-## VII. Testing Stance (ASPIRATIONAL)
+## VII. Testing Stance (MIXED — see per-artifact rules below)
 
-This project operates without a test framework by deliberate design.
+The React SPA and the .NET library have different, deliberate testing stances. Both are non-negotiable.
 
-- Quality gates are lint → typecheck → build only — no test runner is in the CI pipeline (MUST-NOT change without amendment)
+### React SPA (`src/`) — No test framework by design
+
+- No JavaScript/TypeScript test runner is in the CI pipeline — MUST NOT be added without amendment (MUST)
 - The `package.json` test script intentionally echoes a no-test message — MUST NOT be silently changed (MUST)
-- Unit tests SHOULD be added for critical utility functions (e.g., `src/utils/storage.ts`,
-  `src/utils/exporters.ts`) as the project matures (SHOULD)
-- If a test framework is introduced, it MUST be added via a constitution amendment (MUST)
+- Unit tests SHOULD be added for critical React utility functions (e.g., `src/utils/storage.ts`,
+  `src/utils/openApiParser.ts`) as the project matures (SHOULD)
+- If a JavaScript/TypeScript test framework is introduced, it MUST be added via a constitution amendment (MUST)
 
-**Rationale**: The API Test Spark is a lightweight developer tool where rapid iteration and
-build-time safety (TypeScript strict + ESLint) provide sufficient quality assurance for the
-current scope. Introducing a test framework is a significant complexity trade-off that requires
-explicit team agreement.
+**Rationale (React SPA)**: API Test Spark is a lightweight developer tool where rapid iteration and
+build-time safety (TypeScript strict + ESLint) provide sufficient quality assurance. Introducing a
+JS/TS test framework is a significant complexity trade-off requiring explicit team agreement.
+
+### .NET Library (`ApiTestSpark/`) — MSTest integration tests required
+
+- The .NET library MUST maintain a passing integration test suite in `ApiTestSpark.Tests/` (MUST)
+- `dotnet test ApiTestSpark.Tests` MUST pass as a CI quality gate (MUST)
+- New public behaviour added to `ApiTestSparkExtensions` or `ApiTestSparkOptions` SHOULD have
+  corresponding integration test coverage (SHOULD)
+- MSTest is the mandated framework for the .NET layer — no other .NET test framework may be added
+  without amendment (MUST)
+
+**Rationale (.NET library)**: The NuGet package ships compiled code to consumers who cannot inspect
+it at runtime. Integration tests using `UseTestServer` provide the only automated safety net for
+middleware behaviour, config serialisation, HTTP routing, and security headers.
+
+### Combined CI quality gates (all four MUST pass before merge)
+
+1. `npm run lint` — zero ESLint errors *(React SPA)*
+2. `npm run verify` — `tsc -b` + `vite build` with zero errors *(React SPA)*
+3. `dotnet build ApiTestSpark` — zero C# errors *(.NET library)*
+4. `dotnet test ApiTestSpark.Tests` — all integration tests pass *(.NET library)*
+
+*(Amended: CAP-2026-002, 2026-05-31 — corrects factual inaccuracy; .NET test suite existed but was not constitutionally recognised)*
 
 ---
 
@@ -232,3 +271,4 @@ at any time. SHOULD be run before major releases.
 | Version | Date | Summary |
 |---------|------|---------|
 | 1.0.0 | 2026-05-18 | Initial constitution — 8 principles discovered from 45-file codebase analysis |
+| 1.1.0 | 2026-05-31 | CAP-2026-001: Clarified Principle VI — defined "unrecoverable", expanded routing scope to all of `src/`. CAP-2026-002: Updated Principle VII — split into per-artifact stances; formally recognised .NET MSTest suite as a MUST quality gate |
