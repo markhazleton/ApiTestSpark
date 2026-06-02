@@ -9,6 +9,7 @@ interface HarnessConfigState {
   openApiStatus: 'idle' | 'loading' | 'ready' | 'error' | 'skipped';
   configError: string | null;
   openApiError: string | null;
+  jsonViewMode: 'pretty' | 'minified';
 
   setConfig: (config: HarnessConfig) => void;
   setApiInfo: (info: ApiInfo | null) => void;
@@ -17,6 +18,7 @@ interface HarnessConfigState {
   setOpenApiStatus: (status: HarnessConfigState['openApiStatus']) => void;
   setConfigError: (error: string | null) => void;
   setOpenApiError: (error: string | null) => void;
+  setJsonViewMode: (mode: 'pretty' | 'minified') => void;
 }
 
 // Not persisted — config is always re-fetched fresh on app load.
@@ -28,6 +30,7 @@ const useHarnessConfigStore = create<HarnessConfigState>((set) => ({
   openApiStatus: 'idle',
   configError: null,
   openApiError: null,
+  jsonViewMode: 'pretty',
 
   setConfig: (config) => set({ config }),
   setApiInfo: (apiInfo) => set({ apiInfo }),
@@ -36,6 +39,7 @@ const useHarnessConfigStore = create<HarnessConfigState>((set) => ({
   setOpenApiStatus: (openApiStatus) => set({ openApiStatus }),
   setConfigError: (configError) => set({ configError }),
   setOpenApiError: (openApiError) => set({ openApiError }),
+  setJsonViewMode: (jsonViewMode) => set({ jsonViewMode }),
 }));
 
 export { useHarnessConfigStore };

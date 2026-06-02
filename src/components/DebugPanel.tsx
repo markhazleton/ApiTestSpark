@@ -1,19 +1,8 @@
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDebugStore } from '../store';
-import type { ApiRequest } from '../types';
 import { JsonCodeBlock, LazyDetails } from './debug-panel/DebugPanelUtils';
-
-function buildCurl(req: ApiRequest): string {
-  const lines: string[] = [`curl -X ${req.method} "${req.url}"`];
-  for (const [k, v] of Object.entries(req.headers)) {
-    lines.push(`  -H "${k}: ${v}"`);
-  }
-  if (req.body !== undefined) {
-    lines.push(`  -d '${JSON.stringify(req.body)}'`);
-  }
-  return lines.join(' \\\n');
-}
+import { buildCurl } from '../utils';
 
 interface DebugPanelProps {
   isCollapsed: boolean;
