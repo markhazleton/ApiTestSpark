@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import type { DiscoveredEndpoint, EndpointParameter, ResponseCode, ResolvedSchema } from '../../types';
 import { useHostApi } from '../../hooks';
-import { useHarnessConfigStore } from '../../store';
-import { useDebugStore } from '../../store';
+import { useHarnessConfigStore, useDebugStore } from '../../store';
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { buildCurl } from '../../utils';
@@ -300,7 +299,7 @@ function SortableTable({
                 <th
                   key={col}
                   onClick={() => toggleSort(col)}
-                  title={jsonPath}
+                  title={`${jsonPath} — double-click to copy path`}
                   className="px-3 py-1.5 text-left font-semibold text-gray-600 font-mono whitespace-nowrap cursor-pointer select-none hover:bg-gray-100"
                   onDoubleClick={() => copyToClipboard(jsonPath, addError)}
                 >
@@ -622,9 +621,11 @@ function ResponseObjectForm({
 
 function ResponseView({
   data,
+  responseKey,
   addError,
 }: {
   data: unknown;
+  responseKey: number;
   addError: (e: { id: string; category: 'Unknown'; message: string; timestamp: Date; context: Record<string, unknown> }) => void;
 }) {
   // T018: read from store — not local state — for session persistence (US5)
@@ -640,8 +641,8 @@ function ResponseView({
   }
 
   if (isPlainObject(data)) {
-    // critic-001: key=data forces remount on every new response, resetting all edit state
-    return <ResponseObjectForm key={JSON.stringify(data)} data={data as Record<string, unknown>} jsonViewMode={jsonViewMode} addError={addError} />;
+    // critic-001 + M-01: responseKey counter forces remount on every new response (O(1))
+    return <ResponseObjectForm key={responseKey} data={data as Record<string, unknown>} jsonViewMode={jsonViewMode} addError={addError} />;
   }
 
   // Scalar / complex fallback — pre block with toggle
@@ -680,6 +681,8 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
   // T014: captured in onSuccess, not handleFire (critic-005)
   const [lastRequest, setLastRequest] = useState<LastRequest | null>(null);
   const [curlCopied, setCurlCopied] = useState(false);
+  // M-01: O(1) counter replaces key={JSON.stringify(data)} — incremented in onSuccess
+  const [responseKey, setResponseKey] = useState(0);
 
   const needsBody = ['POST', 'PUT', 'PATCH'].includes(endpoint.method);
   const [pathParams, setPathParams]   = useState<Record<string, string>>({});
@@ -732,8 +735,12 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
     mutate(
       { method: endpoint.method, path: endpoint.path, pathParams, queryParams, body, extraHeaders },
       {
-        // T014: capture at success time so cURL always matches displayed response (critic-005)
-        onSuccess: () => setLastRequest(pendingRequest),
+        onSuccess: () => {
+          // T014: capture at success time so cURL always matches displayed response (critic-005)
+          setLastRequest(pendingRequest);
+          // M-01: increment O(1) key counter instead of JSON.stringify(data)
+          setResponseKey((k) => k + 1);
+        },
       }
     );
   }
@@ -965,7 +972,7 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
               </button>
             )}
           </div>
-          <ResponseView data={data} addError={addError} />
+          <ResponseView data={data} responseKey={responseKey} addError={addError} />
         </div>
       )}
 
