@@ -81,6 +81,15 @@ No new files in `src/`. No changes to `src/api/`, `src/hooks/`, `src/types/`, or
 
 **Rationale**: `DebugPanel.tsx` already builds cURL from `{ method, url, headers, body }`. The response panel has access to the same data from the mutation result. Reusing the function avoids duplicating cURL construction logic.
 
+**URL construction (A-002 fix)**: The `url` field passed to `buildCurl` is constructed in `EndpointTester.tsx` as follows:
+
+1. Start with `config.baseUrl + endpoint.path` (e.g. `https://localhost:5001/users/{id}`)
+2. Substitute each `{param}` placeholder with the resolved value from `pathParams` (e.g. `{id}` → `42`)
+3. Append non-empty `queryParams` as a `?key=value&key2=value2` query string
+4. Result: `https://localhost:5001/users/42?verbose=true`
+
+This construction happens in `handleFire` / `onSuccess` capture point, not inside `buildCurl` — the utility receives an already-resolved URL string.
+
 **Alternatives considered**:
 
 - Inline a new `buildCurl` in `EndpointTester.tsx`: rejected — duplicates logic; any future change to cURL format would need updating in two places.
@@ -123,9 +132,10 @@ Key state additions to `EndpointTester.tsx`:
 |-------|------|----------|---------|
 | `jsonViewMode` | `'pretty' \| 'minified'` | `useHarnessConfigStore` | Session-persistent toggle preference |
 | `tableExpanded` | `boolean` | local `useState` in table renderer | Show-all/show-less per table instance; resets per render |
-| `nestedFields` | `Record<string, string>` | local `useState` in `ResponseObjectForm` | Tracks edited values for depth-1 nested objects (extends existing `fields` pattern) |
+| `nestedFields` | `Record<string, Record<string, string>>` | local `useState` in `ResponseObjectForm` | Tracks edited values for depth-1 nested objects; reset via `useEffect([data])` — NOT useState initialiser (critic-001) |
+| `lastRequest` | `LastRequest \| null` | local `useState` in `EndpointTester` | Captured in mutation `onSuccess` callback — NOT in `handleFire` (critic-005: fire-time capture causes cURL/response mismatch on rapid re-fire) |
 
-No new TypeScript types needed in `src/types/` — all additions are component-local state.
+No new TypeScript types needed in `src/types/` — all additions are component-local state. `LastRequest` interface defined in `data-model.md`.
 
 ### Interface Contracts
 
@@ -137,9 +147,9 @@ The spec's rendering rules table maps to these implementation decisions:
 
 | Response shape | Renderer | Implementation |
 |----------------|----------|----------------|
-| Object (root or depth-1 child) | Editable form | Existing `ResponseObjectForm` extended; nested objects rendered via inner `NestedObjectForm` sub-component |
+| Object (root or depth-1 child) | Editable form | Existing `ResponseObjectForm` extended; depth-1 nested objects rendered via inline JSX nested sub-form inside a `<details>` element (A-005: no separate named component) |
 | Object (depth-2+) | Read-only JSON block | `JSON.stringify(v)` in a `<span>` — existing pattern preserved |
-| Array of objects (any depth) | Read-only sortable table | Existing table renderer extracted to `SortableTable` sub-function; reused for nested arrays |
+| Array of objects (any depth) | Read-only sortable table | Existing table renderer extracted to inner function `SortableTable` (A-006: consistent name); reused for nested arrays |
 | Array of primitives (any depth) | Read-only JSON block | `JSON.stringify(v)` |
 | Scalar at root | Read-only `<pre>` | Existing fallback preserved |
 

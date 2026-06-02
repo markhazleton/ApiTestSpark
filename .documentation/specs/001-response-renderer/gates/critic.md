@@ -1,9 +1,9 @@
 ```yaml
 gate: critic
-status: warn
+status: pass
 blocking: false
-severity: warning
-summary: "CONDITIONAL PROCEED. No showstoppers. 2 critical findings (React state reset trap, clipboard API availability), 3 high findings. All are implementation-level risks addressable during coding — not architectural blockers. No constitution violations."
+severity: info
+summary: "PROCEED. All 5 findings resolved 2026-06-02. critic-001 and critic-002 (both critical) addressed in spec/plan/tasks/data-model. No constitution violations. No showstoppers."
 ```
 
 ## Technical Risk Assessment
@@ -35,8 +35,8 @@ findings:
     effective_severity: critical
     recommended_action: "Use useEffect with data as dependency to reset nestedFields, OR restructure ResponseObjectForm to be keyed by a response ID so React remounts it fresh on each new response. Do NOT rely on useState initialiser alone."
     execution_mode: manual
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "spec.md FR-013 updated to mandate reactive reset mechanism. data-model.md updated with useEffect([data]) pattern and code example. tasks.md T007 updated to explicitly require useEffect reset for both fields and nestedFields."
   - finding_id: critic-002
     category: error_handling_resilience
     archetype_applicable: true
@@ -46,8 +46,8 @@ findings:
     effective_severity: critical
     recommended_action: "Guard all clipboard call-sites with: if (!navigator.clipboard) { addError(...); return; }. This converts the sync TypeError into a handled branch before the async call."
     execution_mode: manual
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "spec.md FR-011 updated with navigator?.clipboard guard requirement. data-model.md updated with guard code pattern. tasks.md T009, T015, T022, T023, T024, T034 all updated to reference the two-step guard pattern."
   - finding_id: critic-003
     category: testing_strategy
     archetype_applicable: true
@@ -57,8 +57,8 @@ findings:
     effective_severity: high
     recommended_action: "Accept for now per Constitution §VII (no test framework). Recommend noting this as tech debt in tasks.md and flagging as a candidate for the first utility test when §VII is amended. At minimum, ensure T036 smoke test steps are specific enough to catch regressions."
     execution_mode: manual
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "T036 expanded with explicit per-story smoke test steps covering all 5 stories + US6 row truncation. Accepted as tech debt under Constitution §VII."
   - finding_id: critic-004
     category: error_handling_resilience
     archetype_applicable: true
@@ -68,8 +68,8 @@ findings:
     effective_severity: high
     recommended_action: "T002 must run npm run verify immediately after the import update — this is already in the task description. Confirm the extracted function signature is identical to what DebugPanel currently uses before extraction."
     execution_mode: selective
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "tasks.md T002 updated to explicitly require npm run verify immediately after the import update, with the brownfield risk rationale documented inline."
   - finding_id: critic-005
     category: concurrency_async
     archetype_applicable: true
@@ -79,8 +79,8 @@ findings:
     effective_severity: high
     recommended_action: "Capture lastRequest at mutation completion time (in the onSuccess / data callback), not in handleFire. This ensures the displayed response and the cURL command always correspond to the same call."
     execution_mode: manual
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "tasks.md T014 updated to require onSuccess capture. plan.md state table updated with explicit note. data-model.md LastRequest interface documents the onSuccess capture requirement."
 ```
 
 ---
@@ -150,15 +150,14 @@ findings:
 - Medium/Low: 0
 - Missing operational tasks: 0
 
-**VERDICT:** CONDITIONAL
+**VERDICT:** PROCEED
 
-**Required Actions Before Implementation:**
+All 5 findings resolved 2026-06-02. Artifacts updated — ready for `/devspark.implement`.
 
-1. **critic-001**: Change `nestedFields` reset strategy — use `useEffect(()=>{ reset }, [data])` or component key pattern, NOT useState initialiser alone
-2. **critic-002**: Add `if (!navigator.clipboard)` guard before every clipboard call-site; route to `useDebugStore.addError('Unknown')` in the guard body
+**Resolution Summary:**
 
-**Recommended Risk Mitigations:**
-
-- **critic-005**: Capture `lastRequest` in mutation `onSuccess` callback, not in `handleFire` — prevents cURL/response mismatch on rapid re-fire
-- **critic-004**: Run `npm run verify` immediately after T002 (import update) before proceeding to T003
-- **critic-003**: Expand T036 smoke test steps to cover each user story's key acceptance scenario explicitly
+- **critic-001** ✅: `useEffect([data])` reset pattern documented in data-model.md, spec FR-013, tasks T007
+- **critic-002** ✅: `navigator?.clipboard` guard pattern documented in data-model.md, spec FR-011, tasks T009/T015/T022–T024/T034
+- **critic-003** ✅: T036 expanded with per-story smoke test steps; accepted as tech debt under §VII
+- **critic-004** ✅: T002 updated with inline verify-immediately instruction
+- **critic-005** ✅: T014 updated to capture `lastRequest` in `onSuccess`; plan.md and data-model.md updated

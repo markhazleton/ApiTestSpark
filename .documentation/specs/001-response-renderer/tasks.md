@@ -30,7 +30,7 @@ Verify: (1) `nestedFields` resets on every new `data` prop; (2) all clipboard ca
 **Purpose**: Extract shared utility and extend store before any story work begins.
 
 - [ ] T001 Extract `buildCurl` from `src/components/DebugPanel.tsx` into `src/utils/curlBuilder.ts` as a typed pure function `buildCurl({ method, url, headers, body })` and re-export from `src/utils/index.ts`
-- [ ] T002 Update `src/components/DebugPanel.tsx` to import `buildCurl` from `src/utils/curlBuilder.ts` (removes inline definition, behaviour unchanged)
+- [ ] T002 Update `src/components/DebugPanel.tsx` to import `buildCurl` from `src/utils/curlBuilder.ts` (removes inline definition, behaviour unchanged); run `npm run verify` immediately after this change before proceeding — brownfield import update, catch signature drift early (critic-004)
 - [ ] T003 Add `jsonViewMode: 'pretty' | 'minified'` field (default `'pretty'`) and `setJsonViewMode` action to `src/store/harnessConfigStore.ts` — no `persist` middleware
 - [ ] T004 Run `npm run verify` and `npm run lint` — confirm zero errors before proceeding
 
@@ -55,9 +55,9 @@ Verify: (1) `nestedFields` resets on every new `data` prop; (2) all clipboard ca
 
 **Independent Test**: Call any endpoint returning `{ id: 1, address: { city: "Austin" } }`, expand the `address` section, change `city` to "Dallas", click "Copy as JSON", paste — confirm `address.city` is "Dallas" and all other fields are intact.
 
-- [ ] T007 [US1] Add `nestedFields: Record<string, Record<string, string>>` to `ResponseObjectForm` state in `src/components/host-api/EndpointTester.tsx`, initialised from depth-1 nested object primitives in the `data` prop; reset whenever `data` changes
+- [ ] T007 [US1] Add `nestedFields: Record<string, Record<string, string>>` to `ResponseObjectForm` in `src/components/host-api/EndpointTester.tsx`; reset BOTH `fields` and `nestedFields` via `useEffect([data])` — NOT via useState initialiser (critic-001: initialiser only runs on mount, stale edits would corrupt Copy-as-JSON on subsequent calls)
 - [ ] T008 [US1] In `ResponseObjectForm`, replace the existing read-only `JSON.stringify(orig)` span for `isPlainObject(orig)` fields with a `<details>`/`<summary>` collapsible section (closed by default) containing an editable sub-form for each primitive in the nested object
-- [ ] T009 [US1] Apply `toJsonPath` to each field label in the nested sub-form for tooltip display (title attribute); clicking the label copies the path; clipboard failure catches to `useDebugStore.addError('Unknown')` in `src/components/host-api/EndpointTester.tsx`
+- [ ] T009 [US1] Apply `toJsonPath` to each field label in the nested sub-form for tooltip display (title attribute); clicking the label copies the path using the clipboard guard pattern: check `navigator?.clipboard`, route to `useDebugStore.addError('Unknown')` if absent, then `.writeText().catch(addError)` (critic-002: sync TypeError in non-HTTPS if unguarded)
 - [ ] T010 [US1] Update `copyJson` in `ResponseObjectForm` to merge `nestedFields` into the reconstructed JSON output, preserving original type coercion (number, boolean, string)
 - [ ] T011 [US1] Handle `null` nested-object fields: render as read-only `null` text, not an editable input; handle circular references via `WeakSet` guard — render `[Circular reference detected]` as static text when detected
 - [ ] T012 [US1] Handle nested arrays inside `ResponseObjectForm`: flat primitive arrays → read-only JSON block; arrays-of-objects → render via `SortableTable` (reuses T006)
@@ -73,8 +73,8 @@ Verify: (1) `nestedFields` resets on every new `data` prop; (2) all clipboard ca
 
 **Independent Test**: Execute any POST with a JSON body; click "Copy as cURL" in the response panel; paste into terminal — request reproduces exactly.
 
-- [ ] T014 [US2] Add `lastRequest` state to `EndpointTester` in `src/components/host-api/EndpointTester.tsx` capturing `{ method, url, headers, body }` when `mutate()` is called in `handleFire`
-- [ ] T015 [US2] Add a "Copy as cURL" button to the response panel section (rendered when `data !== undefined`) that calls `buildCurl(lastRequest)` from `src/utils/curlBuilder.ts` and writes to clipboard; button absent/disabled when `lastRequest` is null; clipboard failure routes to `useDebugStore.addError('Unknown')`
+- [ ] T014 [US2] Add `lastRequest` state (type `LastRequest | null`) to `EndpointTester` in `src/components/host-api/EndpointTester.tsx`; capture it in the `useMutation` `onSuccess` callback — NOT in `handleFire` (critic-005: fire-time capture causes cURL/response mismatch on rapid re-fire; success-time capture guarantees they always correspond)
+- [ ] T015 [US2] Add a "Copy as cURL" button to the response panel section (rendered when `data !== undefined`) that calls `buildCurl(lastRequest)` from `src/utils/curlBuilder.ts`; use clipboard guard pattern (`if (!navigator?.clipboard)` → addError, else `.writeText().catch(addError)`); button absent/disabled when `lastRequest` is null (critic-002)
 - [ ] T016 [US2] Confirm GET requests produce no `-d` flag; POST/PUT/PATCH with JSON body produce `-H "Content-Type: application/json"` and `-d '<body>'`
 - [ ] T017 [US2] Run `npm run verify` and `npm run lint` — confirm zero errors
 
@@ -103,9 +103,9 @@ Verify: (1) `nestedFields` resets on every new `data` prop; (2) all clipboard ca
 
 **Independent Test**: Call any endpoint returning a nested object; hover `id` — tooltip shows `$.id`; hover `address → city` — tooltip shows `$.address.city`; click either — clipboard contains the path.
 
-- [ ] T022 [P] [US4] Apply `toJsonPath(null, key)` as `title` attribute on all top-level field labels in `ResponseObjectForm` in `src/components/host-api/EndpointTester.tsx`; clicking label copies path; clipboard failure → `useDebugStore.addError('Unknown')`
-- [ ] T023 [P] [US4] Apply `toJsonPath(parentKey, childKey)` as `title` attribute on nested sub-form field labels (depth-1 collapsible section added in T008)
-- [ ] T024 [P] [US4] Apply `$[*].{col}` JSONPath as `title` attribute on sortable table column headers in `SortableTable` (top-level and nested); clicking header copies path
+- [ ] T022 [P] [US4] Apply `toJsonPath(null, key)` as `title` attribute on all top-level field labels in `ResponseObjectForm` in `src/components/host-api/EndpointTester.tsx`; clicking label uses clipboard guard pattern (critic-002) → copies path or routes to `useDebugStore.addError('Unknown')`
+- [ ] T023 [P] [US4] Apply `toJsonPath(parentKey, childKey)` as `title` attribute on nested sub-form field labels (depth-1 collapsible section added in T008); same clipboard guard
+- [ ] T024 [P] [US4] Apply `$.parentKey[*].colKey` JSONPath as `title` attribute on nested sortable table column headers; `$[*].colKey` for top-level array columns; same clipboard guard (A-003 fix: nested array column path format now specified)
 - [ ] T025 [US4] Run `npm run verify` and `npm run lint` — confirm zero errors
 
 **Checkpoint**: US4 fully functional — all form fields and table column headers show JSONPath on hover; click to copy works.
@@ -136,10 +136,10 @@ Verify: (1) `nestedFields` resets on every new `data` prop; (2) all clipboard ca
 
 **Independent Test**: Call any endpoint returning an array with >2 items; confirm only 2 rows visible; click "Show all N items"; confirm all rows appear and "Show less" appears; click "Show less"; confirm returns to 2 rows.
 
-- [ ] T029 [P] Add `tableExpanded: boolean` local state (default `false`) to `SortableTable` in `src/components/host-api/EndpointTester.tsx`; when `false` slice rows to first 2; when `true` show all
-- [ ] T030 [P] Render "Show all N items" control when `!tableExpanded && rows.length > 2`; render "Show less" when `tableExpanded && rows.length > 2`; clicking toggles `tableExpanded`
-- [ ] T031 Confirm `tableExpanded` is local state (not store) so it resets with each new `data` prop per FR-016
-- [ ] T032 Run `npm run verify` and `npm run lint` — confirm zero errors
+- [ ] T029 [P] [US6] Add `tableExpanded: boolean` local state (default `false`) to the `SortableTable` inner function in `src/components/host-api/EndpointTester.tsx`; when `false` slice rows to first 2; when `true` show all (FR-016)
+- [ ] T030 [P] [US6] Render "Show all N items" control when `!tableExpanded && rows.length > 2`; render "Show less" when `tableExpanded && rows.length > 2`; clicking toggles `tableExpanded`
+- [ ] T031 [US6] Confirm `tableExpanded` is local state (not store) so it resets with each new render per FR-016
+- [ ] T032 [US6] Run `npm run verify` and `npm run lint` — confirm zero errors
 
 **Checkpoint**: All 5 user stories + row truncation complete. Full feature functional.
 
@@ -148,9 +148,15 @@ Verify: (1) `nestedFields` resets on every new `data` prop; (2) all clipboard ca
 ## Phase 9: Polish & Cross-Cutting Concerns
 
 - [ ] T033 [P] Add `toJsonPath` to top-level field labels on existing `ResponseObjectForm` for US4 completeness — verify title attributes render in browser
-- [ ] T034 [P] Review all new clipboard call-sites in `EndpointTester.tsx` — confirm every `.catch` routes to `useDebugStore.addError('Unknown')` per FR-011 and Constitution §VI
+- [ ] T033a [P] Handle `undefined` values gracefully in `ResponseObjectForm` field iteration: treat `undefined` the same as `null` (read-only display, not an editable input); TypeScript strict mode will surface any uncovered cases at compile time (A-007)
+- [ ] T034 [P] Audit all clipboard call-sites in `EndpointTester.tsx` — confirm every site uses the full guard pattern: `if (!navigator?.clipboard)` → addError (covers non-HTTPS sync TypeError, critic-002), then `.writeText().catch(addError)` (covers permission-denied async failure, FR-011)
 - [ ] T035 Final `npm run verify` and `npm run lint` — zero errors required before PR
-- [ ] T036 Manual browser smoke test against `SampleApi` demo: (a) call an endpoint with nested object — expand, edit, copy JSON; (b) copy as cURL — paste in terminal; (c) toggle minified — navigate endpoints, confirm persists; (d) hover field labels — confirm JSONPath tooltips; (e) call array endpoint — confirm 2-row truncation and show-all
+- [ ] T036 Manual browser smoke test against `SampleApi` demo covering all 5 stories (critic-003 — no automated regression guard; these steps are the only safety net):
+  - **US1**: Call endpoint returning nested object (e.g. `GET /users/{id}`); expand nested section; change a field; click "Copy as JSON"; verify clipboard contains updated nested value and all other fields intact; make a second call; confirm edited values reset
+  - **US2**: Execute POST with JSON body; confirm "Copy as cURL" button appears; click it; paste into terminal; verify call reproduces; confirm button absent before first call
+  - **US3+US5**: Toggle to minified; navigate to different endpoint; make a call; confirm response renders minified without re-toggling; refresh page; confirm resets to pretty-print
+  - **US4**: Hover a top-level field label — confirm `$.field` tooltip; hover a nested field — confirm `$.parent.field` tooltip; click label — confirm clipboard contains path; hover array column header — confirm `$[*].col` or `$.parent[*].col` tooltip
+  - **US6**: Call array endpoint with >2 items; confirm 2 rows visible + "Show all N items"; click — confirm all rows + "Show less"; click "Show less" — confirm returns to 2 rows; make new call — confirm resets to 2 rows
 
 ---
 

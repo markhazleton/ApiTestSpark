@@ -1,9 +1,9 @@
 ```yaml
 gate: analyze
-status: warn
+status: pass
 blocking: false
-severity: warning
-summary: "7 findings (0 critical, 3 high, 4 medium/low). No constitution violations. Coverage is strong — all FRs have tasks. Proceed to implementation with high-severity items addressed."
+severity: info
+summary: "7 findings all resolved 2026-06-02. No constitution violations. 100% requirement coverage. Ready for implementation."
 ```
 
 ## Specification Analysis Report
@@ -102,48 +102,48 @@ findings:
     description: "lastRequest state shape used in T014/T015 is not typed in data-model.md — implementer must infer the interface from context."
     recommended_action: "Add LastRequest interface { method, url, headers: Record<string,string>, body?: unknown } to data-model.md"
     execution_mode: auto
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "LastRequest interface added to data-model.md with full field documentation and URL construction note."
   - finding_id: analyze-A-002
     severity: high
     description: "URL construction for the cURL command (resolving path params, appending query string) is not described in plan.md — implementer may produce incorrect URLs for parameterised routes."
     recommended_action: "Add a note to plan.md Phase 0 buildCurl decision describing URL resolution: substitute {param} placeholders, append ?key=val query string."
     execution_mode: auto
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "URL construction steps added to plan.md buildCurl decision section; also documented in LastRequest interface in data-model.md."
   - finding_id: analyze-A-003
     severity: high
     description: "JSONPath for cells inside nested arrays-of-objects is unspecified. Spec defines $[*].id for top-level arrays but does not address $.items[*].sku for nested array columns."
     recommended_action: "Add one sentence to spec Edge Cases or plan.md: nested array column headers use $.parentKey[*].colKey format."
     execution_mode: selective
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "Format rules table added to data-model.md toJsonPath section; spec Key Entities updated with all four path formats; T024 updated to use $.parentKey[*].colKey for nested array columns."
   - finding_id: analyze-A-004
     severity: medium
     description: "Row truncation tasks T029–T032 have no [USn] story label — traceability to FR-016/SC-007 is implicit only."
     recommended_action: "Label T029–T032 as [US6] or add a ## User Story 6 phase header with FR-016/SC-007 references."
     execution_mode: auto
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "T029–T032 labelled [US6] in tasks.md."
   - finding_id: analyze-A-005
     severity: medium
     description: "NestedObjectForm referenced in plan.md rendering table but tasks use 'nested sub-form' — ambiguous whether this is a named function or inline JSX."
     recommended_action: "Standardise to 'nested sub-form (inline JSX)' in plan.md rendering table."
     execution_mode: auto
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "plan.md rendering table updated to 'inline JSX nested sub-form inside a <details> element'; NestedObjectForm name removed."
   - finding_id: analyze-A-006
     severity: medium
     description: "SortableTable called 'sub-function' in plan.md and 'inner function' in data-model.md — same concept, two labels."
     recommended_action: "Standardise to 'inner function SortableTable' in both files."
     execution_mode: auto
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "plan.md updated to 'inner function SortableTable'; data-model.md section heading updated to match."
   - finding_id: analyze-A-007
     severity: low
     description: "undefined/missing field handling (D-007) not addressed in any FR or task — TypeScript strict mode will surface this at implementation time."
     recommended_action: "Add a note to tasks.md Polish phase to handle undefined values gracefully in ResponseObjectForm."
     execution_mode: auto
-    status: open
-    outcome: ""
+    status: resolved
+    outcome: "T033a added to Polish phase: treat undefined same as null (read-only display); TypeScript strict mode will catch any gaps at compile time."
 ```

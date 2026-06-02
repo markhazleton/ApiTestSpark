@@ -217,9 +217,9 @@ A developer who prefers minified JSON view has to toggle it on every call. Once 
 - **FR-008**: The active view (pretty or minified) MUST be reflected when the developer copies the JSON via any copy action in that context.
 - **FR-009**: Each field in the response form MUST display its JSONPath address as a tooltip revealed on hover or focus — not as a persistent visible label.
 - **FR-010**: Clicking a JSONPath label MUST copy that path string to the clipboard.
-- **FR-011**: All clipboard write failures (Copy as JSON, Copy as cURL, Copy JSONPath) MUST be routed through `useDebugStore.addError()` with category `'Unknown'` — no visible UI feedback on failure.
+- **FR-011**: All clipboard write failures (Copy as JSON, Copy as cURL, Copy JSONPath) MUST be routed through `useDebugStore.addError()` with category `'Unknown'` — no visible UI feedback on failure. Every clipboard call-site MUST first check `navigator?.clipboard` availability and route to the error store if absent (covers non-HTTPS contexts where `navigator.clipboard` is `undefined` and calling `.writeText()` would throw a synchronous TypeError uncatchable by `.catch()`).
 - **FR-012**: Nested object fields in the response form MUST be rendered inside a collapsible disclosure widget that is collapsed by default and expands on user interaction.
-- **FR-013**: Edited nested object field values MUST reset to the latest response body when a new API call completes — edits are not persisted across requests.
+- **FR-013**: Edited nested object field values MUST reset to the latest response body when a new API call completes — edits are not persisted across requests. Both top-level and nested field state MUST be reset via a reactive mechanism that fires on each new response, not solely via a one-time initialiser.
 - **FR-014**: When a circular reference is detected in a response object, the affected subtree MUST render as read-only text `[Circular reference detected]` — no crash, no debug store entry.
 - **FR-015**: The pretty-print / minified toggle preference MUST persist for the duration of the browser session — new responses MUST render using the last-set preference without requiring the developer to re-toggle. The preference MUST reset to pretty-print on page reload.
 - **FR-016**: Sortable tables (top-level and nested) MUST show only the first 2 rows by default. When more rows exist, a "Show all N items" control MUST be displayed; activating it reveals all remaining rows inline. A "Show less" control MUST then appear to collapse back to 2 rows. The expanded state MUST reset with each new API call — it is not session-persistent.
@@ -239,7 +239,7 @@ The same shape always produces the same renderer, whether encountered at the top
 ### Key Entities
 
 - **ResponseObjectForm**: The editable form inside `EndpointTester.tsx` that renders object fields. This feature extends it to apply the same editable-form rendering to depth-1 nested objects, producing consistent behaviour at every level.
-- **JSONPath address**: A dot-notation string starting with `$` that uniquely identifies a field within a response object (e.g., `$.address.city`). Display and copy only — no JSONPath query engine is introduced.
+- **JSONPath address**: A dot-notation string starting with `$` that uniquely identifies a field within a response object. Format rules: top-level field → `$.field`; nested field → `$.parent.field`; top-level array column → `$[*].col`; nested array-of-objects column → `$.parentKey[*].col`. Display and copy only — no JSONPath query engine is introduced.
 - **cURL command**: A shell-executable string that reproduces the outgoing HTTP request. Matches the format already used by `buildCurl()` in `DebugPanel.tsx`.
 
 ---
