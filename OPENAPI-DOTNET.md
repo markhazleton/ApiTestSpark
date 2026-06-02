@@ -1,6 +1,6 @@
 # Current State of OpenAPI in .NET
 
-> **Last updated:** May 2026 — covers .NET 10 GA, .NET 11 preview, and the current NuGet package landscape.
+> **Last updated:** June 2026 — covers .NET 10 GA, .NET 11 preview, and the current NuGet package landscape.
 
 This document explains the OpenAPI package ecosystem for ASP.NET Core: which packages do what, which versions are compatible, which combinations work today, and what is not yet fully supported. It is written for .NET developers choosing or upgrading OpenAPI tooling, and for React SPA developers who consume the JSON output of that tooling.
 
@@ -61,7 +61,7 @@ The library currently ships **three maintained release lines simultaneously**, w
 |---|---|---|---|---|
 | **v1.x** | 1.6.29 | OAS 2.0 (Swagger) / 3.0 | Original model | Maintenance only |
 | **v2.x** | 2.7.6 | OAS 3.0 / 3.1 | Complete model rewrite | **Active — ecosystem floor** |
-| **v3.x** | 3.5.5 | OAS 3.0 / 3.1 / **3.2** | OAS 3.2 support added | Active — not yet widely consumed |
+| **v3.x** | 3.6.0 | OAS 3.0 / 3.1 / **3.2** | OAS 3.2 support added | Active — not yet widely consumed |
 
 ### The v1 → v2 Breaking Change
 
@@ -289,7 +289,7 @@ Language-agnostic generator with the broadest output target list (50+ languages)
 | `NSwag.AspNetCore` | **14.7.1** | 8 / 9 / 10 | internal | Brings Newtonsoft.Json |
 | `Scalar.AspNetCore` | **2.14.14** | 8 / 9 / 10 | none (UI only) | Zero dependencies |
 | `Microsoft.OpenApi` | **2.7.6** | net8.0 / netstandard2.0 | — | Safe ecosystem floor |
-| `Microsoft.OpenApi` | **3.5.5** | net8.0 / netstandard2.0 | — | OAS 3.2; not yet widely consumed |
+| `Microsoft.OpenApi` | **3.6.0** | net8.0 / netstandard2.0 | — | OAS 3.2; not yet widely consumed |
 
 ### What you cannot mix
 

@@ -11,7 +11,7 @@ required_gates: checklist, analyze, critic
 
 **Feature Branch**: `001-response-renderer`
 **Created**: 2026-06-02
-**Status**: Draft
+**Status**: Complete
 
 ## Product Owner Overview
 
@@ -85,7 +85,7 @@ Focus on: (1) that nested object edits reconstruct valid JSON when "Copy as JSON
 
 ## User Scenarios & Testing
 
-### User Story 1 — Edit a Nested Field and Re-submit (Priority: P1)
+### User Story 1 — Edit a Nested Field and Re-submit (Priority: P1) ✅ Complete
 
 A developer calls a `GET /users/{id}` endpoint and receives a response containing a nested `address` object. They want to change `address.city` and immediately POST that modified object to a different endpoint — without leaving the tool or writing any JSON by hand.
 
@@ -105,7 +105,7 @@ A developer calls a `GET /users/{id}` endpoint and receives a response containin
 
 ---
 
-### User Story 2 — Copy a Response as cURL (Priority: P2)
+### User Story 2 — Copy a Response as cURL (Priority: P2) ✅ Complete
 
 A developer receives a response from the endpoint tester and wants to reproduce or share the exact call that produced it — as a cURL command they can paste into a terminal or share with a colleague.
 
@@ -122,7 +122,7 @@ A developer receives a response from the endpoint tester and wants to reproduce 
 
 ---
 
-### User Story 3 — Toggle Pretty Print / Minified JSON (Priority: P3)
+### User Story 3 — Toggle Pretty Print / Minified JSON (Priority: P3) ✅ Complete
 
 A developer working with a verbose API response wants to quickly scan the raw structure without scrolling through hundreds of lines of indented JSON. They toggle to a minified view to see the full payload compactly, then toggle back to pretty-print when they find the field they need.
 
@@ -139,7 +139,7 @@ A developer working with a verbose API response wants to quickly scan the raw st
 
 ---
 
-### User Story 4 — Identify Fields by JSONPath (Priority: P3)
+### User Story 4 — Identify Fields by JSONPath (Priority: P3) ✅ Complete
 
 A developer inspects a response and wants to reference a specific nested field (e.g., `$.address.city`) in a subsequent request. They see a JSONPath-style label next to each field in the response form, making it easy to identify and copy the exact path without manually tracing the object hierarchy.
 
@@ -156,7 +156,7 @@ A developer inspects a response and wants to reference a specific nested field (
 
 ---
 
-### User Story 5 — Persist Pretty/Minified Preference Within Session (Priority: P3)
+### User Story 5 — Persist Pretty/Minified Preference Within Session (Priority: P3) ✅ Complete
 
 A developer who prefers minified JSON view has to toggle it on every call. Once they set their preference it should hold for the rest of the session without requiring repeated interaction.
 
