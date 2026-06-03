@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.2.0] - 2026-06-02
+
+### Added
+
+- **Editable depth-1 nested objects** — primitive fields inside nested response objects render as collapsible editable sub-forms (collapsed by default); edited values are merged back into the "Copy as JSON" output with correct type coercion. Arrays of objects inside nested objects render as read-only sortable tables; flat primitive arrays render as read-only JSON blocks.
+- **Copy as cURL in response panel** — a "Copy as cURL" button appears in the response panel after each successful API call, generating the same cURL format already available on the request side. Captured at `onSuccess` time (not fire time) to guarantee the command always corresponds to the response shown.
+- **Pretty / minified JSON toggle** — raw JSON display contexts now offer a toggle between 2-space-indented (pretty) and single-line (minified) views. The active view is reflected when copying JSON. Toggle is absent on sortable table views.
+- **Session-persistent toggle preference** — the pretty/minified preference persists across all API calls within the same browser session via `useHarnessConfigStore`; resets to pretty-print on page reload.
+- **JSONPath field tooltips** — every field in the response form displays its dot-notation JSONPath address (`$.field`, `$.parent.field`, `$[*].col`) as a hover/focus tooltip. Clicking the label copies the path to the clipboard.
+- **2-row table truncation** — sortable tables (top-level and nested arrays of objects) show only the first 2 rows by default. A "Show all N items" control reveals the rest inline; "Show less" collapses back. Expanded state resets with each new API call.
+- **`buildCurl` shared utility** — extracted from `DebugPanel.tsx` into `src/utils/curlBuilder.ts`; re-exported from `src/utils/index.ts`. Both `DebugPanel.tsx` and `EndpointTester.tsx` now share one authoritative cURL format.
+
+### Architectural Decisions
+
+- **ADR-005**: Session-only UI preference stored in `useHarnessConfigStore` — no new store, no `persist` middleware
+- **ADR-006**: `buildCurl` extracted to `src/utils/curlBuilder.ts` — single authoritative cURL format for request and response panels
+- **ADR-007**: Native `<details>`/`<summary>` for collapsible nested object sections — zero JS, browser-native, matches existing `LazyDetails` pattern
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.1.0] - 2026-05-31
 
 ### Added
@@ -112,7 +134,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.2.0...HEAD
+[v1.2.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.2...v1.1.0
 [v1.0.2]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.1...v1.0.2
 [v1.0.1]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.0...v1.0.1

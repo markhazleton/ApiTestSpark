@@ -34,14 +34,14 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.1.0 |
+| **Version** | 1.2.0 |
 | **Author** | [Mark Hazleton](https://markhazleton.com) |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
 | **Package Size** | 181 KB |
 | **Symbol Package** | 15.7 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | May 30, 2026 |
+| **Last Updated** | June 2, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Source** | [github.com/markhazleton/apitestspark](https://github.com/markhazleton/apitestspark) |
@@ -98,6 +98,11 @@ Navigate to `https://localhost:{port}/api-test-spark/` — API Test Spark autodi
 | **Auth & Header Injection** | Pre-populate Bearer tokens, API keys, or custom headers for every request |
 | **Request Body Scaffolding** | JSON body pre-filled from schema `example → default → enum[0] → type placeholder` |
 | **Full OpenAPI Metadata** | Descriptions rendered as markdown, response codes as coloured badges with expandable schemas |
+| **Editable Nested Responses** | Depth-1 nested object fields in responses render as editable sub-forms; edited values merge into "Copy as JSON" |
+| **Copy as cURL** | One-click cURL command for any completed API call — available on both the request and response panels |
+| **Pretty / Minified Toggle** | Toggle between 2-space-indented and single-line JSON views; preference persists for the browser session |
+| **JSONPath Field Labels** | Every response field shows its dot-notation JSONPath address as a tooltip — click to copy |
+| **Table Truncation** | Large array responses show 2 rows by default with a "Show all N items" expand/collapse control |
 | **API Doc Builder** | Select endpoints, capture live curl + responses, annotate, and export markdown at `/api-docs` |
 | **Live Debug Panel** | Every request, response, error, and performance metric — drag-resizable, FIFO buffered |
 | **Environment Gating** | Restrict the harness to Development or Staging; keep it off production with one option |
@@ -137,7 +142,7 @@ app.MapApiTestSpark(options =>
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.1.0 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.2.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -160,6 +165,10 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 ---
 
 ## Release Notes
+
+### v1.2.0 — June 2, 2026
+
+Response panel developer-experience improvements: editable depth-1 nested object sub-forms (collapsed by default, edited values merge into "Copy as JSON"), "Copy as cURL" button in the response panel, pretty/minified JSON toggle with session-persistent preference, JSONPath tooltips on every field label (click to copy), and 2-row table truncation with show-all/show-less. `buildCurl` extracted to a shared `src/utils/curlBuilder.ts` utility. No .NET public API changes.
 
 ### v1.1.0 — May 31, 2026
 

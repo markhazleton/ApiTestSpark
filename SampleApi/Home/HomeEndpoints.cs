@@ -209,15 +209,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.1.0</span>
+                            <span class="pkg-version">v1.2.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated May 31, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 2, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.1.0</div>
+                            <div class="value">1.2.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -313,6 +313,26 @@ public static class HomeEndpoints
                         <div class="feature-icon">🎛️</div>
                         <h3>Demo Integration Toggle</h3>
                         <p>Set <code class="inline">EnableDemoIntegrations = false</code> to hide the built-in JokeAPI and JSONPlaceholder screens. Present a clean harness showing only your host API and API Doc Builder — no sample data, no external noise.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✏️</div>
+                        <h3>Editable Nested Responses</h3>
+                        <p>Depth-1 nested object fields in API responses render as collapsible editable sub-forms. Edit a nested value and click "Copy as JSON" to get updated output — without leaving the tool.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📋</div>
+                        <h3>Copy as cURL (Response Panel)</h3>
+                        <p>One-click cURL command generation is now available in the response panel as well as the request panel. The command always captures the request that produced the response shown.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔎</div>
+                        <h3>Pretty / Minified JSON Toggle</h3>
+                        <p>Switch between 2-space-indented and single-line JSON views for any raw JSON response. The preference persists across API calls for the browser session and resets on page reload.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🏷️</div>
+                        <h3>JSONPath Field Labels</h3>
+                        <p>Every field in the response form shows its dot-notation JSONPath address (<code class="inline">$.field</code>, <code class="inline">$.parent.field</code>) as a tooltip. Click any field label to copy the path to the clipboard.</p>
                     </div>
                 </div>
             </section>
@@ -511,7 +531,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.1.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.2.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 181 KB</div>
                     </div>
