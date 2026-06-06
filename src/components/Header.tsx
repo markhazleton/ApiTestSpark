@@ -20,37 +20,25 @@ export function Header() {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-4">
-          <Link
-            to="/"
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              location.pathname === '/'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Home
-          </Link>
-          <Link
-            to="/how-to-use"
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              location.pathname === '/how-to-use'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            How to Use
-          </Link>
-          <Link
-            to="/about"
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              location.pathname === '/about'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            About
-          </Link>
+        <nav className="flex items-center gap-1">
+          {[
+            { to: '/',          label: 'Home'       },
+            { to: '/how-to-use', label: 'How to Use' },
+            { to: '/about',      label: 'About'      },
+            { to: '/config',     label: 'Config'     },
+          ].map(({ to, label }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                location.pathname === to
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
       </div>
     </header>

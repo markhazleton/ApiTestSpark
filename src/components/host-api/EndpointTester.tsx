@@ -718,9 +718,16 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
       try { body = JSON.parse(bodyText); } catch { body = bodyText; }
     }
 
-    // Build the request snapshot for lastRequest capture
+    // Build the request snapshot for lastRequest capture — use remote or local headers
+    const isRemote = !!config?.remoteBaseUrl;
+    const baseConfigHeaders = isRemote
+      ? (config?.remoteDefaultHeaders ?? {})
+      : (config?.defaultHeaders ?? {});
     const requestHeaders: Record<string, string> = {
-      ...(config?.defaultHeaders ?? {}),
+      ...baseConfigHeaders,
+      ...(isRemote && config?.remoteOpenApiApiKeyHeader && config?.remoteOpenApiApiKeyValue
+        ? { [config.remoteOpenApiApiKeyHeader]: config.remoteOpenApiApiKeyValue }
+        : {}),
       ...extraHeaders,
       ...(needsBody && body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     };
@@ -814,18 +821,28 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
       )}
 
       {/* ── Default headers from config ── */}
-      {config?.defaultHeaders && Object.keys(config.defaultHeaders).length > 0 && (
-        <div>
-          <p className="text-xs font-semibold text-gray-500 mb-1">Default headers (from harness config)</p>
-          <div className="flex flex-wrap gap-1">
-            {Object.entries(config.defaultHeaders).map(([k, v]) => (
-              <span key={k} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">
-                {k}: {v}
-              </span>
-            ))}
+      {(() => {
+        const isRemote = !!config?.remoteBaseUrl;
+        const effectiveHeaders = isRemote
+          ? { ...(config?.remoteDefaultHeaders ?? {}), ...(config?.remoteOpenApiApiKeyHeader && config?.remoteOpenApiApiKeyValue ? { [config.remoteOpenApiApiKeyHeader]: config.remoteOpenApiApiKeyValue } : {}) }
+          : (config?.defaultHeaders ?? {});
+        const entries = Object.entries(effectiveHeaders);
+        if (entries.length === 0) return null;
+        return (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 mb-1">
+              {isRemote ? 'Remote headers (from harness config)' : 'Default headers (from harness config)'}
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {entries.map(([k, v]) => (
+                <span key={k} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">
+                  {k}: {v}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Auth token ── */}
       {config?.authScheme && (

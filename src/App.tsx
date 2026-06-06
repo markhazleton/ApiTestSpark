@@ -11,6 +11,7 @@ import {
   Footer,
 } from './components';
 import { useHarnessConfigStore } from './store/harnessConfigStore';
+import { useHarnessConfig } from './hooks';
 
 // Route-level screens are lazy-loaded so each becomes its own chunk.
 // Shell components above stay eager (they render on every page).
@@ -20,8 +21,11 @@ const AboutScreen        = React.lazy(() => import('./components/AboutScreen').t
 const JokeApiScreen      = React.lazy(() => import('./components/joke-api/JokeApiScreen').then(m => ({ default: m.JokeApiScreen })));
 const JsonPlaceholderScreen = React.lazy(() => import('./components/json-placeholder/JsonPlaceholderScreen').then(m => ({ default: m.JsonPlaceholderScreen })));
 
-const HostApiScreen = React.lazy(() => import('./components/host-api/HostApiScreen').then(m => ({ default: m.HostApiScreen })));
-const ApiDocScreen  = React.lazy(() => import('./components/api-doc/ApiDocScreen').then(m => ({ default: m.ApiDocScreen })));
+const HostApiScreen   = React.lazy(() => import('./components/host-api/HostApiScreen').then(m => ({ default: m.HostApiScreen })));
+const RemoteApiScreen    = React.lazy(() => import('./components/remote-api/RemoteApiScreen').then(m => ({ default: m.RemoteApiScreen })));
+const RemoteApiDocScreen = React.lazy(() => import('./components/remote-api/RemoteApiDocScreen').then(m => ({ default: m.RemoteApiDocScreen })));
+const ApiDocScreen       = React.lazy(() => import('./components/api-doc/ApiDocScreen').then(m => ({ default: m.ApiDocScreen })));
+const ConfigScreen       = React.lazy(() => import('./components/ConfigScreen').then(m => ({ default: m.ConfigScreen })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +35,9 @@ const queryClient = new QueryClient({
 });
 
 function AppRoutes() {
+  // Called here so config is fetched immediately on app load, not only when HostApiScreen mounts.
+  useHarnessConfig();
+
   const config = useHarnessConfigStore((s) => s.config);
   // Default true so routes are available before config loads (avoids flash-redirect).
   const showDemos = config?.enableDemoIntegrations ?? true;
@@ -41,12 +48,14 @@ function AppRoutes() {
       <Route path="/how-to-use" element={<HowToUseScreen />} />
       <Route path="/about"      element={<AboutScreen />} />
 
-      <Route path="/config"              element={<Navigate to="/" replace />} />
+      <Route path="/config"              element={<ConfigScreen />} />
       <Route path="/conversation-config" element={<Navigate to="/" replace />} />
       <Route path="/unified-config"      element={<Navigate to="/" replace />} />
 
-      <Route path="/host-api" element={<HostApiScreen />} />
-      <Route path="/api-docs"  element={<ApiDocScreen />} />
+      <Route path="/host-api"       element={<HostApiScreen />} />
+      <Route path="/remote-api"    element={<RemoteApiScreen />} />
+      <Route path="/remote-docs"   element={<RemoteApiDocScreen />} />
+      <Route path="/api-docs"      element={<ApiDocScreen />} />
 
       {showDemos && <Route path="/joke-api"         element={<JokeApiScreen />} />}
       {showDemos && <Route path="/json-placeholder" element={<JsonPlaceholderScreen />} />}

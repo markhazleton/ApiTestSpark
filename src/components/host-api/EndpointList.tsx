@@ -23,25 +23,46 @@ interface EndpointListProps {
 /**
  * Derive a two-level label from an OpenAPI tag.
  *
- * Rules (applied in order, using only what the OpenAPI spec provides):
- *  1. "Async Demo: Weather Patterns"  → namespace="Async Demo",  label="Weather Patterns"
- *  2. "WebSpark-Domains"              → namespace="WebSpark",     label="Domains"
- *  3. "PublicContent"                 → namespace="General",      label="PublicContent"
- *  4. ""  / undefined                 → namespace="General",      label="General"
+ * Rules (applied in order):
+ *  1. "Async Demo: Weather Patterns"        → namespace="Async Demo",    label="Weather Patterns"
+ *  2. "WebSpark-Domains"                    → namespace="WebSpark",       label="Domains"
+ *  3. "Conversations API"                   → namespace="Conversations",  label="API"
+ *  4. "BSW Triage API"                      → namespace="BSW Triage",     label="API"
+ *  5. "Symptom Checker API (Deprecated)"   → namespace="Symptom Checker", label="API (Deprecated)"
+ *  6. single-word / empty                  → namespace="General",         label=tag
  */
 function splitTag(tag: string): { namespace: string; label: string } {
+  if (!tag) return { namespace: 'General', label: 'General' };
+
   // Pattern 1: "Prefix: Suffix" (colon+space)
   const colonIdx = tag.indexOf(': ');
   if (colonIdx > 0) {
     return { namespace: tag.slice(0, colonIdx).trim(), label: tag.slice(colonIdx + 2).trim() };
   }
+
   // Pattern 2: "Prefix-Suffix" (hyphen — only split on first hyphen)
   const hyphenIdx = tag.indexOf('-');
   if (hyphenIdx > 0) {
     return { namespace: tag.slice(0, hyphenIdx).trim(), label: tag.slice(hyphenIdx + 1).trim() };
   }
-  // Pattern 3: single-word tag — put it under "General"
-  return { namespace: 'General', label: tag || 'General' };
+
+  // Pattern 3: multi-word tag ending in " API" or " API (…)"
+  // e.g. "Conversations API" → ns="Conversations", label="API"
+  //      "BSW Triage API"    → ns="BSW Triage",    label="API"
+  //      "System API"        → ns="System",         label="API"
+  const apiMatch = tag.match(/^(.+?)\s+(API(?:\s+\(.+\))?)$/i);
+  if (apiMatch) {
+    return { namespace: apiMatch[1].trim(), label: apiMatch[2].trim() };
+  }
+
+  // Pattern 4: any other multi-word tag — last word becomes label, rest is namespace
+  const lastSpace = tag.lastIndexOf(' ');
+  if (lastSpace > 0) {
+    return { namespace: tag.slice(0, lastSpace).trim(), label: tag.slice(lastSpace + 1).trim() };
+  }
+
+  // Pattern 5: single-word tag — put it under "General"
+  return { namespace: 'General', label: tag };
 }
 
 export function EndpointList({ endpoints, selected, onSelect }: EndpointListProps) {
@@ -88,8 +109,12 @@ export function EndpointList({ endpoints, selected, onSelect }: EndpointListProp
     for (const ep of filtered) {
       const tag = ep.tags[0] ?? '';
       const { namespace, label } = splitTag(tag);
-      (ns[namespace] ??= {})[label] ??= [];
-      ns[namespace][label].push(ep);
+      // Sub-group by path version prefix (/v1, /v2, /v3, …) when present.
+      // This gives a meaningful second-level label when many endpoints share a tag.
+      const versionMatch = ep.path.match(/^\/v(\d+)\//i);
+      const effectiveLabel = versionMatch ? `${label} · v${versionMatch[1]}` : label;
+      (ns[namespace] ??= {})[effectiveLabel] ??= [];
+      ns[namespace][effectiveLabel].push(ep);
     }
 
     // Sort endpoints within each label by method order then path

@@ -11,3 +11,4 @@ export { default as VersionMismatchBanner } from "./VersionMismatchBanner";
 // so Rolldown can split them into separate on-demand chunks.
 // HostApiScreen is lazy-imported directly by App.tsx — not re-exported here
 export { EndpointList, EndpointTester } from './host-api';
+export { RemoteOpenApiConfig } from './harness-config';

@@ -40,6 +40,27 @@ const YOUR_API_SECTION: NavSection = {
   ],
 };
 
+function buildRemoteSection(remoteBaseUrl: string): NavSection {
+  return {
+    label: "Remote API",
+    defaultOpen: true,
+    items: [
+      {
+        icon: "🌐",
+        title: "Remote API Explorer",
+        description: `Test endpoints from ${remoteBaseUrl} using the configured remote OpenAPI spec.`,
+        path: "/remote-api",
+      },
+      {
+        icon: "📄",
+        title: "Remote API Doc Builder",
+        description: `Select endpoints from ${remoteBaseUrl}, capture live responses, and generate markdown documentation.`,
+        path: "/remote-docs",
+      },
+    ],
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Demo section — shown only when enableDemoIntegrations is true
 // ---------------------------------------------------------------------------
@@ -101,9 +122,12 @@ function SectionGroup({ section }: { section: NavSection }) {
 export default function HomeScreen() {
   const config = useHarnessConfigStore((s) => s.config);
   const showDemos = config?.enableDemoIntegrations ?? true;
-  const sections = showDemos
-    ? [DEMO_SECTION, YOUR_API_SECTION]
-    : [YOUR_API_SECTION];
+
+  const sections: NavSection[] = [YOUR_API_SECTION];
+  if (config?.remoteBaseUrl) {
+    sections.unshift(buildRemoteSection(config.remoteBaseUrl));
+  }
+  if (showDemos) sections.push(DEMO_SECTION);
 
   return (
     <div className="min-h-screen bg-gray-50">
