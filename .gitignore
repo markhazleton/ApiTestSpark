@@ -138,8 +138,10 @@ obj/
 *.snupkg
 nupkg/
 
-# DevSpark — personal overrides (never commit)
+# DevSpark — personal overrides (never commit by default)
 .documentation/*/commands/
+# mark-hazleton has opted in to sharing their personalized prompts
+!.documentation/mark-hazleton/commands/
 
 # Claude Code harness state (per-session and per-developer; never commit)
 .claude/scheduled_tasks.lock
