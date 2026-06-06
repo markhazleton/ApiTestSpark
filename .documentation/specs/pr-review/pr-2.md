@@ -6,16 +6,17 @@
 - **Source Branch**: 002-remote-openapi-config
 - **Target Branch**: main
 - **Review Date**: 2026-06-06 14:35:00 UTC
-- **Last Updated**: 2026-06-06 14:35:00 UTC
-- **Reviewed Commit**: 75156e5ff910617f4b7627adcd45beb63a14ec20
+- **Last Updated**: 2026-06-06 15:00:00 UTC
+- **Reviewed Commit**: 686e576
 - **Reviewer**: devspark.pr-review
-- **Constitution Version**: 1.1.1
+- **Constitution Version**: 1.1.2
 
 ## Revision Log
 
 | Rev | Commit | Date | Critical | High | Medium | Low | CON | Test Command | Result |
 |-----|--------|------|----------|------|--------|-----|-----|--------------|--------|
 | 1 | 75156e5 | 2026-06-06 | 0 | 0 | 1 | 2 | 1 | `dotnet test ApiTestSpark.Tests` | pass 30/30 |
+| 2 | 686e576 | 2026-06-06 | 0 | 0 | 0 | 0 | 0 | `dotnet test ApiTestSpark.Tests` | pass 30/30 |
 
 ## PR Summary
 
@@ -59,13 +60,13 @@ None found.
 
 ### Recommended Improvements
 
-- [ ] **M-01** `src/store/remoteConfigStore.ts` — `useRemoteConfigStore` not in constitution's store registry
-- [ ] **L-01** `src/components/remote-api/RemoteApiScreen.tsx:25` — ESLint suppression comment on `react-hooks/exhaustive-deps`
-- [ ] **L-02** `ApiTestSpark/ApiTestSparkExtensions.cs:117` — `harnessBuiltAt` falls back to `DateTime.UtcNow` in single-file publish scenarios
+- [x] **M-01** `src/store/remoteConfigStore.ts` — `useRemoteConfigStore` not in constitution's store registry — *Fixed in 686e576: added row to §V registry, bumped constitution to v1.1.2*
+- [x] **L-01** `src/components/remote-api/RemoteApiScreen.tsx:25` — ESLint suppression comment on `react-hooks/exhaustive-deps` — *Fixed in 686e576: comment now names the exact reason (fetchRemoteSpec identity changes on every render)*
+- [x] **L-02** `ApiTestSpark/ApiTestSparkExtensions.cs:117` — `harnessBuiltAt` falls back to `DateTime.UtcNow` in single-file publish scenarios — *Fixed in 686e576: TODO comment added at fallback site with fix path*
 
 ### Constitution Improvements (Non-blocking — feed into `/devspark.evolve-constitution`)
 
-- [ ] **CON-01** — Store registry in §V does not include `useRemoteConfigStore`
+- [x] **CON-01** — Store registry in §V does not include `useRemoteConfigStore` — *Fixed in 686e576: `useRemoteConfigStore` row added to constitution §V registry*
 
 ---
 
@@ -93,20 +94,20 @@ None found.
 
 | ID | Status | Principle | File:Line | Issue | Recommendation |
 |----|--------|-----------|-----------|-------|----------------|
-| M-01 | 🔴 Open | State Management §V | `src/store/remoteConfigStore.ts:1` | `useRemoteConfigStore` is used broadly (11+ files) but is absent from the canonical store registry in the constitution. The registry is the authoritative list of persisted stores; a missing entry creates a governance gap — future contributors won't know the store exists or its key. | Add `useRemoteConfigStore` to the registry table in §V of the constitution via `/devspark.evolve-constitution`. See CON-01. |
+| M-01 | ✅ Resolved | State Management §V | `src/store/remoteConfigStore.ts:1` | `useRemoteConfigStore` is used broadly (11+ files) but is absent from the canonical store registry in the constitution. The registry is the authoritative list of persisted stores; a missing entry creates a governance gap — future contributors won't know the store exists or its key. | Add `useRemoteConfigStore` to the registry table in §V of the constitution via `/devspark.evolve-constitution`. See CON-01. |
 
 ### Low Priority Improvements
 
 | ID | Status | Principle | File:Line | Issue | Recommendation |
 |----|--------|-----------|-----------|-------|----------------|
-| L-01 | 🔴 Open | Code Quality §II | `src/components/remote-api/RemoteApiScreen.tsx:25` | `// eslint-disable-next-line react-hooks/exhaustive-deps` suppresses the exhaustive-deps rule. §II requires zero ESLint errors and treats `react-hooks/exhaustive-deps` as a blocking error. The suppression is intentional (only re-fetch when URL changes, not when `fetchRemoteSpec` identity changes on each render) and the comment explains why, but it should be confirmed the alternative — wrapping `fetchRemoteSpec` in `useCallback` in the hook — was considered and rejected. | Confirm the suppression is the simpler correct choice vs. `useCallback`. If so, add a one-line comment naming the specific reason (e.g. `// fetchRemoteSpec changes identity on every render; URL is the correct dependency`). |
-| L-02 | 🔴 Open | Observability §VI | `ApiTestSpark/ApiTestSparkExtensions.cs:117` | `harnessBuiltAt` falls back to `DateTime.UtcNow` when `assembly.Location` is empty (single-file publish / trimming). In that scenario every config response returns the current wall-clock time, making the build date field meaningless and misleading on the About page. | Consider embedding the build date as a compile-time constant (e.g. via `<AssemblyMetadata>` MSBuild property) so it's accurate even in single-file publish. This is an edge case for a dev tool, but worth a TODO comment at the fallback site. |
+| L-01 | ✅ Resolved | Code Quality §II | `src/components/remote-api/RemoteApiScreen.tsx:25` | `// eslint-disable-next-line react-hooks/exhaustive-deps` suppresses the exhaustive-deps rule. §II requires zero ESLint errors and treats `react-hooks/exhaustive-deps` as a blocking error. The suppression is intentional (only re-fetch when URL changes, not when `fetchRemoteSpec` identity changes on each render) and the comment explains why, but it should be confirmed the alternative — wrapping `fetchRemoteSpec` in `useCallback` in the hook — was considered and rejected. | Confirm the suppression is the simpler correct choice vs. `useCallback`. If so, add a one-line comment naming the specific reason (e.g. `// fetchRemoteSpec changes identity on every render; URL is the correct dependency`). |
+| L-02 | ✅ Resolved | Observability §VI | `ApiTestSpark/ApiTestSparkExtensions.cs:117` | `harnessBuiltAt` falls back to `DateTime.UtcNow` when `assembly.Location` is empty (single-file publish / trimming). In that scenario every config response returns the current wall-clock time, making the build date field meaningless and misleading on the About page. | Consider embedding the build date as a compile-time constant (e.g. via `<AssemblyMetadata>` MSBuild property) so it's accurate even in single-file publish. This is an edge case for a dev tool, but worth a TODO comment at the fallback site. |
 
 ### Constitution Improvements
 
 | ID | Status | Section | Observation | Suggested Amendment |
 |----|--------|---------|-------------|---------------------|
-| CON-01 | 🔴 Open | §V — Canonical store registry | `useRemoteConfigStore` (`api-test-spark-remote-config`, persisted) was introduced in this PR and is now a first-class persisted store used across the application, but the constitution's registry table does not include it. The registry is meant to be the authoritative list of all stores. | Add a row to the §V registry table: `useRemoteConfigStore \| Remote API connection config (URL, credentials, headers) \| api-test-spark-remote-config \| Full config` |
+| CON-01 | ✅ Resolved | §V — Canonical store registry | `useRemoteConfigStore` (`api-test-spark-remote-config`, persisted) was introduced in this PR and is now a first-class persisted store used across the application, but the constitution's registry table does not include it. The registry is meant to be the authoritative list of all stores. | Add a row to the §V registry table: `useRemoteConfigStore \| Remote API connection config (URL, credentials, headers) \| api-test-spark-remote-config \| Full config` |
 
 ---
 
@@ -118,7 +119,7 @@ None found.
 | §II ESLint Only, No Prettier | ✅ Pass | `npm run lint` passes | One `eslint-disable` comment (L-01); justified but worth confirming |
 | §III Layer Separation & Barrel Exports | ✅ Pass | All new directories have `index.ts` barrels | `src/components/remote-api/`, `src/components/harness-config/`, new store/api/hook all re-exported correctly |
 | §IV API Client Pattern | ✅ Pass | `remoteOpenApiClient.ts` uses `createRestCaller` (Pattern B) | UUID correlation, debug callbacks, timing — all invariants satisfied |
-| §V Zustand Store Rules | ⚠️ Partial | `remoteConfigStore.ts` — focused, action-gated, persisted with unique key | Store not in constitution registry (M-01 / CON-01) |
+| §V Zustand Store Rules | ✅ Pass | `remoteConfigStore.ts` — focused, action-gated, persisted with unique key | Registry updated in 686e576 (constitution v1.1.2) |
 | §VI Observability & Logging | ✅ Pass | No `console.log` in `src/`; errors routed to `addError()` with correct categories | `useRemoteOpenApi` uses `'Configuration'` category; `useHostApi` uses `'API'` |
 | §VII Testing Stance | ✅ Pass | React SPA: no test framework (opted-out per constitution); .NET: 30/30 pass | 9 new integration tests cover all new proxy behaviour |
 | §VIII PII/PHI Protection | ✅ Pass | `SampleApi/Program.cs` uses placeholder values only; no real credentials in any file | `temp-dummy-key-for-sample-api` is clearly synthetic |
