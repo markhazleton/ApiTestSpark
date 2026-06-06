@@ -15,17 +15,17 @@ The package is **not manually deployed** — it is published automatically by th
 
 ### Publish a new version
 
-1. Update `version` in `package.json` (e.g. `1.1.0`)
-2. Add a `[1.1.0]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `1.4.0`)
+2. Add a `[1.4.0]` entry to `CHANGELOG.md`
 3. Commit and push
 4. Tag and push:
 
 ```powershell
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.4.0
+git push origin v1.4.0
 ```
 
-The `publish-nuget.yml` workflow fires, runs the full quality gate, packs the library, and pushes `ApiTestSpark.1.1.0.nupkg` + `ApiTestSpark.1.1.0.snupkg` to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
+The `publish-nuget.yml` workflow fires, runs the full quality gate (lint, TypeScript, .NET build, 30 integration tests, vulnerability audit), packs the library, and pushes `ApiTestSpark.1.4.0.nupkg` + `ApiTestSpark.1.4.0.snupkg` to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
 
 ### Build the package locally
 
@@ -94,12 +94,23 @@ If IIS is behind another reverse proxy (ARR, nginx, load balancer), call `UseFor
 
 ```csharp
 app.UseForwardedHeaders();
-app.MapApiTestSpark(options => { options.OpenApiUrl = "/openapi/v1.json"; });
+app.MapApiTestSpark(options =>
+{
+    options.OpenApiUrl = "/openapi/v1.json";
+    // Optional: Remote API Explorer configuration
+    options.RemoteBaseUrl    = "https://api.partner.com";
+    options.RemoteOpenApiUrl = "https://api.partner.com/openapi.json";
+    options.RemoteOpenApiApiKeyHeader = "x-api-key";
+    options.RemoteOpenApiApiKeyValue  = "your-api-key";
+    // Header tokens expanded at request time:
+    options.RemoteDefaultHeaders["correlationId"] = "{request-guid}";
+    options.RemoteDefaultHeaders["sessionId"]     = "{session-guid}";
+});
 ```
 
 ### Security note
 
-The `ApiTestSpark` config endpoint (`/api-test-spark/config`) returns deployment metadata and is publicly accessible. Restrict the harness to non-production environments if the VM is internet-facing:
+The `ApiTestSpark` harness is designed for **local and trusted development environments only**. Both the config endpoint (`/api-test-spark/config`, which includes remote API credentials) and the remote spec proxy (`/api-test-spark/remote-spec`) carry an open trust model. Restrict the harness to non-production environments if the VM is internet-facing:
 
 ```csharp
 app.MapApiTestSpark(options =>

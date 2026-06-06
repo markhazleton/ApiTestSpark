@@ -117,11 +117,24 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
   "baseUrl": "https://myapp.com",
   "openApiUrl": "/openapi.json",
   "authScheme": "Bearer",
-  "defaultHeaders": { "X-Tenant-Id": "acme" }
+  "defaultHeaders": { "X-Tenant-Id": "acme" },
+  "enableDemoIntegrations": true,
+  "remoteBaseUrl": "https://api.partner.com",
+  "remoteOpenApiUrl": "https://api.partner.com/openapi.json",
+  "remoteOpenApiApiKeyHeader": "x-api-key",
+  "remoteOpenApiApiKeyValue": "your-key",
+  "remoteOpenApiBearerToken": null,
+  "remoteDefaultHeaders": { "correlationId": "{request-guid}" },
+  "harnessVersion": "1.3.0",
+  "harnessBuiltAt": "2026-06-06T14:41:11Z"
 }
 ```
 
 `baseUrl` is constructed from the incoming request's `Host` header (and `X-Forwarded-*` headers when `UseForwardedHeaders()` is in the pipeline). The SPA fetches this on startup and uses `baseUrl` for all subsequent API calls — so the exact same embedded HTML/JS works correctly whether the host app runs on `localhost:5000`, `staging.myapp.com`, or `api.production.com`.
+
+`harnessVersion` and `harnessBuiltAt` are baked in at pack time from the assembly's `AssemblyInformationalVersionAttribute` and the DLL's last-write timestamp. The About page in the SPA reads these from the config response — no separate `build-info.json` fetch required, which was the approach that failed silently in NuGet embedded mode.
+
+Remote API credentials (`remoteOpenApiApiKeyValue`, `remoteOpenApiBearerToken`) are included in the config response because the endpoint is intentionally scoped to the local developer session — the harness must not be exposed to the public internet. A second endpoint, `GET /api-test-spark/remote-spec`, uses these credentials server-side to proxy the remote OpenAPI document, ensuring they never appear in the browser network tab.
 
 ---
 
@@ -152,7 +165,7 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 | Property | Value | Rationale |
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
-| `Version` | `1.1.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Version` | `1.3.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
 | `PackageIcon` | `icon.png` | 128×128 transparent PNG packed at root |
 | `PackageReadmeFile` | `README.md` | Rendered on nuget.org package page |
@@ -207,11 +220,11 @@ Source Link lets consumers step into the library's source code from within Visua
 
 Two files control this:
 
-- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.1.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
+- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.3.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
 - **`PublicAPI.Unshipped.txt`** — symbols added since the last release. New public members appear here automatically via IDE code fix, then are moved to `Shipped.txt` when the next version is tagged.
 
 ```
-# PublicAPI.Shipped.txt (v1.1.0 baseline)
+# PublicAPI.Shipped.txt (v1.3.0 baseline)
 #nullable enable
 ApiTestSpark.ApiTestSparkExtensions
 ApiTestSpark.ApiTestSparkOptions
@@ -222,12 +235,28 @@ ApiTestSpark.ApiTestSparkOptions.CorsOrigins.get -> string![]!
 ApiTestSpark.ApiTestSparkOptions.CorsOrigins.set -> void
 ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
 ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
+ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.set -> void
+ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.get -> bool
+ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.set -> void
 ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.set -> void
 ApiTestSpark.ApiTestSparkOptions.Environments.get -> string![]!
 ApiTestSpark.ApiTestSparkOptions.Environments.set -> void
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiUrl.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyHeader.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyHeader.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyValue.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyValue.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.set -> void
+ApiTestSpark.ApiTestSparkOptions.TestHttpClient.get -> System.Net.Http.HttpClient?
+ApiTestSpark.ApiTestSparkOptions.TestHttpClient.set -> void
 static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!
 ```
 
@@ -254,15 +283,16 @@ private static WebApplication BuildTestApp(Action<ApiTestSparkOptions>? configur
 }
 ```
 
-The five tests cover:
+The 30 integration tests cover:
 
-| Test | What it verifies |
+| Area | What is verified |
 |------|-----------------|
-| `RootPath_Returns200_WithHtml` | `GET /api-test-spark/` → 200 `text/html` |
-| `ConfigEndpoint_Returns200_WithExpectedKeys` | `GET /api-test-spark/config` → 200 JSON with `baseUrl`, `openApiUrl` |
-| `ExtensionlessSubPath_Returns200_WithHtml` | `GET /api-test-spark/endpoints` → SPA fallback → 200 `text/html` |
-| `UnknownFileExtension_Returns404` | `GET /api-test-spark/missing.xyz` → 404 (no fallback for unknown extensions) |
-| `EnvironmentGating_SkipsRegistration` | `Environments = ["Production"]` in Development → harness not registered |
+| **SPA serving** | `GET /api-test-spark/` → 200 `text/html`; extensionless sub-paths → SPA fallback; unknown extensions → 404 |
+| **Config endpoint** | JSON shape: `baseUrl`, `openApiUrl`, `authScheme`, `defaultHeaders`, `enableDemoIntegrations`, `harnessVersion`, `harnessBuiltAt` |
+| **Remote config fields** | All six `Remote*` properties serialised correctly; `null` for unset fields |
+| **Remote spec proxy** | 400 when `RemoteOpenApiUrl` not configured; 400 for `file://` scheme (SSRF guard); 502 on network failure; correct passthrough for happy path |
+| **Environment gating** | `Environments = ["Production"]` in Development → harness not registered |
+| **`ApiTestSparkOptions` defaults** | All new properties default to `null` / empty dictionary |
 
 Run with:
 
@@ -328,12 +358,12 @@ softprops/action-gh-release → GitHub Release with CHANGELOG.md as body
 
 To publish a new version:
 
-1. Update `version` in `package.json`
-2. Add a `[X.Y.Z]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `1.4.0`)
+2. Add a `[1.4.0]` entry to `CHANGELOG.md`
 3. Commit and push
-4. `git tag v1.1.0 && git push origin v1.1.0`
+4. `git tag v1.4.0 && git push origin v1.4.0`
 
-The publish workflow fires automatically.
+The publish workflow fires automatically. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full step-by-step release process.
 
 ---
 

@@ -27,12 +27,12 @@ app.MapGroup("/orders").WithTags("Orders: Lifecycle").MapOrders();
 app.MapApiTestSpark(options =>
 {
     options.OpenApiUrl = "/openapi/v1.json";
-    options.RemoteBaseUrl = "https://sample.com";
-    options.RemoteOpenApiUrl = "https://sample.com/openapi.json";
-    options.RemoteOpenApiApiKeyHeader = "x-api-key";
-    options.RemoteOpenApiApiKeyValue = "temp-dummy-key-for-sample-api";
+    // Remote API Explorer — points at the JSONPlaceholder public API as a live demo target.
+    // No auth required; correlation headers demonstrate the {request-guid}/{session-guid} tokens.
+    options.RemoteBaseUrl    = "https://jsonplaceholder.typicode.com";
+    options.RemoteOpenApiUrl = "https://apitest.makeboldspark.com/openapi/v1.json";
     options.RemoteDefaultHeaders["correlationId"] = "{request-guid}";
-    options.RemoteDefaultHeaders["sessionId"] = "{session-guid}";
+    options.RemoteDefaultHeaders["sessionId"]     = "{session-guid}";
 });
 
 app.Run();
