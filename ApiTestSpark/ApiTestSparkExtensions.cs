@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
@@ -16,8 +17,19 @@ public static class ApiTestSparkExtensions
 {
     private const string MountPath = "/api-test-spark";
     private const string ConfigPath = "/api-test-spark/config";
+    private const string RemoteSpecPath = "/api-test-spark/remote-spec";
     private const string ResourcePrefix = "ApiTestSpark.build.";
     private const string CorsPolicy = "ApiTestSpark.CorsPolicy";
+
+    // First harness-owned HTTP resource — shared static instance avoids socket exhaustion.
+    // Configured with a 10-second timeout to prevent hanging endpoint discovery.
+    private static readonly HttpClient SharedHttpClient = new(new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+    })
+    {
+        Timeout = TimeSpan.FromSeconds(10),
+    };
 
     /// <summary>
     /// Registers the API Test Spark SPA at <c>/api-test-spark/</c>.
@@ -95,6 +107,17 @@ public static class ApiTestSparkExtensions
             RequestPath = MountPath,
         });
 
+        // Compute once — baked into every config response so the SPA can display version/build date
+        var harnessVersion = assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion
+            ?.Split('+')[0]   // strip git hash suffix if present
+            ?? assembly.GetName().Version?.ToString()
+            ?? "unknown";
+        var harnessBuiltAt = !string.IsNullOrEmpty(assembly.Location)
+            ? File.GetLastWriteTimeUtc(assembly.Location).ToString("O")
+            : DateTime.UtcNow.ToString("O");
+
         // Config endpoint — set CORS headers manually (avoids requiring AddCors() from host)
         app.MapGet(ConfigPath, (HttpContext ctx) =>
         {
@@ -123,6 +146,14 @@ public static class ApiTestSparkExtensions
                 authScheme = options.AuthScheme,
                 defaultHeaders = options.DefaultHeaders,
                 enableDemoIntegrations = options.EnableDemoIntegrations,
+                remoteDefaultHeaders = options.RemoteDefaultHeaders,
+                remoteBaseUrl = options.RemoteBaseUrl,
+                remoteOpenApiUrl = options.RemoteOpenApiUrl,
+                remoteOpenApiApiKeyHeader = options.RemoteOpenApiApiKeyHeader,
+                remoteOpenApiApiKeyValue = options.RemoteOpenApiApiKeyValue,
+                remoteOpenApiBearerToken = options.RemoteOpenApiBearerToken,
+                harnessVersion,
+                harnessBuiltAt,
             };
 
             logger.LogDebug(
@@ -130,6 +161,58 @@ public static class ApiTestSparkExtensions
                 options.OpenApiUrl, options.AuthScheme);
 
             return Results.Json(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        });
+
+        // Remote spec proxy — fetch remote OpenAPI document server-side to avoid CORS
+        app.MapGet(RemoteSpecPath, async (HttpContext ctx) =>
+        {
+            if (string.IsNullOrWhiteSpace(options.RemoteOpenApiUrl))
+                return Results.Json(new { error = "RemoteOpenApiUrl is not configured." }, statusCode: 400);
+
+            // SSRF guard: reject non-HTTP schemes (file://, ldap://, etc.) before any outbound call
+            if (!options.RemoteOpenApiUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !options.RemoteOpenApiUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Json(new { error = "RemoteOpenApiUrl must use http or https scheme." }, statusCode: 400);
+            }
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, options.RemoteOpenApiUrl);
+
+            if (!string.IsNullOrWhiteSpace(options.RemoteOpenApiApiKeyHeader) &&
+                !string.IsNullOrWhiteSpace(options.RemoteOpenApiApiKeyValue))
+            {
+                request.Headers.TryAddWithoutValidation(options.RemoteOpenApiApiKeyHeader, options.RemoteOpenApiApiKeyValue);
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.RemoteOpenApiBearerToken))
+            {
+                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {options.RemoteOpenApiBearerToken}");
+            }
+
+            var httpClient = options.TestHttpClient ?? SharedHttpClient;
+            HttpResponseMessage remoteResponse;
+            try
+            {
+                remoteResponse = await httpClient.SendAsync(request, ctx.RequestAborted);
+            }
+            catch
+            {
+                // Network error or timeout — credentials MUST NOT appear in the message
+                return Results.Json(new { error = "Failed to fetch remote OpenAPI document." }, statusCode: 502);
+            }
+
+            if (!remoteResponse.IsSuccessStatusCode)
+                return Results.Json(new { error = "Failed to fetch remote OpenAPI document." }, statusCode: 502);
+
+            var contentType = remoteResponse.Content.Headers.ContentType?.MediaType ?? string.Empty;
+            if (!contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) &&
+                !contentType.StartsWith("application/vnd.oai.openapi+json", StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Json(new { error = "Remote server returned non-JSON content." }, statusCode: 502);
+            }
+
+            var body = await remoteResponse.Content.ReadAsStringAsync(ctx.RequestAborted);
+            return Results.Content(body, "application/json");
         });
 
         // SPA middleware — serve index.html fallback and set security headers
@@ -160,8 +243,9 @@ public static class ApiTestSparkExtensions
                 return;
             }
 
-            // Pass through to MapGet routes (e.g. /api-test-spark/config) before SPA fallback
-            if (ctx.Request.Path.StartsWithSegments(ConfigPath))
+            // Pass through to MapGet routes before SPA fallback
+            if (ctx.Request.Path.StartsWithSegments(ConfigPath) ||
+                ctx.Request.Path.StartsWithSegments(RemoteSpecPath))
             {
                 await next(ctx);
                 return;
@@ -185,10 +269,15 @@ public static class ApiTestSparkExtensions
                 ? " ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*"
                 : string.Empty;
 
+            // Allow remote base URL in CSP connect-src when configured
+            var remoteConnectSrc = !string.IsNullOrWhiteSpace(options.RemoteBaseUrl)
+                ? $" {options.RemoteBaseUrl.TrimEnd('/')}"
+                : string.Empty;
+
             ctx.Response.Headers["Content-Security-Policy"] =
                 "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
                 "connect-src 'self' https://*.applicationinsights.azure.com https://*.monitor.azure.com " +
-                $"https://v2.jokeapi.dev https://jsonplaceholder.typicode.com{devConnectSrc}";
+                $"https://v2.jokeapi.dev https://jsonplaceholder.typicode.com{remoteConnectSrc}{devConnectSrc}";
 
             var indexFile = fileProvider.GetFileInfo("index.html");
             if (!indexFile.Exists)

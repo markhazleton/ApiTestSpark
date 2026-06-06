@@ -323,4 +323,219 @@ public class HarnessIntegrationTests
             $"No embedded resources found with prefix 'ApiTestSpark.build.'. " +
             $"Found: {string.Join(", ", resourceNames.Take(10))}");
     }
+
+    // ── New: remote OpenAPI config — T021/T022 ────────────────────────────────
+
+    [TestMethod]
+    public async Task ConfigEndpoint_IncludesRemoteFields_WhenSet()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteOpenApiUrl = "https://example.com/openapi.json";
+            o.RemoteOpenApiApiKeyHeader = "X-Api-Key";
+            o.RemoteOpenApiApiKeyValue = "secret";
+            o.RemoteOpenApiBearerToken = "tok";
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.AreEqual("https://example.com/openapi.json",
+            doc.RootElement.GetProperty("remoteOpenApiUrl").GetString());
+        Assert.AreEqual("X-Api-Key",
+            doc.RootElement.GetProperty("remoteOpenApiApiKeyHeader").GetString());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_RemoteFields_NullWhenNotConfigured()
+    {
+        var app = BuildTestApp();
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.AreEqual(JsonValueKind.Null,
+            doc.RootElement.GetProperty("remoteOpenApiUrl").ValueKind);
+        Assert.AreEqual(JsonValueKind.Null,
+            doc.RootElement.GetProperty("remoteOpenApiApiKeyHeader").ValueKind);
+        Assert.AreEqual(JsonValueKind.Null,
+            doc.RootElement.GetProperty("remoteOpenApiApiKeyValue").ValueKind);
+        Assert.AreEqual(JsonValueKind.Null,
+            doc.RootElement.GetProperty("remoteOpenApiBearerToken").ValueKind);
+    }
+
+    [TestMethod]
+    public void Options_RemoteFields_DefaultNull()
+    {
+        var options = new ApiTestSparkOptions();
+
+        Assert.IsNull(options.RemoteOpenApiUrl);
+        Assert.IsNull(options.RemoteOpenApiApiKeyHeader);
+        Assert.IsNull(options.RemoteOpenApiApiKeyValue);
+        Assert.IsNull(options.RemoteOpenApiBearerToken);
+    }
+
+    // ── New: remote spec proxy — T023 (400 cases) ────────────────────────────
+
+    [TestMethod]
+    public async Task RemoteSpec_Returns400_WhenNotConfigured()
+    {
+        var app = BuildTestApp(); // no RemoteOpenApiUrl set
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec");
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task RemoteSpec_Returns400_ForFileScheme()
+    {
+        var app = BuildTestApp(o => o.RemoteOpenApiUrl = "file:///etc/passwd");
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec");
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        // SSRF guard — URL value must not appear in error message
+        Assert.IsFalse(body.Contains("passwd"), "Error body must not contain URL path");
+    }
+
+    // ── New: remote spec proxy — T024 (proxy success + error paths) ──────────
+
+    [TestMethod]
+    public async Task RemoteSpec_Returns200_WhenRemoteServesJson()
+    {
+        const string openApiJson = """{"openapi":"3.0.0","info":{"title":"T","version":"1"},"paths":{}}""";
+        var handler = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(openApiJson, System.Text.Encoding.UTF8, "application/json"),
+            });
+        var testClient = new HttpClient(handler);
+
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteOpenApiUrl = "https://example.com/openapi.json";
+            o.TestHttpClient = testClient;
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec");
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual("application/json", response.Content.Headers.ContentType?.MediaType);
+        var body = await response.Content.ReadAsStringAsync();
+        StringAssert.Contains(body, "openapi");
+    }
+
+    [TestMethod]
+    public async Task RemoteSpec_Returns502_WhenRemoteServesHtml()
+    {
+        var handler = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html></html>", System.Text.Encoding.UTF8, "text/html"),
+            });
+        var testClient = new HttpClient(handler);
+
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteOpenApiUrl = "https://example.com/openapi.json";
+            o.TestHttpClient = testClient;
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec");
+
+        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        StringAssert.Contains(body, "non-JSON");
+    }
+
+    [TestMethod]
+    public async Task RemoteSpec_Returns502_OnTimeout()
+    {
+        var handler = new TimeoutHttpMessageHandler();
+        var testClient = new HttpClient(handler) { Timeout = TimeSpan.FromMilliseconds(50) };
+
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteOpenApiUrl = "https://example.com/openapi.json";
+            o.TestHttpClient = testClient;
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec");
+
+        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    // ── New: remote spec proxy — T025 (no credentials in error body) ─────────
+
+    [TestMethod]
+    public async Task RemoteSpec_Returns502_WithNoCredentialsInBody_WhenRemoteFails()
+    {
+        var handler = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.Unauthorized));
+        var testClient = new HttpClient(handler);
+
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteOpenApiUrl = "https://example.com/openapi.json";
+            o.RemoteOpenApiApiKeyValue = "super-secret-key";
+            o.RemoteOpenApiBearerToken = "bearer-token-value";
+            o.TestHttpClient = testClient;
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.IsFalse(body.Contains("super-secret-key"), "API key must not appear in error body");
+        Assert.IsFalse(body.Contains("bearer-token-value"), "Bearer token must not appear in error body");
+        Assert.IsFalse(body.Contains("example.com"), "URL must not appear in error body");
+    }
+
+    // ── New: remote spec proxy — T026a (SPA middleware pass-through) ─────────
+
+    [TestMethod]
+    public async Task RemoteSpec_ReturnsJson_NotHtmlFallback()
+    {
+        // Even without RemoteOpenApiUrl configured, the route must be reached (not SPA fallback)
+        // and must return JSON (400 JSON), not text/html.
+        var app = BuildTestApp();
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec");
+
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+        Assert.AreEqual("application/json", contentType,
+            "remote-spec must return application/json, not text/html (SPA middleware pass-through check)");
+    }
+}
+
+// ── Test helpers ─────────────────────────────────────────────────────────────
+
+internal sealed class MockHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+        => Task.FromResult(response);
+}
+
+internal sealed class TimeoutHttpMessageHandler : HttpMessageHandler
+{
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        await Task.Delay(Timeout.Infinite, cancellationToken);
+        return new HttpResponseMessage(HttpStatusCode.OK);
+    }
 }
