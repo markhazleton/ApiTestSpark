@@ -59,21 +59,30 @@ app.MapApiTestSpark(options =>
 |---|---|---|
 | `OpenApiUrl` | `"/openapi.json"` | URL of your OpenAPI v3 JSON document. `null` disables autodiscovery. |
 | `AuthScheme` | `null` | `"Bearer"`, `"ApiKey"`, or `"Basic"` — metadata only, never a token value. |
-| `DefaultHeaders` | `{}` | Headers injected into every SPA request. Must not contain credentials — values are served publicly via the config endpoint. |
+| `DefaultHeaders` | `{}` | Headers injected into every host API SPA request. Must not contain credentials — values are served publicly via the config endpoint. |
 | `Environments` | `[]` (all) | Environment names where the harness is active. Empty = everywhere. Example: `["Development", "Staging"]` keeps it off production. |
 | `CorsOrigins` | `[]` (same-origin) | Extra origins allowed to call the config endpoint. Use when the Vite dev server and .NET API run on different ports. |
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback. Alternatively set `Logging:LogLevel:ApiTestSpark=Debug` in appsettings. |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes. Set to `false` to present a clean harness showing only your host API and API Doc Builder. |
+| `RemoteBaseUrl` | `null` | Base URL of the remote REST API. Added to CSP `connect-src` so browser direct-calls are permitted. |
+| `RemoteOpenApiUrl` | `null` | Full URL of the remote OpenAPI JSON document. Fetched server-side via the spec proxy. Must begin with `http://` or `https://`. |
+| `RemoteOpenApiApiKeyHeader` | `null` | Header name for the remote API key (e.g. `x-api-key`). Only used when `RemoteOpenApiApiKeyValue` is also set. |
+| `RemoteOpenApiApiKeyValue` | `null` | API key value. Injected server-side; never sent to the browser. |
+| `RemoteOpenApiBearerToken` | `null` | Bearer token for the remote spec proxy. Injected server-side as `Authorization: Bearer <token>`. |
+| `RemoteDefaultHeaders` | `{}` | Headers injected into every browser-side request to the remote API. Supports `{session-guid}` and `{request-guid}` tokens expanded at request time. |
 
 ---
 
 ## Features
 
 - **OpenAPI autodiscovery** — endpoints grouped by tag in a collapsible accordion; real-time search filter
+- **Remote API Explorer** — browse and test a remote REST API from its OpenAPI document via a server-side spec proxy; API key and Bearer token injected server-side so credentials never appear in the browser network tab
 - **Full metadata surface** — descriptions rendered as markdown, response codes as coloured badges with expandable inline schemas, `operationId` as a copyable chip, schema constraint tables
 - **JSON scaffold** — request body pre-filled from `example → default → enum[0] → type placeholder`; nested objects and arrays scaffolded recursively
 - **Response rendering** — arrays as sortable tables, objects as editable forms, primitives in pre blocks
 - **API Doc Builder** (`/api-docs`) — select endpoints, capture live curl + responses, annotate sections, export markdown
+- **Remote API Doc Builder** (`/remote-api-docs`) — same documentation capture for remote API endpoints
+- **Header token expansion** — `{session-guid}` and `{request-guid}` tokens in header values are replaced at request time with real UUIDs
 - **Debug panel** — drag-resizable, captures every request/response/error/metric; cURL snippet per request; FIFO buffered
 - **Environment gating** — one option keeps the harness off production
 - **Demo integration toggle** — set `EnableDemoIntegrations = false` to hide the built-in JokeAPI and JSONPlaceholder screens; show only your host API and the API Doc Builder
@@ -92,6 +101,26 @@ app.MapApiTestSpark(options =>
     options.EnableDemoIntegrations = false;
 });
 ```
+
+### Remote API Explorer
+
+Point the harness at a remote REST API by configuring `RemoteBaseUrl` and `RemoteOpenApiUrl`. The harness fetches the remote spec server-side (credentials stay off the browser network tab) and exposes a full endpoint explorer and doc builder for the remote API.
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.OpenApiUrl                   = "/openapi/v1.json";
+    options.RemoteBaseUrl                = "https://api.example.com";
+    options.RemoteOpenApiUrl             = "https://api.example.com/openapi.json";
+    options.RemoteOpenApiApiKeyHeader    = "x-api-key";
+    options.RemoteOpenApiApiKeyValue     = "your-api-key";
+    // Optional: correlation headers with per-request UUID tokens
+    options.RemoteDefaultHeaders["correlationId"] = "{request-guid}";
+    options.RemoteDefaultHeaders["sessionId"]     = "{session-guid}";
+});
+```
+
+> **Security note**: The harness is intended for local and trusted development environments only. Do not expose it to the public internet.
 
 ---
 

@@ -34,14 +34,14 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.2.0 |
+| **Version** | 1.3.0 |
 | **Author** | [Mark Hazleton](https://markhazleton.com) |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
 | **Package Size** | 181 KB |
 | **Symbol Package** | 15.7 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | June 2, 2026 |
+| **Last Updated** | June 6, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Source** | [github.com/markhazleton/apitestspark](https://github.com/markhazleton/apitestspark) |
@@ -142,7 +142,7 @@ app.MapApiTestSpark(options =>
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.2.0 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.3.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -156,15 +156,20 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 
 ## How It Works
 
-`MapApiTestSpark()` registers three things into your ASP.NET Core pipeline:
+`MapApiTestSpark()` registers four things into your ASP.NET Core pipeline:
 
 1. **Static file middleware** — serves the embedded SPA assets (HTML, JS, CSS) from `EmbeddedFileProvider` at `/api-test-spark/`. No files are copied to your project.
-2. **Config endpoint** — `GET /api-test-spark/config` returns your `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, and `EnableDemoIntegrations` at runtime. The SPA fetches this on startup — no values are hardcoded in the bundle.
-3. **SPA fallback** — extensionless paths under `/api-test-spark/` serve `index.html` so client-side routing works. Unknown file extensions return HTTP 404.
+2. **Config endpoint** — `GET /api-test-spark/config` returns your `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, remote API settings, and harness version at runtime. The SPA fetches this on startup — no values are hardcoded in the bundle.
+3. **Remote spec proxy** — `GET /api-test-spark/remote-spec` fetches the configured `RemoteOpenApiUrl` server-side and returns the JSON to the SPA. API key and Bearer token are injected at the server; credentials never appear in the browser network tab.
+4. **SPA fallback** — extensionless paths under `/api-test-spark/` serve `index.html` so client-side routing works. Unknown file extensions return HTTP 404.
 
 ---
 
 ## Release Notes
+
+### v1.3.0 — June 6, 2026
+
+Remote API Explorer: browse and test a remote REST API from its OpenAPI document. Configure `RemoteBaseUrl` and `RemoteOpenApiUrl` in `Program.cs` — a new server-side proxy endpoint (`GET /api-test-spark/remote-spec`) fetches the remote spec with credentials injected server-side, keeping API keys and Bearer tokens off the browser network tab. New `ApiTestSparkOptions` properties: `RemoteBaseUrl`, `RemoteOpenApiUrl`, `RemoteOpenApiApiKeyHeader`, `RemoteOpenApiApiKeyValue`, `RemoteOpenApiBearerToken`, `RemoteDefaultHeaders`. Header token expansion: `{session-guid}` and `{request-guid}` are expanded in header values at request time. Harness version and build date now shown on the About page. HeadersEditor focus-loss fix.
 
 ### v1.2.0 — June 2, 2026
 

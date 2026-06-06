@@ -9,7 +9,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.3.0</Version>
     <Authors>Mark Hazleton</Authors>
     <Company>MarkHazleton</Company>
     <Copyright>Copyright © Mark Hazleton 2026</Copyright>
@@ -17,12 +17,13 @@
     <Title>API Test Spark — Interactive API Test UI for .NET 10 Minimal APIs</Title>
     <Description>Embed the API Test Spark React SPA into any .NET 10 Minimal API project with a
       single MapApiTestSpark() call. Autodiscovers OpenAPI v3 endpoints and renders an interactive
-      test harness at /api-test-spark/. Features: collapsible accordion endpoint groups derived from
-      OpenAPI tags, full response code documentation with expandable schemas, operationId display,
-      schema constraint and default-value surfacing, full markdown rendering of OpenAPI descriptions,
-      sortable response tables, editable object forms, curl command generation, API Doc Builder for
-      generating front-end developer agent documentation, draggable debug panel, and Azure Application
-      Insights integration. Zero configuration required — just add MapApiTestSpark().</Description>
+      test harness at /api-test-spark/. Features: collapsible accordion endpoint groups, Remote API
+      Explorer (browse and test a remote REST API via a server-side spec proxy that keeps credentials
+      off the browser network tab), full response code documentation with expandable schemas, operationId
+      display, schema constraint and default-value surfacing, full markdown rendering of OpenAPI
+      descriptions, sortable response tables, editable object forms, curl command generation, API Doc
+      Builder, draggable debug panel, and Azure Application Insights integration. Zero configuration
+      required — just add MapApiTestSpark().</Description>
     <PackageTags>
       api;test;spark;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development;api-documentation;markdown;curl;swagger-ui-alternative</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -31,11 +32,12 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>1.1.0 — New: EnableDemoIntegrations option hides the built-in JokeAPI and
-      JSONPlaceholder demo screens for a clean production install. Type system hardened: ErrorCategory
-      union expanded to include React; ErrorRecord.category and ErrorResponse.category now typed as
-      ErrorCategory (was string). ErrorBoundary observability corrected. Constitution amended to v1.1.1.
-      See CHANGELOG.md for full history.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.3.0 — New: Remote API Explorer — browse and test a remote REST API from
+      its OpenAPI document via a server-side spec proxy that keeps credentials off the browser network
+      tab. New ApiTestSparkOptions properties: RemoteBaseUrl, RemoteOpenApiUrl, RemoteOpenApiApiKeyHeader,
+      RemoteOpenApiApiKeyValue, RemoteOpenApiBearerToken, RemoteDefaultHeaders. Header token expansion
+      ({session-guid}, {request-guid}). SSRF guard on proxy endpoint. Harness version and build date
+      on About page. HeadersEditor focus-loss fix. See CHANGELOG.md for full history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Build quality -->

@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.3.0] - 2026-06-06
+
+### Added
+
+- **Remote API Explorer** — a new screen (`/remote-api`) that loads, browses, and tests endpoints from a remote OpenAPI JSON document. The remote URL, API key, and Bearer token are configured via `MapApiTestSpark()` in `Program.cs` and are editable on the Config page.
+- **Remote spec proxy** — `GET /api-test-spark/remote-spec` is a new .NET endpoint that fetches the remote OpenAPI document server-side. API key and Bearer token are injected at the proxy level; credentials never appear in the browser network tab or DevTools.
+- **SSRF guard** — the proxy validates that `RemoteOpenApiUrl` uses `http://` or `https://` and rejects all other schemes (`file://`, `ldap://`, etc.) with a `400` response.
+- **`ApiTestSparkOptions` additions** — four new properties: `RemoteBaseUrl`, `RemoteOpenApiUrl`, `RemoteOpenApiApiKeyHeader`, `RemoteOpenApiApiKeyValue`, `RemoteOpenApiBearerToken`, and `RemoteDefaultHeaders` (dictionary of headers injected into every browser-side request to the remote API).
+- **Remote API Doc Builder** — captures live remote endpoint calls and exports markdown documentation, mirroring the host API Doc Builder.
+- **Config page — Remote API section** — dedicated configuration panel for all remote API settings; credential fields are masked (password inputs) by default.
+- **Header token expansion** — header values support `{session-guid}` (one UUID per page load) and `{request-guid}` (fresh UUID per call), expanded at request-send time. Works for both default headers and per-request extra headers.
+- **Harness version and build date** — `GET /api-test-spark/config` now includes `harnessVersion` (NuGet package version) and `harnessBuiltAt` (ISO-8601 assembly build timestamp); displayed on the About page.
+- **`useRemoteConfigStore`** — new dedicated Zustand persist store (key `api-test-spark-remote-config`) holding all remote API configuration. Reads live in `useHostApi` so Config page saves take effect immediately without page reload.
+- **CSP auto-extension** — `RemoteBaseUrl` is automatically added to `Content-Security-Policy connect-src`, allowing direct browser-to-remote-API calls without modifying the remote server.
+
+### Changed
+
+- **About page** — Version and Build Date now sourced from the `harnessConfig` store (populated from the config endpoint) instead of a separate `build-info.json` fetch that fails in NuGet embedded mode.
+- **Config page HeadersEditor** — typing a header key no longer loses focus on each keystroke (isolated via uncontrolled `KeyInput` sub-component that commits on blur). Newly saved headers are sent in the next request without a page reload.
+- **Constitution v1.1.2** — `useRemoteConfigStore` added to the §V canonical store registry; ratification history and sync impact report updated.
+
+### Architectural Decisions
+
+- **ADR-008**: Server-side proxy for remote OpenAPI spec fetch — credentials off browser, SSRF guard, `useRemoteConfigStore` for live remote config reads
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.2.0] - 2026-06-02
 
 ### Added
@@ -134,7 +163,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.3.0...HEAD
+[v1.3.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.2...v1.1.0
 [v1.0.2]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.1...v1.0.2

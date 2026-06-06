@@ -142,6 +142,7 @@ None found.
 **Status**: ADEQUATE
 
 **.NET**: 30 integration tests pass (9 added in this PR). Coverage includes:
+
 - Config endpoint serialises all new remote fields correctly
 - Config endpoint returns null for unset remote fields
 - `ApiTestSparkOptions` default values for all new properties
