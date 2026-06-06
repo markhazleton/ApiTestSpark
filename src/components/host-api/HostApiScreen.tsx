@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useHarnessConfig } from '../../hooks';
 import { useHarnessConfigStore } from '../../store';
 import { EndpointList } from './EndpointList';
 import { EndpointTester } from './EndpointTester';
@@ -7,8 +6,6 @@ import { renderMarkdown } from '../../utils/renderMarkdown';
 import type { DiscoveredEndpoint } from '../../types';
 
 export function HostApiScreen() {
-  // Must be called here — this component IS the root consumer of useHarnessConfig
-  useHarnessConfig();
 
   const { apiInfo, endpoints, configStatus, openApiStatus, configError, openApiError } =
     useHarnessConfigStore();

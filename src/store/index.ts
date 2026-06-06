@@ -3,3 +3,5 @@ export { default as useUnifiedConfigStore } from './unifiedConfigStore';
 export { default as useDebugStore } from './debugStore';
 export { useAuthStore } from './authStore';
 export { useHarnessConfigStore } from './harnessConfigStore';
+export { useRemoteConfigStore } from './remoteConfigStore';
+export type { RemoteConfig } from './remoteConfigStore';

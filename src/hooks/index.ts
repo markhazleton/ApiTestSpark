@@ -5,3 +5,4 @@ export { withMetric, buildDebugCallbacks } from "./hookUtils";
 export { useHarnessConfig } from "./useHarnessConfig";
 export { useHostApi } from "./useHostApi";
 export type { HostApiRequest } from "./useHostApi";
+export { useRemoteOpenApi } from "./useRemoteOpenApi";

@@ -8,6 +8,8 @@ ApiTestSpark.ApiTestSparkOptions.CorsOrigins.get -> string![]!
 ApiTestSpark.ApiTestSparkOptions.CorsOrigins.set -> void
 ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
 ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
+ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.set -> void
 ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.set -> void
 ApiTestSpark.ApiTestSparkOptions.Environments.get -> string![]!
@@ -16,4 +18,16 @@ ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.set -> void
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiUrl.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyHeader.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyHeader.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyValue.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyValue.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.get -> string?
+ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.set -> void
+ApiTestSpark.ApiTestSparkOptions.TestHttpClient.get -> System.Net.Http.HttpClient?
+ApiTestSpark.ApiTestSparkOptions.TestHttpClient.set -> void
 static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!

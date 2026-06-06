@@ -16,6 +16,12 @@ export interface ApiConfigSet {
   headers?: Record<string, string>;
   lastUpdatedAt: number;
   status: "complete" | "incomplete" | "stale";
+  remoteBaseUrl?: string;
+  remoteOpenApiUrl?: string;
+  remoteOpenApiApiKeyHeader?: string;
+  remoteOpenApiApiKeyValue?: string;
+  remoteOpenApiBearerToken?: string;
+  remoteDefaultHeaders?: Record<string, string>;
 }
 
 export interface EnvironmentConfigs {
@@ -32,7 +38,7 @@ export interface EnvironmentProfile {
 }
 
 export interface UnifiedConfigState {
-  version: 2;
+  version: 3;
   currentEnvironment: Environment;
   /** Per-section, per-environment API configuration. Key matches SectionKey. */
   sections: Record<string, EnvironmentConfigs>;

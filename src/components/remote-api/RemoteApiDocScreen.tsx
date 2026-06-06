@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useHarnessConfig } from '../../hooks';
-import { useHarnessConfigStore } from '../../store';
+import { useHarnessConfigStore } from '../../store/harnessConfigStore';
+import { useRemoteOpenApi } from '../../hooks/useRemoteOpenApi';
 import { EndpointList } from '../host-api/EndpointList';
 import { buildCurlCommand, generateMarkdown } from '../../utils/generateMarkdown';
 import { buildJsonScaffold } from '../../utils/openApiParser';
@@ -16,15 +16,15 @@ const METHOD_COLORS: Record<string, string> = {
   DELETE: 'bg-red-100 text-red-800',
 };
 
-// ── Capture form for a single entry ──────────────────────────────────────────
+// ── Capture form ──────────────────────────────────────────────────────────────
 
 function CaptureForm({
   entry,
-  config,
+  captureConfig,
   onCapture,
 }: {
   entry: DocEntry;
-  config: { baseUrl: string; defaultHeaders: Record<string, string>; authScheme: string | null } | null;
+  captureConfig: { baseUrl: string; headers: Record<string, string> } | null;
   onCapture: (id: string, capture: CapturedCall, params: DocEntry['captureParams']) => void;
 }) {
   const ep = entry.endpoint;
@@ -33,7 +33,6 @@ function CaptureForm({
   const [pathParams, setPathParams] = useState<Record<string, string>>(entry.captureParams.pathParams);
   const [queryParams, setQueryParams] = useState<Record<string, string>>(entry.captureParams.queryParams);
   const [body, setBody] = useState(entry.captureParams.body || (needsBody ? buildJsonScaffold(ep.requestBodySchema) : ''));
-  const [authToken, setAuthToken] = useState(entry.captureParams.authToken);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,30 +43,23 @@ function CaptureForm({
     setLoading(true);
     setError(null);
     try {
-      // Build resolved path
       let resolvedPath = ep.path;
       for (const [k, v] of Object.entries(pathParams)) {
         resolvedPath = resolvedPath.replace(`{${k}}`, encodeURIComponent(v));
       }
 
-      // Build query string
       const qs = Object.entries(queryParams)
         .filter(([, v]) => v !== '')
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&');
 
-      const baseUrl = config?.baseUrl ?? window.location.origin;
+      const baseUrl = captureConfig?.baseUrl ?? window.location.origin;
       const url = `${baseUrl}${resolvedPath}${qs ? `?${qs}` : ''}`;
 
-      // Build headers — resolve {session-guid} and {request-guid} tokens
-      const rawHeaders: Record<string, string> = {
+      const headers = resolveHeaderTokens({
         'Content-Type': 'application/json',
-        ...(config?.defaultHeaders ?? {}),
-      };
-      if (authToken && config?.authScheme) {
-        rawHeaders['Authorization'] = `${config.authScheme} ${authToken}`;
-      }
-      const headers = resolveHeaderTokens(rawHeaders);
+        ...(captureConfig?.headers ?? {}),
+      });
 
       const parsedBody = needsBody && body.trim()
         ? (() => { try { return JSON.parse(body); } catch { return body; } })()
@@ -100,7 +92,7 @@ function CaptureForm({
         responseHeaders,
       };
 
-      onCapture(entry.id, capture, { pathParams, queryParams, body, authToken });
+      onCapture(entry.id, capture, { pathParams, queryParams, body, authToken: '' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Request failed');
     } finally {
@@ -110,7 +102,6 @@ function CaptureForm({
 
   return (
     <div className="mt-2 space-y-2 text-xs">
-      {/* Path params */}
       {pathParams_.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <label className="w-24 shrink-0 font-mono text-gray-500 truncate" title={p.name}>
@@ -126,7 +117,6 @@ function CaptureForm({
         </div>
       ))}
 
-      {/* Query params */}
       {queryParams_.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <label className="w-24 shrink-0 font-mono text-gray-500 truncate" title={p.name}>
@@ -154,21 +144,6 @@ function CaptureForm({
         </div>
       ))}
 
-      {/* Auth token */}
-      {config?.authScheme && (
-        <div className="flex items-center gap-2">
-          <label className="w-24 shrink-0 font-mono text-gray-500">{config.authScheme}</label>
-          <input
-            type="password"
-            value={authToken}
-            onChange={(e) => setAuthToken(e.target.value)}
-            placeholder="token…"
-            className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
-          />
-        </div>
-      )}
-
-      {/* Body */}
       {needsBody && (
         <div>
           <div className="flex items-center justify-between mb-1">
@@ -211,13 +186,13 @@ function CaptureForm({
   );
 }
 
-// ── Entry card in the doc builder ────────────────────────────────────────────
+// ── Entry card ────────────────────────────────────────────────────────────────
 
 function EntryCard({
   entry,
   index,
   total,
-  config,
+  captureConfig,
   onMove,
   onRemove,
   onNoteChange,
@@ -226,7 +201,7 @@ function EntryCard({
   entry: DocEntry;
   index: number;
   total: number;
-  config: { baseUrl: string; defaultHeaders: Record<string, string>; authScheme: string | null } | null;
+  captureConfig: { baseUrl: string; headers: Record<string, string> } | null;
   onMove: (id: string, dir: -1 | 1) => void;
   onRemove: (id: string) => void;
   onNoteChange: (id: string, note: string) => void;
@@ -237,9 +212,7 @@ function EntryCard({
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-      {/* Card header */}
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
-        {/* Reorder buttons */}
         <div className="flex flex-col gap-px shrink-0">
           <button type="button" disabled={index === 0} onClick={() => onMove(entry.id, -1)}
             className="text-gray-400 hover:text-gray-700 disabled:opacity-20 text-[10px] leading-none">▲</button>
@@ -270,12 +243,10 @@ function EntryCard({
 
       {open && (
         <div className="p-3 space-y-3">
-          {/* Summary */}
           {ep.summary && ep.summary !== `${ep.method} ${ep.path}` && (
             <p className="text-xs text-gray-600 font-medium">{ep.summary}</p>
           )}
 
-          {/* Author note */}
           <div>
             <label className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block mb-1">
               Note for the developer (optional — appears above this section in the doc)
@@ -289,15 +260,13 @@ function EntryCard({
             />
           </div>
 
-          {/* Capture form */}
           <div className="border-t border-gray-100 pt-2">
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">
               Capture live request & response
             </p>
-            <CaptureForm entry={entry} config={config} onCapture={onCapture} />
+            <CaptureForm entry={entry} captureConfig={captureConfig} onCapture={onCapture} />
           </div>
 
-          {/* Captured curl preview */}
           {entry.capture && (
             <div className="border-t border-gray-100 pt-2">
               <p className="text-[10px] font-semibold text-gray-500 mb-1">Captured curl</p>
@@ -318,14 +287,43 @@ function EntryCard({
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-export function ApiDocScreen() {
-  useHarnessConfig();
+export function RemoteApiDocScreen() {
+  const { config } = useHarnessConfigStore();
+  const { mutateAsync: fetchRemoteSpec, isPending, isError, error } = useRemoteOpenApi();
 
-  const { apiInfo, endpoints, configStatus, openApiStatus, config } = useHarnessConfigStore();
+  const [endpoints, setEndpoints] = useState<DiscoveredEndpoint[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  const remoteBaseUrl = config?.remoteBaseUrl;
+  const remoteOpenApiUrl = config?.remoteOpenApiUrl;
+
+  useEffect(() => {
+    if (!remoteOpenApiUrl) return;
+    fetchRemoteSpec()
+      .then((eps) => { setEndpoints(eps); setLoaded(true); })
+      .catch(() => { setLoaded(true); });
+  // Only re-fetch when the remote spec URL changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remoteOpenApiUrl]);
+
+  // Build the capture config from remote settings (credentials injected server-side for spec fetch,
+  // but direct browser calls use the headers from config)
+  const captureConfig = remoteBaseUrl ? {
+    baseUrl: remoteBaseUrl,
+    headers: {
+      ...(config?.remoteDefaultHeaders ?? {}),
+      ...(config?.remoteOpenApiApiKeyHeader && config?.remoteOpenApiApiKeyValue
+        ? { [config.remoteOpenApiApiKeyHeader]: config.remoteOpenApiApiKeyValue }
+        : {}),
+      ...(config?.remoteOpenApiBearerToken
+        ? { Authorization: `Bearer ${config.remoteOpenApiBearerToken}` }
+        : {}),
+    },
+  } : null;
 
   const [selected, setSelected] = useState<DiscoveredEndpoint | null>(null);
   const [doc, setDoc] = useState<ApiDoc>({
-    title: apiInfo?.title ? `${apiInfo.title} Integration Guide` : 'API Integration Guide',
+    title: 'Remote API Integration Guide',
     intro: '',
     entries: [],
   });
@@ -333,18 +331,18 @@ export function ApiDocScreen() {
   const [copied, setCopied] = useState(false);
   const previewRef = useRef<HTMLTextAreaElement>(null);
 
-  // Sync title once apiInfo loads (effect — not during render)
+  // Seed doc title from remoteBaseUrl once loaded
   const titleInitialised = useRef(false);
   useEffect(() => {
-    if (apiInfo?.title && !titleInitialised.current) {
+    if (remoteBaseUrl && !titleInitialised.current && loaded) {
       titleInitialised.current = true;
       setDoc((d) =>
-        d.title === 'API Integration Guide'
-          ? { ...d, title: `${apiInfo.title} Integration Guide` }
+        d.title === 'Remote API Integration Guide'
+          ? { ...d, title: `${remoteBaseUrl} Integration Guide` }
           : d
       );
     }
-  }, [apiInfo?.title]);
+  }, [remoteBaseUrl, loaded]);
 
   const addEndpoint = useCallback((ep: DiscoveredEndpoint) => {
     setDoc((d) => {
@@ -406,14 +404,29 @@ export function ApiDocScreen() {
     URL.revokeObjectURL(url);
   }
 
-  const isLoading = configStatus === 'idle' || configStatus === 'loading' || openApiStatus === 'loading';
-  const isReady = openApiStatus === 'ready' && endpoints.length > 0;
+  if (!remoteBaseUrl && !remoteOpenApiUrl) {
+    return (
+      <div className="p-6">
+        <div className="bg-gray-50 border border-gray-200 rounded p-4 max-w-lg">
+          <p className="text-sm font-semibold text-gray-700">Remote API not configured</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Set <code>options.RemoteBaseUrl</code> and <code>options.RemoteOpenApiUrl</code> in{' '}
+            <code>MapApiTestSpark()</code> to enable the remote API doc builder.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const captureConfig = config ? {
-    baseUrl: config.baseUrl,
-    defaultHeaders: config.defaultHeaders,
-    authScheme: config.authScheme,
-  } : null;
+  if (isPending || !loaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const isReady = !isError && loaded && endpoints.length > 0;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -421,9 +434,11 @@ export function ApiDocScreen() {
       {/* ── Top bar ── */}
       <div className="px-6 py-3 border-b border-gray-200 shrink-0 flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold text-gray-900">API Doc Builder</h1>
+          <h1 className="text-lg font-semibold text-gray-900">Remote API Doc Builder</h1>
           <p className="text-xs text-gray-400">
-            Select endpoints → capture live responses → generate markdown for your front-end developer agent
+            {remoteBaseUrl
+              ? <span className="font-mono">{remoteBaseUrl}</span>
+              : 'Select endpoints → capture live responses → generate markdown'}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -458,19 +473,25 @@ export function ApiDocScreen() {
         </div>
       </div>
 
-      {isLoading && (
-        <div className="flex items-center justify-center flex-1">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      {/* ── Error banner ── */}
+      {isError && (
+        <div className="px-6 pt-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+            <p className="text-xs font-semibold text-yellow-700">Remote OpenAPI fetch failed</p>
+            <p className="text-xs text-yellow-600 mt-0.5 font-mono">
+              {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
+          </div>
         </div>
       )}
 
-      {!isLoading && openApiStatus === 'skipped' && (
+      {!isError && loaded && endpoints.length === 0 && (
         <div className="p-6 text-sm text-gray-500">
-          No OpenAPI document configured. Set <code>options.OpenApiUrl</code> in <code>MapApiTestSpark()</code> to enable endpoint discovery.
+          No endpoints found in the remote OpenAPI document.
         </div>
       )}
 
-      {!isLoading && isReady && (
+      {isReady && (
         <div className="flex flex-1 overflow-hidden">
 
           {/* ── Left: endpoint selector ── */}
@@ -499,103 +520,63 @@ export function ApiDocScreen() {
               <div className="p-4 space-y-4 max-w-3xl mx-auto">
 
                 {/* Doc metadata */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1">Document title</label>
+                    <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Document title</label>
                     <input
                       type="text"
                       value={doc.title}
                       onChange={(e) => setDoc((d) => ({ ...d, title: e.target.value }))}
-                      placeholder="API Integration Guide"
-                      className="w-full text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                      className="w-full text-sm border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1">
-                      Overview / introduction
-                      <span className="font-normal text-gray-400 ml-1">(markdown supported)</span>
-                    </label>
+                    <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-1">Introduction (optional)</label>
                     <textarea
                       value={doc.intro}
                       onChange={(e) => setDoc((d) => ({ ...d, intro: e.target.value }))}
-                      rows={4}
-                      placeholder="Describe the API, authentication requirements, base URL, and any key concepts a front-end developer needs to know before integrating..."
-                      className="w-full text-xs border border-gray-200 rounded px-3 py-2 resize-y focus:outline-none focus:ring-1 focus:ring-blue-400"
+                      rows={3}
+                      placeholder="Overview of this API for the developer…"
+                      className="w-full text-xs border border-gray-200 rounded px-2 py-1 resize-y focus:outline-none focus:ring-1 focus:ring-blue-400"
                     />
                   </div>
                 </div>
 
-                {/* Entries */}
-                {doc.entries.length === 0 ? (
-                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-                    <p className="text-sm text-gray-400">
-                      Click endpoints in the left panel to add them to your document.
-                    </p>
-                    <p className="text-xs text-gray-300 mt-1">
-                      Endpoints are added in order — use ▲ ▼ to reorder them.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-gray-500">
-                        {doc.entries.length} endpoint{doc.entries.length !== 1 ? 's' : ''} in document
-                        <span className="ml-2 text-gray-300">
-                          {doc.entries.filter((e) => e.capture).length} captured
-                        </span>
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setDoc((d) => ({ ...d, entries: [] }))}
-                        className="text-[10px] text-red-400 hover:text-red-600 underline"
-                      >
-                        clear all
-                      </button>
-                    </div>
-                    {doc.entries.map((entry, i) => (
-                      <EntryCard
-                        key={entry.id}
-                        entry={entry}
-                        index={i}
-                        total={doc.entries.length}
-                        config={captureConfig}
-                        onMove={moveEntry}
-                        onRemove={removeEntry}
-                        onNoteChange={updateNote}
-                        onCapture={saveCapture}
-                      />
-                    ))}
+                {doc.entries.length === 0 && (
+                  <div className="text-sm text-gray-400 text-center py-8">
+                    Click an endpoint in the left panel to add it to your doc.
                   </div>
                 )}
+
+                {doc.entries.map((entry, i) => (
+                  <EntryCard
+                    key={entry.id}
+                    entry={entry}
+                    index={i}
+                    total={doc.entries.length}
+                    captureConfig={captureConfig}
+                    onMove={moveEntry}
+                    onRemove={removeEntry}
+                    onNoteChange={updateNote}
+                    onCapture={saveCapture}
+                  />
+                ))}
               </div>
             )}
 
             {view === 'preview' && (
-              <div className="flex flex-col h-full">
-                {/* Rendered preview */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  <div className="max-w-3xl mx-auto bg-white rounded-lg border border-gray-100 shadow-sm p-6">
-                    <div className="prose prose-sm max-w-none text-xs space-y-2">
-                      {renderMarkdown(markdown)}
-                    </div>
-                  </div>
+              <div className="p-4 max-w-3xl mx-auto">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Markdown preview</p>
                 </div>
-                {/* Raw markdown textarea */}
-                <div className="border-t border-gray-200 shrink-0">
-                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Raw markdown</p>
-                    <button type="button" onClick={copyMarkdown} className="text-xs text-blue-500 hover:underline">
-                      {copied ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
-                  <textarea
-                    ref={previewRef}
-                    readOnly
-                    title="Generated markdown output"
-                    value={markdown}
-                    rows={12}
-                    className="w-full font-mono text-[10px] border-0 px-4 py-3 bg-gray-900 text-green-300 resize-none focus:outline-none"
-                  />
+                <textarea
+                  ref={previewRef}
+                  readOnly
+                  value={markdown}
+                  className="w-full h-[70vh] font-mono text-xs border border-gray-200 rounded p-3 resize-none focus:outline-none bg-gray-50"
+                />
+                <div className="mt-3 prose prose-sm max-w-none border border-gray-100 rounded p-4 bg-white text-xs">
+                  {renderMarkdown(markdown)}
                 </div>
               </div>
             )}

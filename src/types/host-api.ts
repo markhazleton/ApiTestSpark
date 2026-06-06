@@ -3,7 +3,17 @@ export interface HarnessConfig {
   openApiUrl: string | null;
   authScheme: 'Bearer' | 'ApiKey' | 'Basic' | null;
   defaultHeaders: Record<string, string>;
+  remoteDefaultHeaders?: Record<string, string>;
   enableDemoIntegrations: boolean;
+  remoteBaseUrl?: string;
+  remoteOpenApiUrl?: string;
+  remoteOpenApiApiKeyHeader?: string;
+  remoteOpenApiApiKeyValue?: string;
+  remoteOpenApiBearerToken?: string;
+  /** NuGet package version of the embedded harness, e.g. "1.2.0". */
+  harnessVersion?: string;
+  /** ISO-8601 build timestamp baked into the assembly at pack time. */
+  harnessBuiltAt?: string;
 }
 
 /** Metadata from the OpenAPI info block, surfaced in the UI header. */

@@ -10,6 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 import useDebugStore from '../store/debugStore';
 import { useHarnessConfigStore } from '../store/harnessConfigStore';
+import { useRemoteConfigStore } from '../store/remoteConfigStore';
 import { HostApiClient } from '../api/hostApiClient';
 import { buildDebugCallbacks } from './hookUtils';
 import { parseOpenApiV3, parseApiInfo } from '../utils/openApiParser';
@@ -36,7 +37,6 @@ export function useHarnessConfig() {
     setConfigError,
     setOpenApiError,
   } = useHarnessConfigStore();
-
   return useQuery({
     queryKey: HARNESS_CONFIG_QUERY_KEY,
     staleTime: Infinity,
@@ -63,8 +63,45 @@ export function useHarnessConfig() {
         throw err;
       }
 
-      setConfig(config);
       setConfigStatus('ready');
+
+      // Seed remoteConfigStore from Program.cs values — browser-persisted value always wins.
+      // Then merge browser config on top of server config before storing in harnessConfigStore.
+      // Must run inside queryFn (not onSuccess — removed in TanStack Query v5).
+      {
+        const remote = useRemoteConfigStore.getState();
+
+        // Only seed fields that the user hasn't already set in the browser
+        const patch: Partial<typeof remote> = {};
+        if (config.remoteBaseUrl && !remote.remoteBaseUrl)
+          patch.remoteBaseUrl = config.remoteBaseUrl;
+        if (config.remoteOpenApiUrl && !remote.remoteOpenApiUrl)
+          patch.remoteOpenApiUrl = config.remoteOpenApiUrl;
+        if (config.remoteOpenApiApiKeyHeader && !remote.remoteOpenApiApiKeyHeader)
+          patch.remoteOpenApiApiKeyHeader = config.remoteOpenApiApiKeyHeader;
+        if (config.remoteOpenApiApiKeyValue && !remote.remoteOpenApiApiKeyValue)
+          patch.remoteOpenApiApiKeyValue = config.remoteOpenApiApiKeyValue;
+        if (config.remoteOpenApiBearerToken && !remote.remoteOpenApiBearerToken)
+          patch.remoteOpenApiBearerToken = config.remoteOpenApiBearerToken;
+        if (config.remoteDefaultHeaders && Object.keys(config.remoteDefaultHeaders).length > 0
+            && Object.keys(remote.remoteDefaultHeaders).length === 0)
+          patch.remoteDefaultHeaders = config.remoteDefaultHeaders;
+        if (Object.keys(patch).length > 0) remote.set(patch);
+
+        // Re-read after seeding so merged state reflects any patch applied above
+        const r = useRemoteConfigStore.getState();
+        setConfig({
+          ...config,
+          remoteBaseUrl:              r.remoteBaseUrl              || config.remoteBaseUrl,
+          remoteOpenApiUrl:           r.remoteOpenApiUrl           || config.remoteOpenApiUrl,
+          remoteOpenApiApiKeyHeader:  r.remoteOpenApiApiKeyHeader  || config.remoteOpenApiApiKeyHeader,
+          remoteOpenApiApiKeyValue:   r.remoteOpenApiApiKeyValue   || config.remoteOpenApiApiKeyValue,
+          remoteOpenApiBearerToken:   r.remoteOpenApiBearerToken   || config.remoteOpenApiBearerToken,
+          remoteDefaultHeaders:       Object.keys(r.remoteDefaultHeaders).length > 0
+            ? r.remoteDefaultHeaders
+            : (config.remoteDefaultHeaders ?? {}),
+        });
+      }
 
       // Skip OpenAPI fetch if no URL configured
       if (!config.openApiUrl) {

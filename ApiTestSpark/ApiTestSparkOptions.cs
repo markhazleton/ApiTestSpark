@@ -1,3 +1,5 @@
+using System.Net.Http;
+
 namespace ApiTestSpark;
 
 /// <summary>
@@ -53,4 +55,65 @@ public class ApiTestSparkOptions
     /// Default: true.
     /// </summary>
     public bool EnableDemoIntegrations { get; set; } = true;
+
+    /// <summary>
+    /// Headers injected into every SPA request when calling a remote API
+    /// (i.e. when <see cref="RemoteBaseUrl"/> is set).
+    /// These headers are separate from <see cref="DefaultHeaders"/> and only apply
+    /// to remote calls — they do not affect requests to the local host app.
+    /// Values are served via <c>/api-test-spark/config</c>; the harness MUST NOT be
+    /// exposed to the public internet.
+    /// </summary>
+    public Dictionary<string, string> RemoteDefaultHeaders { get; set; } = new();
+
+    /// <summary>
+    /// Optional base URL used for all API calls when testing a remote API.
+    /// When set, the SPA uses this URL as the base for every endpoint request instead
+    /// of the host app's own origin. Must begin with <c>http://</c> or <c>https://</c>.
+    /// Default: null (use the host app's own origin).
+    /// </summary>
+    public string? RemoteBaseUrl { get; set; }
+
+    /// <summary>
+    /// Optional URL of a remote OpenAPI v3 JSON document.
+    /// When set, the SPA fetches this document via the server-side proxy at
+    /// <c>/api-test-spark/remote-spec</c> instead of discovering endpoints locally.
+    /// Must begin with <c>http://</c> or <c>https://</c>.
+    /// Default: null (use local endpoint discovery).
+    /// </summary>
+    public string? RemoteOpenApiUrl { get; set; }
+
+    /// <summary>
+    /// Header name used to send an API key when fetching the remote OpenAPI document
+    /// (e.g. <c>"X-Api-Key"</c>). Requires <see cref="RemoteOpenApiApiKeyValue"/> to also be set.
+    /// Default: null.
+    /// </summary>
+    public string? RemoteOpenApiApiKeyHeader { get; set; }
+
+    /// <summary>
+    /// API key value sent in the <see cref="RemoteOpenApiApiKeyHeader"/> header when fetching
+    /// the remote OpenAPI document. This value is returned in the <c>/api-test-spark/config</c>
+    /// response — the harness endpoint is trusted for local/development use only and
+    /// MUST NOT be exposed to the public internet.
+    /// Default: null.
+    /// </summary>
+    public string? RemoteOpenApiApiKeyValue { get; set; }
+
+    /// <summary>
+    /// Bearer token sent as <c>Authorization: Bearer {token}</c> when fetching the remote
+    /// OpenAPI document. This value is returned in the <c>/api-test-spark/config</c>
+    /// response — the harness endpoint is trusted for local/development use only and
+    /// MUST NOT be exposed to the public internet.
+    /// Default: null.
+    /// </summary>
+    public string? RemoteOpenApiBearerToken { get; set; }
+
+    /// <summary>
+    /// Optional <see cref="System.Net.Http.HttpClient"/> override for the remote spec proxy.
+    /// Intended for integration testing only — allows injecting a test <c>HttpClient</c>
+    /// without replacing the shared static instance.
+    /// Leave <c>null</c> in production; the harness uses its own shared client by default.
+    /// </summary>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public HttpClient? TestHttpClient { get; set; }
 }

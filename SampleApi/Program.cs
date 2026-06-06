@@ -24,6 +24,15 @@ app.MapHome();
 app.MapGroup("/products").WithTags("Products: Catalog").MapProducts();
 app.MapGroup("/customers").WithTags("Customers: Accounts").MapCustomers();
 app.MapGroup("/orders").WithTags("Orders: Lifecycle").MapOrders();
-app.MapApiTestSpark(options => { options.OpenApiUrl = "/openapi/v1.json"; });
+app.MapApiTestSpark(options =>
+{
+    options.OpenApiUrl = "/openapi/v1.json";
+    options.RemoteBaseUrl = "https://sample.com";
+    options.RemoteOpenApiUrl = "https://sample.com/openapi.json";
+    options.RemoteOpenApiApiKeyHeader = "x-api-key";
+    options.RemoteOpenApiApiKeyValue = "temp-dummy-key-for-sample-api";
+    options.RemoteDefaultHeaders["correlationId"] = "{request-guid}";
+    options.RemoteDefaultHeaders["sessionId"] = "{session-guid}";
+});
 
 app.Run();

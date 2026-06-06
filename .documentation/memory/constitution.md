@@ -14,6 +14,10 @@ Source          : audit 2026-05-28 (CAP-2026-001) + codebase analysis (CAP-2026-
 Version change  : 1.1.0 → 1.1.1
 Method          : /devspark.constitution (full-repo review)
 Date            : 2026-05-31
+
+Version change  : 1.1.1 → 1.1.2
+Method          : /devspark.address-pr-review (PR #2 CON-01)
+Date            : 2026-06-06
 Source          : full-repo review covering React SPA + .NET NuGet library + SampleApi demo site
 Changes         :
   §IV  — Added createRestCaller as a constitutionally recognised client pattern alongside
@@ -48,7 +52,7 @@ Deferred items  : none
 
 # API Test Spark Constitution
 
-**Version**: 1.1.1 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-05-31
+**Version**: 1.1.2 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-06-06
 
 > This constitution defines the non-negotiable engineering principles for the API Test Spark project.
 > All pull requests, AI-assisted code generation, and architectural decisions MUST comply with these principles.
@@ -173,6 +177,7 @@ Zustand stores are focused, action-gated, and buffer-bounded.
 | `useAuthStore` | Auth configuration + audit trail | `api-test-spark-auth-config` | Config only |
 | `useDebugStore` | Request/response/error/metrics capture | `api-test-spark-debug` | Enabled flag only |
 | `useHarnessConfigStore` | Runtime harness config + discovered OpenAPI endpoints | *(none — session only)* | No |
+| `useRemoteConfigStore` | Remote API connection config (URL, credentials, default headers) | `api-test-spark-remote-config` | Full config |
 
 `useHarnessConfigStore` is **not persisted** — its config is always re-fetched from
 `/api-test-spark/config` on app load. It holds the `HarnessConfig` from the .NET layer,
@@ -314,3 +319,4 @@ at any time. SHOULD be run before major releases.
 | 1.0.0 | 2026-05-18 | Initial constitution — 8 principles discovered from 45-file codebase analysis |
 | 1.1.0 | 2026-05-31 | CAP-2026-001: Clarified Principle VI — defined "unrecoverable", expanded routing scope to all of `src/`. CAP-2026-002: Updated Principle VII — split into per-artifact stances; formally recognised .NET MSTest suite as a MUST quality gate |
 | 1.1.1 | 2026-05-31 | Full-repo review: §IV recognised `createRestCaller` as second valid client pattern; §V added `useHarnessConfigStore` to store registry; §VI expanded `ErrorCategory` union to include `'React'`, added App Insights integration guidance. Code fix: `ErrorRecord.category` typed as `ErrorCategory` (was `string`). |
+| 1.1.2 | 2026-06-06 | §V — Added `useRemoteConfigStore` to canonical store registry (PR #2 CON-01, addressed via `/devspark.address-pr-review`). |

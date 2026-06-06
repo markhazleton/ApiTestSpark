@@ -26,5 +26,7 @@ export function createDefaultConfig(): UnifiedConfigState {
   for (const [key, cfg] of Object.entries(SECTION_CONFIGS)) {
     sections[key] = createDefaultSectionEnvConfigs(cfg.baseUrl);
   }
-  return { version: 2, currentEnvironment: "test", sections };
+  // 'harness' section holds harness-level per-environment config (e.g. remoteOpenApiUrl)
+  sections['harness'] = createDefaultSectionEnvConfigs('');
+  return { version: 3, currentEnvironment: "test", sections };
 }
