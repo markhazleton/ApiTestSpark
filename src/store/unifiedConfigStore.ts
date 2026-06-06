@@ -49,6 +49,14 @@ interface UnifiedConfigStoreState extends UnifiedConfigState {
   getApiConfig: (environment?: Environment) => ApiConfigSet;
   isComplete: () => boolean;
   reset: () => void;
+  setRemoteBaseUrl: (env: Environment, url: string | undefined) => void;
+  setRemoteDefaultHeaders: (env: Environment, headers: Record<string, string>) => void;
+  setRemoteOpenApiUrl: (env: Environment, url: string | undefined) => void;
+  setRemoteOpenApiApiKeyHeader: (env: Environment, header: string | undefined) => void;
+  setRemoteOpenApiApiKeyValue: (env: Environment, value: string | undefined) => void;
+  setRemoteOpenApiBearerToken: (env: Environment, token: string | undefined) => void;
+  /** Sets all remote fields to undefined — makes them re-seed-eligible on next load. */
+  clearRemoteOpenApiConfig: (env: Environment) => void;
 }
 
 export const useUnifiedConfigStore = create<UnifiedConfigStoreState>()(
@@ -106,11 +114,144 @@ export const useUnifiedConfigStore = create<UnifiedConfigStoreState>()(
       },
 
       reset: () => set(createDefaultConfig()),
+
+      setRemoteBaseUrl: (env, url) => {
+        set((state) => {
+          const updated: Record<string, typeof state.sections[string]> = {};
+          for (const [key, envConfigs] of Object.entries(state.sections)) {
+            updated[key] = {
+              ...envConfigs,
+              [env]: { ...envConfigs[env], remoteBaseUrl: url || undefined },
+            };
+          }
+          return { sections: updated };
+        });
+      },
+
+      setRemoteDefaultHeaders: (env, headers) => {
+        set((state) => {
+          const updated: Record<string, typeof state.sections[string]> = {};
+          for (const [key, envConfigs] of Object.entries(state.sections)) {
+            updated[key] = {
+              ...envConfigs,
+              [env]: { ...envConfigs[env], remoteDefaultHeaders: headers },
+            };
+          }
+          return { sections: updated };
+        });
+      },
+
+      setRemoteOpenApiUrl: (env, url) => {
+        set((state) => {
+          const updated: Record<string, typeof state.sections[string]> = {};
+          for (const [key, envConfigs] of Object.entries(state.sections)) {
+            const cfg = envConfigs[env];
+            // Atomicity invariant: clearing the URL also clears credentials
+            const isClearing = !url;
+            updated[key] = {
+              ...envConfigs,
+              [env]: {
+                ...cfg,
+                remoteOpenApiUrl: url || undefined,
+                ...(isClearing ? {
+                  remoteOpenApiApiKeyHeader: undefined,
+                  remoteOpenApiApiKeyValue: undefined,
+                  remoteOpenApiBearerToken: undefined,
+                } : {}),
+              },
+            };
+          }
+          return { sections: updated };
+        });
+      },
+
+      setRemoteOpenApiApiKeyHeader: (env, header) => {
+        set((state) => {
+          const updated: Record<string, typeof state.sections[string]> = {};
+          for (const [key, envConfigs] of Object.entries(state.sections)) {
+            updated[key] = {
+              ...envConfigs,
+              [env]: { ...envConfigs[env], remoteOpenApiApiKeyHeader: header },
+            };
+          }
+          return { sections: updated };
+        });
+      },
+
+      setRemoteOpenApiApiKeyValue: (env, value) => {
+        set((state) => {
+          const updated: Record<string, typeof state.sections[string]> = {};
+          for (const [key, envConfigs] of Object.entries(state.sections)) {
+            updated[key] = {
+              ...envConfigs,
+              [env]: { ...envConfigs[env], remoteOpenApiApiKeyValue: value },
+            };
+          }
+          return { sections: updated };
+        });
+      },
+
+      setRemoteOpenApiBearerToken: (env, token) => {
+        set((state) => {
+          const updated: Record<string, typeof state.sections[string]> = {};
+          for (const [key, envConfigs] of Object.entries(state.sections)) {
+            updated[key] = {
+              ...envConfigs,
+              [env]: { ...envConfigs[env], remoteOpenApiBearerToken: token },
+            };
+          }
+          return { sections: updated };
+        });
+      },
+
+      clearRemoteOpenApiConfig: (env) => {
+        set((state) => {
+          const updated: Record<string, typeof state.sections[string]> = {};
+          for (const [key, envConfigs] of Object.entries(state.sections)) {
+            updated[key] = {
+              ...envConfigs,
+              [env]: {
+                ...envConfigs[env],
+                remoteBaseUrl: undefined,
+                remoteOpenApiUrl: undefined,
+                remoteOpenApiApiKeyHeader: undefined,
+                remoteOpenApiApiKeyValue: undefined,
+                remoteOpenApiBearerToken: undefined,
+                remoteDefaultHeaders: undefined,
+              },
+            };
+          }
+          return { sections: updated };
+        });
+      },
     }),
     {
       name: STORAGE_KEY,
-      version: 2,
-      migrate: () => createDefaultConfig(),
+      version: 3,
+      migrate: (persisted, fromVersion) => {
+        const base = fromVersion < 2
+          ? createDefaultConfig()
+          : (persisted as ReturnType<typeof createDefaultConfig>);
+        // v2 → v3: add remote fields; add 'harness' section if missing
+        for (const envConfigs of Object.values(base.sections ?? {})) {
+          for (const envKey of ['localhost', 'test', 'other'] as const) {
+            const cfg = (envConfigs as unknown as Record<string, unknown>)[envKey] as Record<string, unknown> | undefined;
+            if (cfg) {
+              cfg['remoteBaseUrl'] ??= undefined;
+              cfg['remoteOpenApiUrl'] ??= undefined;
+              cfg['remoteOpenApiApiKeyHeader'] ??= undefined;
+              cfg['remoteOpenApiApiKeyValue'] ??= undefined;
+              cfg['remoteOpenApiBearerToken'] ??= undefined;
+              cfg['remoteDefaultHeaders'] ??= undefined;
+            }
+          }
+        }
+        if (!base.sections?.['harness']) {
+          const fresh = createDefaultConfig();
+          base.sections = { ...base.sections, harness: fresh.sections['harness'] };
+        }
+        return base;
+      },
     },
   ),
 );
