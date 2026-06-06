@@ -114,6 +114,9 @@ public static class ApiTestSparkExtensions
             ?.Split('+')[0]   // strip git hash suffix if present
             ?? assembly.GetName().Version?.ToString()
             ?? "unknown";
+        // TODO: In single-file publish / trimming scenarios assembly.Location is empty,
+        // so the fallback returns wall-clock time instead of the real build date.
+        // Fix: embed build date as <AssemblyMetadata> in the csproj so it survives trimming.
         var harnessBuiltAt = !string.IsNullOrEmpty(assembly.Location)
             ? File.GetLastWriteTimeUtc(assembly.Location).ToString("O")
             : DateTime.UtcNow.ToString("O");

@@ -21,7 +21,8 @@ export function RemoteApiScreen() {
     fetchRemoteSpec()
       .then((eps) => { setEndpoints(eps); setLoaded(true); })
       .catch(() => { setLoaded(true); });
-  // Only re-fetch when the remote spec URL changes
+  // fetchRemoteSpec is a new function identity on every render (useMutation); including it
+  // would cause an infinite fetch loop. remoteOpenApiUrl is the correct and only dependency.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteOpenApiUrl]);
 
