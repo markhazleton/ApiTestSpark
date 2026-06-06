@@ -175,7 +175,9 @@ public static class HomeEndpoints
                 <a href="#features">Features</a>
                 <a href="#options">Options</a>
                 <a href="#demo">Live Demo</a>
+                <a href="#remote-api">Remote API</a>
                 <a href="#best-practices">Best Practices</a>
+                <a href="#history">History</a>
                 <a href="https://www.nuget.org/packages/ApiTestSpark" target="_blank" rel="noopener">NuGet</a>
                 <a href="https://github.com/markhazleton/ApiTestSpark" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -209,15 +211,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.2.0</span>
+                            <span class="pkg-version">v1.3.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 2, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 6, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.2.0</div>
+                            <div class="value">1.3.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -262,6 +264,7 @@ public static class HomeEndpoints
                         <span class="pkg-tag">spa</span>
                         <span class="pkg-tag">developer-tools</span>
                         <span class="pkg-tag">api-testing</span>
+                        <span class="pkg-tag">remote-api</span>
                         <span class="pkg-tag">embedded-ui</span>
                         <span class="pkg-tag">curl</span>
                         <span class="pkg-tag">swagger-ui-alternative</span>
@@ -333,6 +336,26 @@ public static class HomeEndpoints
                         <div class="feature-icon">🏷️</div>
                         <h3>JSONPath Field Labels</h3>
                         <p>Every field in the response form shows its dot-notation JSONPath address (<code class="inline">$.field</code>, <code class="inline">$.parent.field</code>) as a tooltip. Click any field label to copy the path to the clipboard.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3>Remote API Explorer</h3>
+                        <p>Browse and test any remote REST API from its OpenAPI document. Configure <code class="inline">RemoteBaseUrl</code> and <code class="inline">RemoteOpenApiUrl</code> in <code class="inline">Program.cs</code> — the harness fetches the spec server-side so credentials never appear in the browser network tab.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔑</div>
+                        <h3>Credential-Safe Proxy</h3>
+                        <p>A server-side proxy endpoint (<code class="inline">GET /api-test-spark/remote-spec</code>) injects your API key or Bearer token before fetching the remote OpenAPI document. An SSRF guard rejects non-HTTP/HTTPS schemes before any outbound call.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🪪</div>
+                        <h3>Header Token Expansion</h3>
+                        <p>Header values support <code class="inline">{session-guid}</code> (one UUID per page load) and <code class="inline">{request-guid}</code> (fresh UUID per call), expanded at request-send time. Ideal for correlation IDs in distributed tracing.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📑</div>
+                        <h3>Remote API Doc Builder</h3>
+                        <p>The same endpoint-capture and markdown-export experience as the host API Doc Builder, but for remote API endpoints. Capture live remote responses and export complete markdown documentation.</p>
                     </div>
                 </div>
             </section>
@@ -457,6 +480,36 @@ app.<span class="cm">Run</span>();</pre>
                             <td>true</td>
                             <td>When <code class="inline">false</code>, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes (<code class="inline">/joke-api</code>, <code class="inline">/json-placeholder</code>). The home page shows only <strong>Host API Explorer</strong> and <strong>API Doc Builder</strong>. Default <code class="inline">true</code> — existing installs are unaffected.</td>
                         </tr>
+                        <tr>
+                            <td>RemoteBaseUrl</td>
+                            <td>null</td>
+                            <td>Base URL of the remote REST API. Added to <code class="inline">Content-Security-Policy connect-src</code> automatically so the browser can make direct endpoint calls without modifying the remote server.</td>
+                        </tr>
+                        <tr>
+                            <td>RemoteOpenApiUrl</td>
+                            <td>null</td>
+                            <td>Full URL of the remote OpenAPI JSON document. Fetched server-side via the spec proxy. Must begin with <code class="inline">http://</code> or <code class="inline">https://</code> — other schemes are rejected with 400 (SSRF guard).</td>
+                        </tr>
+                        <tr>
+                            <td>RemoteOpenApiApiKeyHeader</td>
+                            <td>null</td>
+                            <td>Header name for the remote API key (e.g. <code class="inline">x-api-key</code>). Only active when <code class="inline">RemoteOpenApiApiKeyValue</code> is also set.</td>
+                        </tr>
+                        <tr>
+                            <td>RemoteOpenApiApiKeyValue</td>
+                            <td>null</td>
+                            <td>API key value. Injected server-side by the spec proxy — never visible in the browser network tab.</td>
+                        </tr>
+                        <tr>
+                            <td>RemoteOpenApiBearerToken</td>
+                            <td>null</td>
+                            <td>Bearer token for the remote spec proxy. Injected server-side as <code class="inline">Authorization: Bearer …</code>.</td>
+                        </tr>
+                        <tr>
+                            <td>RemoteDefaultHeaders</td>
+                            <td>{}</td>
+                            <td>Headers injected into every browser-side request to the remote API. Supports <code class="inline">{session-guid}</code> and <code class="inline">{request-guid}</code> tokens expanded at request time. Use for correlation IDs and session tracking.</td>
+                        </tr>
                     </tbody>
                 </table>
 
@@ -468,6 +521,21 @@ app.<span class="cm">Run</span>();</pre>
     options.AuthScheme   = <span class="st">"Bearer"</span>;
     options.DefaultHeaders[<span class="st">"X-Tenant-Id"</span>] = <span class="st">"acme"</span>;
     options.Environments = [<span class="st">"Development"</span>, <span class="st">"Staging"</span>];
+});</pre>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3>Example — Remote API Explorer with credential-safe proxy</h3>
+                    <p style="color:#475569;font-size:0.95rem;margin:0.5rem 0 0.75rem">Configure a remote API target. The spec is fetched server-side so your API key never reaches the browser network tab.</p>
+<pre><span class="kw">app</span>.<span class="cm">MapApiTestSpark</span>(options =>
+{
+    options.OpenApiUrl                   = <span class="st">"/openapi/v1.json"</span>;
+    options.RemoteBaseUrl                = <span class="st">"https://api.partner.com"</span>;
+    options.RemoteOpenApiUrl             = <span class="st">"https://api.partner.com/openapi.json"</span>;
+    options.RemoteOpenApiApiKeyHeader    = <span class="st">"x-api-key"</span>;
+    options.RemoteOpenApiApiKeyValue     = <span class="st">"your-api-key"</span>;   <span class="c">// stays server-side</span>
+    options.RemoteDefaultHeaders[<span class="st">"correlationId"</span>] = <span class="st">"{request-guid}"</span>; <span class="c">// UUID per call</span>
+    options.RemoteDefaultHeaders[<span class="st">"sessionId"</span>]     = <span class="st">"{session-guid}"</span>;  <span class="c">// UUID per page load</span>
 });</pre>
                 </div>
 
@@ -531,7 +599,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.2.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.3.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 181 KB</div>
                     </div>
@@ -543,7 +611,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                 <h2>How it works</h2>
                 <p class="section-intro">
                     API Test Spark compiles the React SPA into embedded resources inside the NuGet package.
-                    When you call <code class="inline">MapApiTestSpark()</code>, the library registers two things into your ASP.NET Core pipeline:
+                    When you call <code class="inline">MapApiTestSpark()</code>, the library registers four things into your ASP.NET Core pipeline:
                 </p>
                 <div class="steps">
                     <div class="step">
@@ -557,18 +625,29 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                         <div class="step-num">②</div>
                         <div class="step-body">
                             <h3>Config endpoint</h3>
-                            <p>Registers <code class="inline">GET /api-test-spark/config</code> as a Minimal API endpoint. The SPA fetches this on startup to receive your <code class="inline">OpenApiUrl</code>, <code class="inline">AuthScheme</code>, and <code class="inline">DefaultHeaders</code> — no hardcoded values in the bundle.</p>
+                            <p>Registers <code class="inline">GET /api-test-spark/config</code>. The SPA fetches this on startup to receive all configuration — host API URL, auth scheme, default headers, remote API settings, and the harness version/build date. Nothing is hardcoded in the bundle.</p>
                             <pre style="margin-top:0.5rem">{
   "baseUrl": "https://your-api.example.com",
   "openApiUrl": "/openapi/v1.json",
   "authScheme": "Bearer",
   "defaultHeaders": { "X-Tenant-Id": "acme" },
-  "enableDemoIntegrations": false
+  "enableDemoIntegrations": true,
+  "remoteBaseUrl": "https://api.partner.com",
+  "remoteOpenApiUrl": "https://api.partner.com/openapi.json",
+  "harnessVersion": "1.3.0",
+  "harnessBuiltAt": "2026-06-06T14:41:11Z"
 }</pre>
                         </div>
                     </div>
                     <div class="step">
                         <div class="step-num">③</div>
+                        <div class="step-body">
+                            <h3>Remote spec proxy</h3>
+                            <p>Registers <code class="inline">GET /api-test-spark/remote-spec</code>. When the Remote API Explorer loads, the SPA requests this endpoint instead of the remote URL directly. The proxy injects your API key or Bearer token server-side, fetches the remote OpenAPI document, validates it, and returns the JSON — credentials never appear in the browser network tab. Non-HTTP/HTTPS schemes are rejected with 400 (SSRF guard).</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">④</div>
                         <div class="step-body">
                             <h3>SPA fallback middleware</h3>
                             <p>Extensionless paths under <code class="inline">/api-test-spark/</code> fall back to <code class="inline">index.html</code> so client-side routing works. Requests for unknown file extensions return HTTP 404 — the SPA never silently swallows asset 404s.</p>
@@ -773,6 +852,111 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                 </div>
             </section>
 
+            <!-- ── Remote API Explorer ── -->
+            <section id="remote-api">
+                <h2>Remote API Explorer</h2>
+                <p class="section-intro">
+                    New in v1.3.0 — browse and test any remote REST API from its OpenAPI document without leaving the harness.
+                    The spec is fetched via a server-side proxy so API keys and Bearer tokens stay off the browser network tab entirely.
+                </p>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem;">
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <h3 style="margin-bottom:0.4rem;">Path 1 — Spec Fetch (server-side)</h3>
+                        <p style="color:#475569;font-size:0.88rem;">Browser calls <code class="inline">GET /api-test-spark/remote-spec</code> → .NET proxy adds credentials → fetches remote OpenAPI JSON → returns body. Your API key is never visible in DevTools.</p>
+                    </div>
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #10b981;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <h3 style="margin-bottom:0.4rem;">Path 2 — Endpoint Calls (browser-direct)</h3>
+                        <p style="color:#475569;font-size:0.88rem;">When you click Send, the request goes from your browser to the remote server. Default headers (including <code class="inline">{request-guid}</code> correlation tokens) and any configured API key are injected by the SPA. The CSP <code class="inline">connect-src</code> is auto-extended with <code class="inline">RemoteBaseUrl</code>.</p>
+                    </div>
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #f59e0b;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <h3 style="margin-bottom:0.4rem;">Configuration Priority</h3>
+                        <p style="color:#475569;font-size:0.88rem;">Values set on the <strong>Config page</strong> (stored in <code class="inline">localStorage</code>) override values set in <code class="inline">Program.cs</code>. Use <strong>Clear all remote config</strong> on the Config page to revert to server defaults.</p>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom:0.75rem;">This demo's remote configuration</h3>
+                <p style="color:#475569;font-size:0.95rem;margin-bottom:0.75rem;">
+                    This site uses JSONPlaceholder as a live remote target — no auth required, always available. Open the Remote API Explorer to browse its endpoints.
+                </p>
+<pre><span class="kw">app</span>.<span class="cm">MapApiTestSpark</span>(options =>
+{
+    options.OpenApiUrl    = <span class="st">"/openapi/v1.json"</span>;
+    <span class="c">// Remote target — JSONPlaceholder public API</span>
+    options.RemoteBaseUrl    = <span class="st">"https://jsonplaceholder.typicode.com"</span>;
+    options.RemoteOpenApiUrl = <span class="st">"https://apitest.makeboldspark.com/openapi/v1.json"</span>;
+    <span class="c">// Token headers — expanded at request time, not stored as literals</span>
+    options.RemoteDefaultHeaders[<span class="st">"correlationId"</span>] = <span class="st">"{request-guid}"</span>;
+    options.RemoteDefaultHeaders[<span class="st">"sessionId"</span>]     = <span class="st">"{session-guid}"</span>;
+});</pre>
+                <div style="margin-top:1rem;">
+                    <a href="/api-test-spark/remote-api" class="btn-primary" style="font-size:0.95rem;padding:0.75rem 1.75rem;">🌐 Open Remote API Explorer</a>
+                </div>
+            </section>
+
+            <!-- ── Release History ── -->
+            <section id="history">
+                <h2>Release History</h2>
+                <p class="section-intro">API Test Spark ships frequently. Every release is a backwards-compatible drop-in upgrade.</p>
+
+                <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#0ea5e9;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.3.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 6, 2026</span>
+                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote API Explorer.</strong> Browse and test remote REST APIs from their OpenAPI documents. Server-side spec proxy keeps credentials off the browser network tab. New <code class="inline">ApiTestSparkOptions</code>: <code class="inline">RemoteBaseUrl</code>, <code class="inline">RemoteOpenApiUrl</code>, <code class="inline">RemoteOpenApiApiKeyHeader</code>, <code class="inline">RemoteOpenApiApiKeyValue</code>, <code class="inline">RemoteOpenApiBearerToken</code>, <code class="inline">RemoteDefaultHeaders</code>. Header token expansion (<code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>). SSRF guard on proxy. Harness version and build date on About page. HeadersEditor focus-loss fix.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #6366f1;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#6366f1;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.2.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 2, 2026</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Response panel DX improvements.</strong> Editable depth-1 nested object sub-forms (collapsed by default, values merge into "Copy as JSON"). "Copy as cURL" in the response panel. Pretty/minified JSON toggle with session-persistent preference. JSONPath tooltips on every field label (click to copy). 2-row table truncation with show-all/show-less. <code class="inline">buildCurl</code> extracted to shared <code class="inline">src/utils/curlBuilder.ts</code>.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #8b5cf6;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#8b5cf6;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.1.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">May 31, 2026</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Demo integration toggle.</strong> New <code class="inline">EnableDemoIntegrations</code> option — set to <code class="inline">false</code> to hide the built-in JokeAPI and JSONPlaceholder demo screens. TypeScript type system hardened: <code class="inline">ErrorCategory</code> union expanded with <code class="inline">'React'</code>; <code class="inline">ErrorBoundary</code> observability corrected. Constitution amended to v1.1.1.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#94a3b8;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.0.2</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">May 30, 2026</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>CSP fix.</strong> Fixed Content-Security-Policy blocking localhost WebSocket and HTTP connections in Development, restoring Browser Link and hot-reload. No public API changes.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#94a3b8;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.0.1</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">May 30, 2026</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>API Doc Builder + rich metadata.</strong> New <code class="inline">/api-docs</code> screen captures live endpoint responses and exports complete markdown documentation. Full OpenAPI metadata surface: response codes with inline schemas, <code class="inline">operationId</code> chip, schema constraints, markdown rendering, API info header. Relational seed data in SampleApi.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#94a3b8;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.0.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">May 30, 2026</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Initial release.</strong> <code class="inline">MapApiTestSpark()</code> extension, OpenAPI v3 autodiscovery, collapsible accordion endpoint groups, smart response rendering (tables/forms/pre), cURL generation, debug panel, environment gating, Azure Application Insights integration, 30 MSTest integration tests.</p>
+                    </div>
+
+                </div>
+
+                <div style="margin-top:1.25rem;">
+                    <a href="https://github.com/markhazleton/ApiTestSpark/blob/main/CHANGELOG.md" class="btn-secondary" style="font-size:0.9rem;padding:0.6rem 1.5rem;" target="_blank" rel="noopener">View full CHANGELOG →</a>
+                </div>
+            </section>
+
             <!-- ── FAQ ── -->
             <section id="faq">
                 <h2>Frequently asked questions</h2>
@@ -808,6 +992,22 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                     <div>
                         <h3>What does this site use for EnableDemoIntegrations?</h3>
                         <p style="color:#475569;margin-top:0.25rem;">This demo site sets <code class="inline">EnableDemoIntegrations = true</code> so you can explore all features including the built-in JokeAPI and JSONPlaceholder integrations. In a real installation you would typically set this to <code class="inline">false</code> to present a focused harness for your own API.</p>
+                    </div>
+                    <div>
+                        <h3>How does the Remote API Explorer keep credentials safe?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">When the Remote API Explorer loads, the SPA calls <code class="inline">GET /api-test-spark/remote-spec</code> — a .NET endpoint in the same process as your app. That endpoint reads the configured API key or Bearer token from <code class="inline">ApiTestSparkOptions</code> (server-side memory, never the browser) and injects them into the outbound request before fetching the remote OpenAPI document. The credentials never travel to the browser at all — only the parsed JSON response does.</p>
+                    </div>
+                    <div>
+                        <h3>What are {session-guid} and {request-guid}?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">These are token placeholders you can embed in any header value in <code class="inline">RemoteDefaultHeaders</code>. <code class="inline">{session-guid}</code> is replaced with one UUID that stays constant for the entire page session — useful for tracking a user's full session in a distributed trace. <code class="inline">{request-guid}</code> is replaced with a fresh UUID on every individual API call — useful as a per-request correlation ID. Expansion happens at request-send time, not at configuration time.</p>
+                    </div>
+                    <div>
+                        <h3>Can I use the Remote API Explorer to test an API that requires CORS?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">Yes. When you set <code class="inline">RemoteBaseUrl</code>, the harness automatically adds that origin to the page's <code class="inline">Content-Security-Policy connect-src</code> directive. This means the browser will allow direct calls from the harness to the remote server without needing a preflight change on the remote server — as long as the remote server already sends permissive CORS headers (e.g. <code class="inline">Access-Control-Allow-Origin: *</code>).</p>
+                    </div>
+                    <div>
+                        <h3>I updated remote config on the Config page but the proxy still uses the old key — why?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">The <code class="inline">/api-test-spark/remote-spec</code> proxy reads credentials from <code class="inline">ApiTestSparkOptions</code> at request time — that is, from the values set in <code class="inline">Program.cs</code> at startup. UI-entered credential changes are persisted in <code class="inline">localStorage</code> and applied to <em>browser-direct</em> endpoint calls immediately, but they do not reach the proxy until you restart the .NET host with the updated values in <code class="inline">Program.cs</code>. This is by design: passing credentials from the browser to the proxy would put them on the network tab, defeating the purpose of the server-side proxy.</p>
                     </div>
                 </div>
             </section>
