@@ -1,12 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useHarnessConfigStore } from '../../store/harnessConfigStore';
+import { getRemoteProfileLabel, getVisibleRemoteProfiles, useRemoteConfigStore } from '../../store/remoteConfigStore';
 import { useRemoteOpenApi } from '../../hooks/useRemoteOpenApi';
 import { EndpointList } from '../host-api/EndpointList';
 import { buildCurlCommand, generateMarkdown } from '../../utils/generateMarkdown';
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { resolveHeaderTokens } from '../../utils/session';
-import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc } from '../../types';
+import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc, HarnessConfig, RemoteApiProfile } from '../../types';
 
 const METHOD_COLORS: Record<string, string> = {
   GET:    'bg-blue-100 text-blue-800',
@@ -15,6 +17,23 @@ const METHOD_COLORS: Record<string, string> = {
   PATCH:  'bg-orange-100 text-orange-800',
   DELETE: 'bg-red-100 text-red-800',
 };
+
+function fallbackProfile(config: HarnessConfig | null): RemoteApiProfile | null {
+  if (!config?.remoteBaseUrl && !config?.remoteOpenApiUrl) return null;
+  return {
+    id: 'legacy-remote-api',
+    name: 'Remote API',
+    description: 'Configured from Program.cs.',
+    remoteBaseUrl: config.remoteBaseUrl ?? '',
+    remoteOpenApiUrl: config.remoteOpenApiUrl ?? '',
+    remoteOpenApiApiKeyHeader: config.remoteOpenApiApiKeyHeader ?? '',
+    remoteOpenApiApiKeyValue: config.remoteOpenApiApiKeyValue ?? '',
+    remoteOpenApiBearerToken: config.remoteOpenApiBearerToken ?? '',
+    remoteDefaultHeaders: config.remoteDefaultHeaders ?? {},
+    source: 'server',
+    proxyMode: 'server',
+  };
+}
 
 // ── Capture form ──────────────────────────────────────────────────────────────
 
@@ -288,35 +307,43 @@ function EntryCard({
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 export function RemoteApiDocScreen() {
+  const { profileId } = useParams();
   const { config } = useHarnessConfigStore();
+  const remoteStore = useRemoteConfigStore();
   const { mutateAsync: fetchRemoteSpec, isPending, isError, error } = useRemoteOpenApi();
 
   const [endpoints, setEndpoints] = useState<DiscoveredEndpoint[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  const remoteBaseUrl = config?.remoteBaseUrl;
-  const remoteOpenApiUrl = config?.remoteOpenApiUrl;
+  const visibleProfiles = getVisibleRemoteProfiles(remoteStore);
+  const decodedProfileId = profileId ? decodeURIComponent(profileId) : '';
+  const profile = visibleProfiles.find((item) => item.id === decodedProfileId)
+    ?? visibleProfiles[0]
+    ?? fallbackProfile(config);
+  const remoteBaseUrl = profile?.remoteBaseUrl;
+  const remoteOpenApiUrl = profile?.remoteOpenApiUrl;
+  const profileLabel = profile ? getRemoteProfileLabel(profile) : 'Remote API';
 
   useEffect(() => {
-    if (!remoteOpenApiUrl) return;
-    fetchRemoteSpec()
+    if (!profile || !remoteOpenApiUrl) return;
+    fetchRemoteSpec({ profile })
       .then((eps) => { setEndpoints(eps); setLoaded(true); })
       .catch(() => { setLoaded(true); });
   // Only re-fetch when the remote spec URL changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remoteOpenApiUrl]);
+  }, [profile?.id, remoteOpenApiUrl]);
 
   // Build the capture config from remote settings (credentials injected server-side for spec fetch,
   // but direct browser calls use the headers from config)
   const captureConfig = remoteBaseUrl ? {
     baseUrl: remoteBaseUrl,
     headers: {
-      ...(config?.remoteDefaultHeaders ?? {}),
-      ...(config?.remoteOpenApiApiKeyHeader && config?.remoteOpenApiApiKeyValue
-        ? { [config.remoteOpenApiApiKeyHeader]: config.remoteOpenApiApiKeyValue }
+      ...(profile?.remoteDefaultHeaders ?? {}),
+      ...(profile?.source !== 'server' && profile?.remoteOpenApiApiKeyHeader && profile?.remoteOpenApiApiKeyValue
+        ? { [profile.remoteOpenApiApiKeyHeader]: profile.remoteOpenApiApiKeyValue }
         : {}),
-      ...(config?.remoteOpenApiBearerToken
-        ? { Authorization: `Bearer ${config.remoteOpenApiBearerToken}` }
+      ...(profile?.source !== 'server' && profile?.remoteOpenApiBearerToken
+        ? { Authorization: `Bearer ${profile.remoteOpenApiBearerToken}` }
         : {}),
     },
   } : null;
@@ -334,15 +361,15 @@ export function RemoteApiDocScreen() {
   // Seed doc title from remoteBaseUrl once loaded
   const titleInitialised = useRef(false);
   useEffect(() => {
-    if (remoteBaseUrl && !titleInitialised.current && loaded) {
+    if (profileLabel && !titleInitialised.current && loaded) {
       titleInitialised.current = true;
       setDoc((d) =>
         d.title === 'Remote API Integration Guide'
-          ? { ...d, title: `${remoteBaseUrl} Integration Guide` }
+          ? { ...d, title: `${profileLabel} Integration Guide` }
           : d
       );
     }
-  }, [remoteBaseUrl, loaded]);
+  }, [profileLabel, loaded]);
 
   const addEndpoint = useCallback((ep: DiscoveredEndpoint) => {
     setDoc((d) => {
@@ -410,8 +437,7 @@ export function RemoteApiDocScreen() {
         <div className="bg-gray-50 border border-gray-200 rounded p-4 max-w-lg">
           <p className="text-sm font-semibold text-gray-700">Remote API not configured</p>
           <p className="text-xs text-gray-500 mt-1">
-            Set <code>options.RemoteBaseUrl</code> and <code>options.RemoteOpenApiUrl</code> in{' '}
-            <code>MapApiTestSpark()</code> to enable the remote API doc builder.
+            Add <code>options.RemoteApiProfiles</code> in <code>MapApiTestSpark()</code> or create a browser profile on the Config page.
           </p>
         </div>
       </div>
@@ -434,7 +460,7 @@ export function RemoteApiDocScreen() {
       {/* ── Top bar ── */}
       <div className="px-6 py-3 border-b border-gray-200 shrink-0 flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold text-gray-900">Remote API Doc Builder</h1>
+          <h1 className="text-lg font-semibold text-gray-900">{profileLabel} Doc Builder</h1>
           <p className="text-xs text-gray-400">
             {remoteBaseUrl
               ? <span className="font-mono">{remoteBaseUrl}</span>

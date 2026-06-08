@@ -1,101 +1,12 @@
-import { useState } from 'react';
-import { useRemoteConfigStore } from '../store/remoteConfigStore';
-import { useHarnessConfigStore } from '../store/harnessConfigStore';
-import type { HarnessConfig } from '../types';
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function isValidUrl(val: string) {
-  if (!val) return true;
-  return /^https?:\/\/.+/.test(val);
-}
-
-// ── Headers key-value editor ──────────────────────────────────────────────────
-
-// Buffers the header name locally while typing; commits to parent on blur.
-// Fully uncontrolled after mount — the parent only resets the whole form on
-// Save/Clear, at which point React remounts this component via the row's key.
-function KeyInput({ initialValue, onCommit }: { initialValue: string; onCommit: (v: string) => void }) {
-  const [local, setLocal] = useState(initialValue);
-  return (
-    <input
-      type="text"
-      value={local}
-      onChange={(e) => setLocal(e.target.value)}
-      onBlur={() => onCommit(local)}
-      placeholder="Header name"
-      className="w-40 shrink-0 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
-    />
-  );
-}
-
-function HeadersEditor({
-  headers,
-  onChange,
-}: {
-  headers: Record<string, string>;
-  onChange: (h: Record<string, string>) => void;
-}) {
-  const rows = Object.entries(headers);
-
-  function commitKey(oldKey: string, newKey: string) {
-    if (newKey === oldKey) return;
-    const next: Record<string, string> = {};
-    for (const [k, v] of rows) {
-      next[k === oldKey ? newKey : k] = v;
-    }
-    onChange(next);
-  }
-
-  function updateValue(key: string, value: string) {
-    onChange({ ...headers, [key]: value });
-  }
-
-  function removeRow(key: string) {
-    const next = { ...headers };
-    delete next[key];
-    onChange(next);
-  }
-
-  function addRow() {
-    onChange({ ...headers, '': '' });
-  }
-
-  return (
-    <div className="space-y-2">
-      {rows.map(([k, v], i) => (
-        <div key={i} className="flex items-center gap-2">
-          <KeyInput initialValue={k} onCommit={(newKey) => commitKey(k, newKey)} />
-          <span className="text-gray-400 text-xs shrink-0">:</span>
-          <input
-            type="text"
-            value={v}
-            onChange={(e) => updateValue(k, e.target.value)}
-            placeholder="Value or {session-guid} / {request-guid}"
-            className="flex-1 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
-          />
-          <button
-            type="button"
-            onClick={() => removeRow(k)}
-            className="text-red-400 hover:text-red-600 text-sm shrink-0 px-1"
-            title="Remove header"
-          >
-            ✕
-          </button>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={addRow}
-        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-      >
-        + Add header
-      </button>
-    </div>
-  );
-}
-
-// ── Field wrapper ─────────────────────────────────────────────────────────────
+import { useMemo, useState } from 'react';
+import {
+  createEmptyRemoteProfile,
+  getRemoteProfileLabel,
+  getVisibleRemoteProfiles,
+  useRemoteConfigStore,
+  validateRemoteProfile,
+} from '../store/remoteConfigStore';
+import type { RemoteApiProfile } from '../types';
 
 function Field({
   label,
@@ -118,247 +29,332 @@ function Field({
   );
 }
 
-// ── Section title ─────────────────────────────────────────────────────────────
-
-function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+function KeyInput({ initialValue, onCommit }: { initialValue: string; onCommit: (v: string) => void }) {
+  const [local, setLocal] = useState(initialValue);
   return (
-    <div className="pt-2">
-      <h3 className="text-sm font-bold text-gray-800">{title}</h3>
-      {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+    <input
+      type="text"
+      value={local}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => onCommit(local)}
+      placeholder="Header name"
+      className="w-40 shrink-0 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+    />
+  );
+}
+
+function HeadersEditor({
+  headers,
+  onChange,
+}: {
+  headers: Record<string, string>;
+  onChange: (headers: Record<string, string>) => void;
+}) {
+  const rows = Object.entries(headers);
+
+  function commitKey(oldKey: string, newKey: string) {
+    if (newKey === oldKey) return;
+    const next: Record<string, string> = {};
+    for (const [key, value] of rows) {
+      next[key === oldKey ? newKey : key] = value;
+    }
+    onChange(next);
+  }
+
+  function removeRow(key: string) {
+    const next = { ...headers };
+    delete next[key];
+    onChange(next);
+  }
+
+  return (
+    <div className="space-y-2">
+      {rows.map(([key, value], index) => (
+        <div key={`${key}-${index}`} className="flex items-center gap-2">
+          <KeyInput initialValue={key} onCommit={(nextKey) => commitKey(key, nextKey)} />
+          <span className="text-gray-400 text-xs shrink-0">:</span>
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange({ ...headers, [key]: e.target.value })}
+            placeholder="Value or {session-guid} / {request-guid}"
+            className="flex-1 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          <button
+            type="button"
+            onClick={() => removeRow(key)}
+            className="text-red-500 hover:text-red-700 text-sm shrink-0 px-1"
+            title="Remove header"
+          >
+            X
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange({ ...headers, '': '' })}
+        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+      >
+        + Add header
+      </button>
     </div>
   );
 }
 
-// ── Server info box ───────────────────────────────────────────────────────────
-
-function ServerInfoBox({ cfg }: { cfg: HarnessConfig | null }) {
-  if (!cfg) return null;
-  const none = <em className="font-sans not-italic text-blue-300">not set</em>;
+function ServerProfileRow({
+  profile,
+  hidden,
+  onToggle,
+}: {
+  profile: RemoteApiProfile;
+  hidden: boolean;
+  onToggle: (hidden: boolean) => void;
+}) {
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-xs text-blue-700 space-y-1">
-      <p className="font-semibold">Server-configured values (from Program.cs)</p>
-      <p className="text-blue-400">Browser values below override these on save.</p>
-      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 mt-2 font-mono">
-        <span className="text-blue-500">remoteBaseUrl</span>
-        <span className="break-all">{cfg.remoteBaseUrl || none}</span>
-        <span className="text-blue-500">remoteOpenApiUrl</span>
-        <span className="break-all">{cfg.remoteOpenApiUrl || none}</span>
-        <span className="text-blue-500">apiKeyHeader</span>
-        <span>{cfg.remoteOpenApiApiKeyHeader || none}</span>
-        <span className="text-blue-500">defaultHeaders</span>
-        <span>
-          {cfg.remoteDefaultHeaders && Object.keys(cfg.remoteDefaultHeaders).length > 0
-            ? Object.keys(cfg.remoteDefaultHeaders).join(', ')
-            : none}
-        </span>
+    <div className="border border-gray-200 rounded bg-white p-4 flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="text-sm font-semibold text-gray-900">{getRemoteProfileLabel(profile)}</h3>
+          <span className="text-[10px] uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded">
+            Program.cs
+          </span>
+          {hidden && <span className="text-[10px] uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded">hidden</span>}
+        </div>
+        {profile.description && <p className="text-xs text-gray-500 mt-1">{profile.description}</p>}
+        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 mt-3 text-xs font-mono">
+          <span className="text-gray-400">base</span>
+          <span className="break-all text-gray-700">{profile.remoteBaseUrl || 'not set'}</span>
+          <span className="text-gray-400">spec</span>
+          <span className="break-all text-gray-700">{profile.remoteOpenApiUrl || 'not set'}</span>
+          <span className="text-gray-400">auth</span>
+          <span className="text-gray-700">
+            {profile.remoteOpenApiApiKeyConfigured || profile.remoteOpenApiBearerTokenConfigured
+              ? 'configured on server'
+              : 'not configured'}
+          </span>
+        </div>
       </div>
+      <button
+        type="button"
+        onClick={() => onToggle(!hidden)}
+        className="text-xs font-semibold text-blue-600 hover:text-blue-800 shrink-0"
+      >
+        {hidden ? 'Show' : 'Hide'}
+      </button>
     </div>
   );
 }
 
-// ── Form state ────────────────────────────────────────────────────────────────
+function BrowserProfileEditor({
+  profile,
+  duplicateName,
+  onChange,
+  onDelete,
+}: {
+  profile: RemoteApiProfile;
+  duplicateName: boolean;
+  onChange: (patch: Partial<RemoteApiProfile>) => void;
+  onDelete: () => void;
+}) {
+  const errors = validateRemoteProfile(profile);
+  const baseError = errors.find((error) => error.startsWith('Remote Base URL'));
+  const specError = errors.find((error) => error.startsWith('OpenAPI Spec URL'));
+  const authError = errors.find((error) => error.startsWith('API key'));
 
-interface FormState {
-  remoteBaseUrl: string;
-  remoteOpenApiUrl: string;
-  apiKeyHeader: string;
-  apiKeyValue: string;
-  bearerToken: string;
-  defaultHeaders: Record<string, string>;
+  return (
+    <div className="border border-gray-200 rounded bg-white p-4 space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-gray-900">{getRemoteProfileLabel(profile)}</h3>
+          <p className="text-xs text-gray-500 mt-1">Stored in this browser. Spec fetches run directly from the browser.</p>
+        </div>
+        <button type="button" onClick={onDelete} className="text-xs font-semibold text-red-600 hover:text-red-800">
+          Delete
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <Field label="Name" error={duplicateName ? 'Name must be unique in the visible remote API list.' : undefined}>
+          <input
+            type="text"
+            value={profile.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+            className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </Field>
+        <Field label="Description">
+          <input
+            type="text"
+            value={profile.description ?? ''}
+            onChange={(e) => onChange({ description: e.target.value })}
+            className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </Field>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <Field label="Remote Base URL" hint="Endpoint paths are appended to this." error={baseError}>
+          <input
+            type="url"
+            value={profile.remoteBaseUrl ?? ''}
+            onChange={(e) => onChange({ remoteBaseUrl: e.target.value })}
+            placeholder="https://api.example.com"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </Field>
+        <Field label="OpenAPI Spec URL" hint="Fetched directly by the browser." error={specError}>
+          <input
+            type="url"
+            value={profile.remoteOpenApiUrl ?? ''}
+            onChange={(e) => onChange({ remoteOpenApiUrl: e.target.value })}
+            placeholder="https://api.example.com/openapi.json"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </Field>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <Field label="API Key Header" error={authError}>
+          <input
+            type="text"
+            value={profile.remoteOpenApiApiKeyHeader ?? ''}
+            onChange={(e) => onChange({ remoteOpenApiApiKeyHeader: e.target.value })}
+            placeholder="x-api-key"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </Field>
+        <Field label="API Key Value" hint="Stored only in browser localStorage.">
+          <input
+            type="password"
+            value={profile.remoteOpenApiApiKeyValue ?? ''}
+            onChange={(e) => onChange({ remoteOpenApiApiKeyValue: e.target.value })}
+            autoComplete="off"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+        </Field>
+      </div>
+
+      <Field label="Bearer Token" hint="Stored only in browser localStorage.">
+        <input
+          type="password"
+          value={profile.remoteOpenApiBearerToken ?? ''}
+          onChange={(e) => onChange({ remoteOpenApiBearerToken: e.target.value })}
+          autoComplete="off"
+          className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+        />
+      </Field>
+
+      <Field label="Default Request Headers" hint="Values support {session-guid} and {request-guid}.">
+        <HeadersEditor
+          headers={profile.remoteDefaultHeaders ?? {}}
+          onChange={(headers) => onChange({ remoteDefaultHeaders: headers })}
+        />
+      </Field>
+    </div>
+  );
 }
-
-// ── Main screen ───────────────────────────────────────────────────────────────
 
 export function ConfigScreen() {
   const remote = useRemoteConfigStore();
-  const serverConfig = useHarnessConfigStore((s) => s.config);
-
-  const [form, setForm] = useState<FormState>({
-    remoteBaseUrl:    remote.remoteBaseUrl,
-    remoteOpenApiUrl: remote.remoteOpenApiUrl,
-    apiKeyHeader:     remote.remoteOpenApiApiKeyHeader,
-    apiKeyValue:      remote.remoteOpenApiApiKeyValue,
-    bearerToken:      remote.remoteOpenApiBearerToken,
-    defaultHeaders:   remote.remoteDefaultHeaders,
-  });
+  const visibleProfiles = useMemo(() => getVisibleRemoteProfiles(remote), [remote]);
+  const duplicateNames = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const profile of visibleProfiles) {
+      const key = getRemoteProfileLabel(profile).trim().toLowerCase();
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return new Set([...counts.entries()].filter(([, count]) => count > 1).map(([name]) => name));
+  }, [visibleProfiles]);
   const [saved, setSaved] = useState(false);
 
-  const baseUrlError = !isValidUrl(form.remoteBaseUrl)   ? 'Must start with http:// or https://' : undefined;
-  const specUrlError = !isValidUrl(form.remoteOpenApiUrl) ? 'Must start with http:// or https://' : undefined;
-  const hasErrors    = !!baseUrlError || !!specUrlError;
-
-  function patch(partial: Partial<FormState>) {
-    setForm((f) => ({ ...f, ...partial }));
-  }
-
-  function handleSave() {
-    if (hasErrors) return;
-    remote.set({
-      remoteBaseUrl:             form.remoteBaseUrl,
-      remoteOpenApiUrl:          form.remoteOpenApiUrl,
-      remoteOpenApiApiKeyHeader: form.apiKeyHeader,
-      remoteOpenApiApiKeyValue:  form.apiKeyValue,
-      remoteOpenApiBearerToken:  form.bearerToken,
-      remoteDefaultHeaders:      form.defaultHeaders,
-    });
+  function addProfile() {
+    remote.addProfile(createEmptyRemoteProfile({ name: 'New Remote API' }));
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  function handleClear() {
-    remote.clear();
-    setForm({ remoteBaseUrl: '', remoteOpenApiUrl: '', apiKeyHeader: '', apiKeyValue: '', bearerToken: '', defaultHeaders: {} });
+    setTimeout(() => setSaved(false), 1600);
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 px-6 py-5">
-        <h1 className="text-xl font-bold text-gray-900">Configuration</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Remote API settings are stored in your browser and override values from{' '}
-          <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">Program.cs</code>.
-        </p>
+        <div className="max-w-5xl mx-auto flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Configuration</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Manage remote API profiles used by the explorer and doc builder.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={addProfile}
+            className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition-colors"
+          >
+            + Add remote
+          </button>
+        </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
-
-        <ServerInfoBox cfg={serverConfig} />
-
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-5 space-y-5">
-
-            {/* ── Remote API ── */}
-            <SectionTitle
-              title="Remote API"
-              subtitle="Base URL used for all remote API calls in the explorer and doc builder."
-            />
-
-            <Field label="Remote Base URL" hint="All endpoint paths are appended to this." error={baseUrlError}>
-              <input
-                type="url"
-                value={form.remoteBaseUrl}
-                onChange={(e) => patch({ remoteBaseUrl: e.target.value })}
-                placeholder="https://api.example.com"
-                className={`w-full font-mono text-sm border rounded px-3 py-2 focus:outline-none focus:ring-1 ${
-                  baseUrlError ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-400'
-                }`}
-              />
-            </Field>
-
-            {/* ── OpenAPI Spec ── */}
-            <div className="border-t border-gray-100 pt-4 space-y-4">
-              <SectionTitle
-                title="Remote OpenAPI Spec"
-                subtitle="URL of the remote OpenAPI JSON document. Fetched server-side to avoid CORS."
-              />
-
-              <Field
-                label="OpenAPI Spec URL"
-                hint="Credentials below are sent by the .NET proxy — never exposed in the browser network tab."
-                error={specUrlError}
-              >
-                <input
-                  type="url"
-                  value={form.remoteOpenApiUrl}
-                  onChange={(e) => patch({ remoteOpenApiUrl: e.target.value })}
-                  placeholder="https://api.example.com/openapi.json"
-                  className={`w-full font-mono text-sm border rounded px-3 py-2 focus:outline-none focus:ring-1 ${
-                    specUrlError ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-400'
-                  }`}
-                />
-              </Field>
-            </div>
-
-            {/* ── Auth ── */}
-            <div className="border-t border-gray-100 pt-4 space-y-4">
-              <SectionTitle
-                title="Authentication"
-                subtitle="Sent when fetching the remote OpenAPI spec and on every API call."
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="API Key Header" hint="Header name, e.g. x-api-key">
-                  <input
-                    type="text"
-                    value={form.apiKeyHeader}
-                    onChange={(e) => patch({ apiKeyHeader: e.target.value })}
-                    placeholder="x-api-key"
-                    className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                  />
-                </Field>
-
-                <Field label="API Key Value" hint="Stored in browser localStorage">
-                  <input
-                    type="password"
-                    value={form.apiKeyValue}
-                    onChange={(e) => patch({ apiKeyValue: e.target.value })}
-                    placeholder="••••••••"
-                    autoComplete="off"
-                    className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                  />
-                </Field>
-              </div>
-
-              <Field
-                label="Bearer Token"
-                hint="Sent as Authorization: Bearer <token>. Leave blank if using an API key."
-              >
-                <input
-                  type="password"
-                  value={form.bearerToken}
-                  onChange={(e) => patch({ bearerToken: e.target.value })}
-                  placeholder="••••••••"
-                  autoComplete="off"
-                  className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                />
-              </Field>
-            </div>
-
-            {/* ── Default Headers ── */}
-            <div className="border-t border-gray-100 pt-4 space-y-4">
-              <SectionTitle
-                title="Default Request Headers"
-                subtitle="Headers injected into every remote API call (e.g. correlation IDs, session tokens)."
-              />
-              <HeadersEditor
-                headers={form.defaultHeaders}
-                onChange={(h) => patch({ defaultHeaders: h })}
-              />
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Header values support two tokens expanded at request time:{' '}
-                <code className="bg-gray-100 px-1 rounded font-mono">{'{session-guid}'}</code> — one UUID per page load, and{' '}
-                <code className="bg-gray-100 px-1 rounded font-mono">{'{request-guid}'}</code> — a fresh UUID on every call.
-              </p>
-            </div>
-
-            {/* ── Actions ── */}
-            <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClear}
-                className="text-sm text-red-600 hover:text-red-800 font-medium"
-              >
-                Clear all remote config
-              </button>
-              <div className="flex items-center gap-3">
-                {saved && <span className="text-sm text-green-600 font-medium">Saved to browser</span>}
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={hasErrors}
-                  className="px-4 py-2 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
+      <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
+        {saved && (
+          <div className="bg-green-50 border border-green-200 rounded p-3 text-sm text-green-700">
+            Saved to browser
           </div>
-        </div>
+        )}
 
-        <p className="text-xs text-gray-400 text-center">
-          Persisted in <code>localStorage</code> under <code>api-test-spark-remote-config</code>.
-          Clearing browser data resets to server defaults.
-        </p>
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-bold text-gray-800">Server Profiles</h2>
+            <span className="text-xs text-gray-400">{remote.serverProfiles.length} configured</span>
+          </div>
+          {remote.serverProfiles.length === 0 ? (
+            <div className="border border-dashed border-gray-300 rounded p-4 text-sm text-gray-500">
+              No remote API profiles are configured in Program.cs.
+            </div>
+          ) : (
+            remote.serverProfiles.map((profile) => (
+              <ServerProfileRow
+                key={profile.id}
+                profile={profile}
+                hidden={remote.hiddenServerProfileIds.includes(profile.id)}
+                onToggle={(hidden) => remote.hideServerProfile(profile.id, hidden)}
+              />
+            ))
+          )}
+        </section>
+
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-bold text-gray-800">Browser Profiles</h2>
+            <span className="text-xs text-gray-400">{remote.profiles.length} stored locally</span>
+          </div>
+          {remote.profiles.length === 0 ? (
+            <div className="border border-dashed border-gray-300 rounded p-4 text-sm text-gray-500">
+              Add a browser profile to test a remote API without changing Program.cs.
+            </div>
+          ) : (
+            remote.profiles.map((profile) => (
+              <BrowserProfileEditor
+                key={profile.id}
+                profile={profile}
+                duplicateName={duplicateNames.has(getRemoteProfileLabel(profile).trim().toLowerCase())}
+                onChange={(patch) => remote.updateProfile(profile.id, patch)}
+                onDelete={() => remote.deleteProfile(profile.id)}
+              />
+            ))
+          )}
+        </section>
+
+        <div className="border-t border-gray-200 pt-4 flex items-center justify-between gap-3">
+          <p className="text-xs text-gray-400">
+            {visibleProfiles.length} visible remote profile{visibleProfiles.length === 1 ? '' : 's'}.
+          </p>
+          <button
+            type="button"
+            onClick={remote.reset}
+            className="text-sm text-red-600 hover:text-red-800 font-medium"
+          >
+            Reset browser remote config
+          </button>
+        </div>
       </div>
     </div>
   );

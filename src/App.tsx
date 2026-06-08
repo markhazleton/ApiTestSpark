@@ -54,7 +54,9 @@ function AppRoutes() {
 
       <Route path="/host-api"       element={<HostApiScreen />} />
       <Route path="/remote-api"    element={<RemoteApiScreen />} />
+      <Route path="/remote-api/:profileId" element={<RemoteApiScreen />} />
       <Route path="/remote-docs"   element={<RemoteApiDocScreen />} />
+      <Route path="/remote-docs/:profileId" element={<RemoteApiDocScreen />} />
       <Route path="/api-docs"      element={<ApiDocScreen />} />
 
       {showDemos && <Route path="/joke-api"         element={<JokeApiScreen />} />}

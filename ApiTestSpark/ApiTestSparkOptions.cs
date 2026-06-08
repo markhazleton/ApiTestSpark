@@ -3,6 +3,58 @@ using System.Net.Http;
 namespace ApiTestSpark;
 
 /// <summary>
+/// Configuration for one remote API shown by the API Test Spark remote explorer.
+/// </summary>
+public class RemoteApiProfile
+{
+    /// <summary>
+    /// Stable identifier used in browser routes and server proxy requests.
+    /// New profiles receive a GUID by default.
+    /// </summary>
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    /// <summary>
+    /// Human-friendly name displayed in remote API navigation and documentation screens.
+    /// </summary>
+    public string Name { get; set; } = "Remote API";
+
+    /// <summary>
+    /// Optional short description displayed with this remote API.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Base URL used for endpoint calls for this remote API.
+    /// </summary>
+    public string? RemoteBaseUrl { get; set; }
+
+    /// <summary>
+    /// URL of the OpenAPI v3 JSON document for this remote API.
+    /// </summary>
+    public string? RemoteOpenApiUrl { get; set; }
+
+    /// <summary>
+    /// Header name used to send an API key when fetching the remote OpenAPI document.
+    /// </summary>
+    public string? RemoteOpenApiApiKeyHeader { get; set; }
+
+    /// <summary>
+    /// API key value held on the server for proxy fetches. Never returned by config.
+    /// </summary>
+    public string? RemoteOpenApiApiKeyValue { get; set; }
+
+    /// <summary>
+    /// Bearer token held on the server for proxy fetches. Never returned by config.
+    /// </summary>
+    public string? RemoteOpenApiBearerToken { get; set; }
+
+    /// <summary>
+    /// Headers injected into endpoint calls for this remote API.
+    /// </summary>
+    public Dictionary<string, string> RemoteDefaultHeaders { get; set; } = new();
+}
+
+/// <summary>
 /// Configuration for the API Test Spark middleware.
 /// Pass an action to <see cref="ApiTestSparkExtensions.MapApiTestSpark"/> to customise.
 /// </summary>
@@ -55,6 +107,13 @@ public class ApiTestSparkOptions
     /// Default: true.
     /// </summary>
     public bool EnableDemoIntegrations { get; set; } = true;
+
+    /// <summary>
+    /// Remote APIs shown in the remote explorer and documentation builder.
+    /// Values configured here are served as metadata only; credential values are redacted
+    /// from <c>/api-test-spark/config</c> and used only by the server-side spec proxy.
+    /// </summary>
+    public List<RemoteApiProfile> RemoteApiProfiles { get; set; } = new();
 
     /// <summary>
     /// Headers injected into every SPA request when calling a remote API

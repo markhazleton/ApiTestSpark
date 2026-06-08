@@ -324,7 +324,7 @@ public class HarnessIntegrationTests
             $"Found: {string.Join(", ", resourceNames.Take(10))}");
     }
 
-    // ── New: remote OpenAPI config — T021/T022 ────────────────────────────────
+    // ── New: remote OpenAPI config ────────────────────────────────────────────
 
     [TestMethod]
     public async Task ConfigEndpoint_IncludesRemoteFields_WhenSet()
@@ -342,10 +342,19 @@ public class HarnessIntegrationTests
         var body = await response.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(body);
 
-        Assert.AreEqual("https://example.com/openapi.json",
-            doc.RootElement.GetProperty("remoteOpenApiUrl").GetString());
-        Assert.AreEqual("X-Api-Key",
-            doc.RootElement.GetProperty("remoteOpenApiApiKeyHeader").GetString());
+        var profiles = doc.RootElement.GetProperty("remoteApiProfiles");
+        Assert.AreEqual(JsonValueKind.Array, profiles.ValueKind);
+        Assert.AreEqual(1, profiles.GetArrayLength());
+        var profile = profiles[0];
+        Assert.AreEqual("legacy-remote-api", profile.GetProperty("id").GetString());
+        Assert.AreEqual("https://example.com/openapi.json", profile.GetProperty("remoteOpenApiUrl").GetString());
+        Assert.AreEqual("X-Api-Key", profile.GetProperty("remoteOpenApiApiKeyHeader").GetString());
+        Assert.AreEqual(JsonValueKind.Null, profile.GetProperty("remoteOpenApiApiKeyValue").ValueKind);
+        Assert.AreEqual(JsonValueKind.Null, profile.GetProperty("remoteOpenApiBearerToken").ValueKind);
+        Assert.IsTrue(profile.GetProperty("remoteOpenApiApiKeyConfigured").GetBoolean());
+        Assert.IsTrue(profile.GetProperty("remoteOpenApiBearerTokenConfigured").GetBoolean());
+        Assert.AreEqual(JsonValueKind.Null, doc.RootElement.GetProperty("remoteOpenApiApiKeyValue").ValueKind);
+        Assert.AreEqual(JsonValueKind.Null, doc.RootElement.GetProperty("remoteOpenApiBearerToken").ValueKind);
     }
 
     [TestMethod]
@@ -366,6 +375,7 @@ public class HarnessIntegrationTests
             doc.RootElement.GetProperty("remoteOpenApiApiKeyValue").ValueKind);
         Assert.AreEqual(JsonValueKind.Null,
             doc.RootElement.GetProperty("remoteOpenApiBearerToken").ValueKind);
+        Assert.AreEqual(0, doc.RootElement.GetProperty("remoteApiProfiles").GetArrayLength());
     }
 
     [TestMethod]
@@ -377,6 +387,45 @@ public class HarnessIntegrationTests
         Assert.IsNull(options.RemoteOpenApiApiKeyHeader);
         Assert.IsNull(options.RemoteOpenApiApiKeyValue);
         Assert.IsNull(options.RemoteOpenApiBearerToken);
+        Assert.IsNotNull(options.RemoteApiProfiles);
+        Assert.AreEqual(0, options.RemoteApiProfiles.Count);
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_IncludesMultipleRemoteProfiles_WithDisplayMetadata()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                Name = "Orders API",
+                Description = "Order management endpoints.",
+                RemoteBaseUrl = "https://orders.example.com",
+                RemoteOpenApiUrl = "https://orders.example.com/openapi.json",
+            });
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "billing",
+                Name = "Billing API",
+                Description = "Billing endpoints.",
+                RemoteBaseUrl = "https://billing.example.com",
+                RemoteOpenApiUrl = "https://billing.example.com/openapi.json",
+                RemoteOpenApiBearerToken = "billing-token",
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var profiles = JsonDocument.Parse(body).RootElement.GetProperty("remoteApiProfiles");
+
+        Assert.AreEqual(2, profiles.GetArrayLength());
+        Assert.AreEqual("Orders API", profiles[0].GetProperty("name").GetString());
+        Assert.AreEqual("Order management endpoints.", profiles[0].GetProperty("description").GetString());
+        Assert.AreEqual("Billing API", profiles[1].GetProperty("name").GetString());
+        Assert.AreEqual(JsonValueKind.Null, profiles[1].GetProperty("remoteOpenApiBearerToken").ValueKind);
+        Assert.IsTrue(profiles[1].GetProperty("remoteOpenApiBearerTokenConfigured").GetBoolean());
     }
 
     // ── New: remote spec proxy — T023 (400 cases) ────────────────────────────
@@ -387,7 +436,7 @@ public class HarnessIntegrationTests
         var app = BuildTestApp(); // no RemoteOpenApiUrl set
         var client = app.GetTestClient();
 
-        var response = await client.GetAsync("/api-test-spark/remote-spec");
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=legacy-remote-api");
 
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -398,7 +447,7 @@ public class HarnessIntegrationTests
         var app = BuildTestApp(o => o.RemoteOpenApiUrl = "file:///etc/passwd");
         var client = app.GetTestClient();
 
-        var response = await client.GetAsync("/api-test-spark/remote-spec");
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=legacy-remote-api");
 
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
@@ -426,7 +475,7 @@ public class HarnessIntegrationTests
         });
         var client = app.GetTestClient();
 
-        var response = await client.GetAsync("/api-test-spark/remote-spec");
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=legacy-remote-api");
 
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         Assert.AreEqual("application/json", response.Content.Headers.ContentType?.MediaType);
@@ -451,7 +500,7 @@ public class HarnessIntegrationTests
         });
         var client = app.GetTestClient();
 
-        var response = await client.GetAsync("/api-test-spark/remote-spec");
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=legacy-remote-api");
 
         Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
@@ -471,7 +520,7 @@ public class HarnessIntegrationTests
         });
         var client = app.GetTestClient();
 
-        var response = await client.GetAsync("/api-test-spark/remote-spec");
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=legacy-remote-api");
 
         Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
     }
@@ -519,6 +568,61 @@ public class HarnessIntegrationTests
         Assert.AreEqual("application/json", contentType,
             "remote-spec must return application/json, not text/html (SPA middleware pass-through check)");
     }
+
+    [TestMethod]
+    public async Task RemoteSpec_UsesProfileId_AndServerHeldCredentials()
+    {
+        const string openApiJson = """{"openapi":"3.0.0","info":{"title":"T","version":"1"},"paths":{}}""";
+        var handler = new CapturingHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(openApiJson, System.Text.Encoding.UTF8, "application/json"),
+            });
+        var testClient = new HttpClient(handler);
+
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                Name = "Orders API",
+                RemoteOpenApiUrl = "https://orders.example.com/openapi.json",
+                RemoteOpenApiApiKeyHeader = "X-Api-Key",
+                RemoteOpenApiApiKeyValue = "server-secret",
+                RemoteOpenApiBearerToken = "server-token",
+            });
+            o.TestHttpClient = testClient;
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=orders");
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual("https://orders.example.com/openapi.json", handler.LastRequest?.RequestUri?.ToString());
+        Assert.IsNotNull(handler.LastRequest);
+        Assert.IsTrue(handler.LastRequest.Headers.TryGetValues("X-Api-Key", out var apiKeyValues));
+        Assert.AreEqual("server-secret", apiKeyValues.Single());
+        Assert.AreEqual("Bearer server-token", handler.LastRequest?.Headers.Authorization?.ToString());
+    }
+
+    [TestMethod]
+    public async Task RemoteSpec_RejectsUnknownProfileId()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "known",
+                Name = "Known",
+                RemoteOpenApiUrl = "https://example.com/openapi.json",
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=browser-created");
+
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
 
 // ── Test helpers ─────────────────────────────────────────────────────────────
@@ -528,6 +632,18 @@ internal sealed class MockHttpMessageHandler(HttpResponseMessage response) : Htt
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
         => Task.FromResult(response);
+}
+
+internal sealed class CapturingHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
+{
+    public HttpRequestMessage? LastRequest { get; private set; }
+
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        LastRequest = request;
+        return Task.FromResult(response);
+    }
 }
 
 internal sealed class TimeoutHttpMessageHandler : HttpMessageHandler

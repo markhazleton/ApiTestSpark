@@ -18,7 +18,7 @@ participants:
 
 **Feature Branch**: `001-remote-api-list`
 **Created**: 2026-06-09
-**Status**: Draft
+**Status**: Complete  
 **Input**: User description: "refactor remote to allow for a list of remote APIs to be configured, turn the single remote api into a list of remote apis, keep the persistence working the same way, configured in program.cs but with a config page that lets you manage the list of remotes, add name and description that is used in the display the api and documentation sections for each configured remote API"
 
 ## Rationale Summary

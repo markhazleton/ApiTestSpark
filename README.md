@@ -104,6 +104,7 @@ Navigate to `https://localhost:{port}/api-test-spark/` — API Test Spark autodi
 | **JSONPath Field Labels** | Every response field shows its dot-notation JSONPath address as a tooltip — click to copy |
 | **Table Truncation** | Large array responses show 2 rows by default with a "Show all N items" expand/collapse control |
 | **API Doc Builder** | Select endpoints, capture live curl + responses, annotate, and export markdown at `/api-docs` |
+| **Remote API Profiles** | Configure multiple named remote APIs in `Program.cs` or the browser, each with its own explorer and doc builder route |
 | **Live Debug Panel** | Every request, response, error, and performance metric — drag-resizable, FIFO buffered |
 | **Environment Gating** | Restrict the harness to Development or Staging; keep it off production with one option |
 | **Demo Integration Toggle** | Hide the built-in JokeAPI and JSONPlaceholder demo screens with one option — show only your host API |
@@ -137,6 +138,28 @@ app.MapApiTestSpark(options =>
 | `CorsOrigins` | `[]` | Extra origins allowed to call the config endpoint |
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens and disables their routes. Set to `false` for a clean harness showing only your host API. |
+| `RemoteApiProfiles` | `[]` | Named remote API defaults. Each profile has an id, name, description, base URL, OpenAPI URL, credentials, and headers. |
+| `RemoteBaseUrl` / `RemoteOpenApiUrl` | `null` | Legacy single-remote options. When `RemoteApiProfiles` is empty, these seed one compatibility profile. |
+
+### Remote API profiles
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "orders-api",
+        Name = "Orders API",
+        Description = "Order management endpoints.",
+        RemoteBaseUrl = "https://orders.example.com",
+        RemoteOpenApiUrl = "https://orders.example.com/openapi.json",
+        RemoteOpenApiApiKeyHeader = "x-api-key",
+        RemoteOpenApiApiKeyValue = builder.Configuration["Orders:ApiKey"],
+    });
+});
+```
+
+Server profile secrets are redacted from `GET /api-test-spark/config`. The server proxy fetches specs by profile id at `GET /api-test-spark/remote-spec?profileId=orders-api`, so browser-created profiles cannot submit arbitrary URLs to the server proxy. Browser-created profiles are stored in `localStorage` and fetch their OpenAPI documents directly from the browser.
 
 ---
 
@@ -159,8 +182,8 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 `MapApiTestSpark()` registers four things into your ASP.NET Core pipeline:
 
 1. **Static file middleware** — serves the embedded SPA assets (HTML, JS, CSS) from `EmbeddedFileProvider` at `/api-test-spark/`. No files are copied to your project.
-2. **Config endpoint** — `GET /api-test-spark/config` returns your `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, remote API settings, and harness version at runtime. The SPA fetches this on startup — no values are hardcoded in the bundle.
-3. **Remote spec proxy** — `GET /api-test-spark/remote-spec` fetches the configured `RemoteOpenApiUrl` server-side and returns the JSON to the SPA. API key and Bearer token are injected at the server; credentials never appear in the browser network tab.
+2. **Config endpoint** — `GET /api-test-spark/config` returns your `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, redacted remote API profile metadata, and harness version at runtime. The SPA fetches this on startup — no values are hardcoded in the bundle.
+3. **Remote spec proxy** — `GET /api-test-spark/remote-spec?profileId=...` fetches the configured server remote profile OpenAPI document and returns the JSON to the SPA. API key and Bearer token are injected at the server; credential values are not serialized to the browser config payload.
 4. **SPA fallback** — extensionless paths under `/api-test-spark/` serve `index.html` so client-side routing works. Unknown file extensions return HTTP 404.
 
 ---
@@ -169,7 +192,7 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 
 ### v1.3.0 — June 6, 2026
 
-Remote API Explorer: browse and test a remote REST API from its OpenAPI document. Configure `RemoteBaseUrl` and `RemoteOpenApiUrl` in `Program.cs` — a new server-side proxy endpoint (`GET /api-test-spark/remote-spec`) fetches the remote spec with credentials injected server-side, keeping API keys and Bearer tokens off the browser network tab. New `ApiTestSparkOptions` properties: `RemoteBaseUrl`, `RemoteOpenApiUrl`, `RemoteOpenApiApiKeyHeader`, `RemoteOpenApiApiKeyValue`, `RemoteOpenApiBearerToken`, `RemoteDefaultHeaders`. Header token expansion: `{session-guid}` and `{request-guid}` are expanded in header values at request time. Harness version and build date now shown on the About page. HeadersEditor focus-loss fix.
+Remote API Explorer: browse and test remote REST APIs from OpenAPI documents. Configure one or more `RemoteApiProfiles` in `Program.cs`, or use the legacy `RemoteBaseUrl` and `RemoteOpenApiUrl` single-remote options as a compatibility profile. The server-side proxy fetches server-configured specs by profile id with credentials injected server-side and redacted from config. Header token expansion: `{session-guid}` and `{request-guid}` are expanded in header values at request time. Harness version and build date now shown on the About page. HeadersEditor focus-loss fix.
 
 ### v1.2.0 — June 2, 2026
 

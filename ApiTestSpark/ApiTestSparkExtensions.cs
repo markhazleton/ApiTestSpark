@@ -20,11 +20,13 @@ public static class ApiTestSparkExtensions
     private const string RemoteSpecPath = "/api-test-spark/remote-spec";
     private const string ResourcePrefix = "ApiTestSpark.build.";
     private const string CorsPolicy = "ApiTestSpark.CorsPolicy";
+    private const int MaxRemoteSpecBytes = 2_000_000;
 
     // First harness-owned HTTP resource — shared static instance avoids socket exhaustion.
     // Configured with a 10-second timeout to prevent hanging endpoint discovery.
     private static readonly HttpClient SharedHttpClient = new(new SocketsHttpHandler
     {
+        AllowAutoRedirect = false,
         PooledConnectionLifetime = TimeSpan.FromMinutes(5),
     })
     {
@@ -49,6 +51,7 @@ public static class ApiTestSparkExtensions
     {
         var options = new ApiTestSparkOptions();
         configure?.Invoke(options);
+        var remoteProfiles = BuildRemoteProfiles(options);
 
         var logger = app.Services.GetRequiredService<ILogger<ApiTestSparkMiddleware>>();
 
@@ -153,8 +156,9 @@ public static class ApiTestSparkExtensions
                 remoteBaseUrl = options.RemoteBaseUrl,
                 remoteOpenApiUrl = options.RemoteOpenApiUrl,
                 remoteOpenApiApiKeyHeader = options.RemoteOpenApiApiKeyHeader,
-                remoteOpenApiApiKeyValue = options.RemoteOpenApiApiKeyValue,
-                remoteOpenApiBearerToken = options.RemoteOpenApiBearerToken,
+                remoteOpenApiApiKeyValue = (string?)null,
+                remoteOpenApiBearerToken = (string?)null,
+                remoteApiProfiles = remoteProfiles.Select(ToConfigProfile),
                 harnessVersion,
                 harnessBuiltAt,
             };
@@ -169,40 +173,54 @@ public static class ApiTestSparkExtensions
         // Remote spec proxy — fetch remote OpenAPI document server-side to avoid CORS
         app.MapGet(RemoteSpecPath, async (HttpContext ctx) =>
         {
-            if (string.IsNullOrWhiteSpace(options.RemoteOpenApiUrl))
+            var profileId = ctx.Request.Query["profileId"].ToString();
+            var profile = ResolveRemoteProfile(remoteProfiles, profileId);
+
+            if (profile is null)
+            {
+                var message = remoteProfiles.Count == 0
+                    ? "No server remote API profiles are configured."
+                    : "Unknown remote API profile.";
+                return Results.Json(new { error = message }, statusCode: remoteProfiles.Count == 0 ? 400 : 404);
+            }
+
+            if (string.IsNullOrWhiteSpace(profile.RemoteOpenApiUrl))
                 return Results.Json(new { error = "RemoteOpenApiUrl is not configured." }, statusCode: 400);
 
             // SSRF guard: reject non-HTTP schemes (file://, ldap://, etc.) before any outbound call
-            if (!options.RemoteOpenApiUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
-                !options.RemoteOpenApiUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            if (!profile.RemoteOpenApiUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !profile.RemoteOpenApiUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
                 return Results.Json(new { error = "RemoteOpenApiUrl must use http or https scheme." }, statusCode: 400);
             }
 
-            using var request = new HttpRequestMessage(HttpMethod.Get, options.RemoteOpenApiUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Get, profile.RemoteOpenApiUrl);
 
-            if (!string.IsNullOrWhiteSpace(options.RemoteOpenApiApiKeyHeader) &&
-                !string.IsNullOrWhiteSpace(options.RemoteOpenApiApiKeyValue))
+            if (!string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyHeader) &&
+                !string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyValue))
             {
-                request.Headers.TryAddWithoutValidation(options.RemoteOpenApiApiKeyHeader, options.RemoteOpenApiApiKeyValue);
+                request.Headers.TryAddWithoutValidation(profile.RemoteOpenApiApiKeyHeader, profile.RemoteOpenApiApiKeyValue);
             }
 
-            if (!string.IsNullOrWhiteSpace(options.RemoteOpenApiBearerToken))
+            if (!string.IsNullOrWhiteSpace(profile.RemoteOpenApiBearerToken))
             {
-                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {options.RemoteOpenApiBearerToken}");
+                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {profile.RemoteOpenApiBearerToken}");
             }
 
             var httpClient = options.TestHttpClient ?? SharedHttpClient;
             HttpResponseMessage remoteResponse;
             try
             {
-                remoteResponse = await httpClient.SendAsync(request, ctx.RequestAborted);
+                remoteResponse = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted);
             }
             catch
             {
                 // Network error or timeout — credentials MUST NOT appear in the message
                 return Results.Json(new { error = "Failed to fetch remote OpenAPI document." }, statusCode: 502);
             }
+
+            if (IsRedirect(remoteResponse.StatusCode))
+                return Results.Json(new { error = "Remote OpenAPI redirects are not followed." }, statusCode: 502);
 
             if (!remoteResponse.IsSuccessStatusCode)
                 return Results.Json(new { error = "Failed to fetch remote OpenAPI document." }, statusCode: 502);
@@ -214,7 +232,13 @@ public static class ApiTestSparkExtensions
                 return Results.Json(new { error = "Remote server returned non-JSON content." }, statusCode: 502);
             }
 
-            var body = await remoteResponse.Content.ReadAsStringAsync(ctx.RequestAborted);
+            if (remoteResponse.Content.Headers.ContentLength > MaxRemoteSpecBytes)
+                return Results.Json(new { error = "Remote OpenAPI document is too large." }, statusCode: 502);
+
+            var body = await ReadContentWithLimit(remoteResponse.Content, ctx.RequestAborted);
+            if (body is null)
+                return Results.Json(new { error = "Remote OpenAPI document is too large." }, statusCode: 502);
+
             return Results.Content(body, "application/json");
         });
 
@@ -272,14 +296,17 @@ public static class ApiTestSparkExtensions
                 ? " ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:*"
                 : string.Empty;
 
-            // Allow remote base URL in CSP connect-src when configured
-            var remoteConnectSrc = !string.IsNullOrWhiteSpace(options.RemoteBaseUrl)
-                ? $" {options.RemoteBaseUrl.TrimEnd('/')}"
-                : string.Empty;
+            // Allow configured remote base URLs in CSP connect-src.
+            var remoteConnectSrc = string.Concat(remoteProfiles
+                .Select(p => p.RemoteBaseUrl)
+                .Append(options.RemoteBaseUrl)
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(url => $" {url!.TrimEnd('/')}"));
 
             ctx.Response.Headers["Content-Security-Policy"] =
                 "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-                "connect-src 'self' https://*.applicationinsights.azure.com https://*.monitor.azure.com " +
+                "connect-src 'self' https: http: https://*.applicationinsights.azure.com https://*.monitor.azure.com " +
                 $"https://v2.jokeapi.dev https://jsonplaceholder.typicode.com{remoteConnectSrc}{devConnectSrc}";
 
             var indexFile = fileProvider.GetFileInfo("index.html");
@@ -299,6 +326,102 @@ public static class ApiTestSparkExtensions
             MountPath, options.OpenApiUrl ?? "(none)");
 
         return app;
+    }
+
+    private static List<RemoteApiProfile> BuildRemoteProfiles(ApiTestSparkOptions options)
+    {
+        var configured = options.RemoteApiProfiles
+            .Where(IsRemoteProfileConfigured)
+            .Select(NormalizeProfile)
+            .ToList();
+
+        if (configured.Count > 0)
+            return configured;
+
+        if (!HasLegacyRemote(options))
+            return [];
+
+        return
+        [
+            new RemoteApiProfile
+            {
+                Id = "legacy-remote-api",
+                Name = "Remote API",
+                Description = "Configured from legacy single-remote ApiTestSparkOptions.",
+                RemoteBaseUrl = options.RemoteBaseUrl,
+                RemoteOpenApiUrl = options.RemoteOpenApiUrl,
+                RemoteOpenApiApiKeyHeader = options.RemoteOpenApiApiKeyHeader,
+                RemoteOpenApiApiKeyValue = options.RemoteOpenApiApiKeyValue,
+                RemoteOpenApiBearerToken = options.RemoteOpenApiBearerToken,
+                RemoteDefaultHeaders = new Dictionary<string, string>(options.RemoteDefaultHeaders),
+            },
+        ];
+    }
+
+    private static bool HasLegacyRemote(ApiTestSparkOptions options) =>
+        !string.IsNullOrWhiteSpace(options.RemoteBaseUrl) ||
+        !string.IsNullOrWhiteSpace(options.RemoteOpenApiUrl) ||
+        options.RemoteDefaultHeaders.Count > 0;
+
+    private static bool IsRemoteProfileConfigured(RemoteApiProfile profile) =>
+        !string.IsNullOrWhiteSpace(profile.RemoteBaseUrl) ||
+        !string.IsNullOrWhiteSpace(profile.RemoteOpenApiUrl) ||
+        profile.RemoteDefaultHeaders.Count > 0;
+
+    private static RemoteApiProfile NormalizeProfile(RemoteApiProfile profile)
+    {
+        if (string.IsNullOrWhiteSpace(profile.Id))
+            profile.Id = Guid.NewGuid().ToString();
+        if (string.IsNullOrWhiteSpace(profile.Name))
+            profile.Name = profile.RemoteBaseUrl ?? profile.RemoteOpenApiUrl ?? "Remote API";
+        profile.RemoteDefaultHeaders ??= new Dictionary<string, string>();
+        return profile;
+    }
+
+    private static object ToConfigProfile(RemoteApiProfile profile) => new
+    {
+        id = profile.Id,
+        name = profile.Name,
+        description = profile.Description,
+        remoteBaseUrl = profile.RemoteBaseUrl,
+        remoteOpenApiUrl = profile.RemoteOpenApiUrl,
+        remoteOpenApiApiKeyHeader = profile.RemoteOpenApiApiKeyHeader,
+        remoteOpenApiApiKeyValue = (string?)null,
+        remoteOpenApiBearerToken = (string?)null,
+        remoteOpenApiApiKeyConfigured = !string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyValue),
+        remoteOpenApiBearerTokenConfigured = !string.IsNullOrWhiteSpace(profile.RemoteOpenApiBearerToken),
+        remoteDefaultHeaders = profile.RemoteDefaultHeaders,
+        source = "server",
+        proxyMode = "server",
+    };
+
+    private static RemoteApiProfile? ResolveRemoteProfile(IReadOnlyList<RemoteApiProfile> profiles, string? profileId)
+    {
+        if (!string.IsNullOrWhiteSpace(profileId))
+            return profiles.FirstOrDefault(p => string.Equals(p.Id, profileId, StringComparison.OrdinalIgnoreCase));
+
+        return profiles.Count == 1 ? profiles[0] : null;
+    }
+
+    private static bool IsRedirect(System.Net.HttpStatusCode statusCode) =>
+        (int)statusCode is >= 300 and <= 399;
+
+    private static async Task<string?> ReadContentWithLimit(HttpContent content, CancellationToken cancellationToken)
+    {
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken);
+        using var buffer = new MemoryStream();
+        var temp = new byte[81920];
+        int read;
+        while ((read = await stream.ReadAsync(temp.AsMemory(0, temp.Length), cancellationToken)) > 0)
+        {
+            if (buffer.Length + read > MaxRemoteSpecBytes)
+                return null;
+            buffer.Write(temp, 0, read);
+        }
+
+        buffer.Position = 0;
+        using var reader = new StreamReader(buffer);
+        return await reader.ReadToEndAsync(cancellationToken);
     }
 }
 

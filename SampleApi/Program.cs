@@ -27,12 +27,27 @@ app.MapGroup("/orders").WithTags("Orders: Lifecycle").MapOrders();
 app.MapApiTestSpark(options =>
 {
     options.OpenApiUrl = "/openapi/v1.json";
-    // Remote API Explorer — points at the JSONPlaceholder public API as a live demo target.
-    // No auth required; correlation headers demonstrate the {request-guid}/{session-guid} tokens.
-    options.RemoteBaseUrl    = "https://jsonplaceholder.typicode.com";
-    options.RemoteOpenApiUrl = "https://apitest.makeboldspark.com/openapi/v1.json";
-    options.RemoteDefaultHeaders["correlationId"] = "{request-guid}";
-    options.RemoteDefaultHeaders["sessionId"]     = "{session-guid}";
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "jsonplaceholder-demo",
+        Name = "JSONPlaceholder",
+        Description = "Public demo API for posts, users, and comments.",
+        RemoteBaseUrl = "https://jsonplaceholder.typicode.com",
+        RemoteOpenApiUrl = "https://apitest.makeboldspark.com/openapi/v1.json",
+        RemoteDefaultHeaders =
+        {
+            ["correlationId"] = "{request-guid}",
+            ["sessionId"] = "{session-guid}",
+        },
+    });
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "apitest-spark-demo",
+        Name = "API Test Spark Demo",
+        Description = "Hosted sample API used to demonstrate a second remote profile.",
+        RemoteBaseUrl = "https://apitest.makeboldspark.com",
+        RemoteOpenApiUrl = "https://apitest.makeboldspark.com/openapi/v1.json",
+    });
 });
 
 app.Run();

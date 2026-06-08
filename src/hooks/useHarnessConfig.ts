@@ -10,7 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 import useDebugStore from '../store/debugStore';
 import { useHarnessConfigStore } from '../store/harnessConfigStore';
-import { useRemoteConfigStore } from '../store/remoteConfigStore';
+import { getVisibleRemoteProfiles, normalizeRemoteProfile, useRemoteConfigStore } from '../store/remoteConfigStore';
 import { HostApiClient } from '../api/hostApiClient';
 import { buildDebugCallbacks } from './hookUtils';
 import { parseOpenApiV3, parseApiInfo } from '../utils/openApiParser';
@@ -65,41 +65,45 @@ export function useHarnessConfig() {
 
       setConfigStatus('ready');
 
-      // Seed remoteConfigStore from Program.cs values — browser-persisted value always wins.
-      // Then merge browser config on top of server config before storing in harnessConfigStore.
+      // Seed server profiles from Program.cs, preserving legacy single-remote options.
+      // Browser-created profiles stay local and are merged for display/navigation.
       // Must run inside queryFn (not onSuccess — removed in TanStack Query v5).
       {
         const remote = useRemoteConfigStore.getState();
+        const serverProfiles = (config.remoteApiProfiles?.length
+          ? config.remoteApiProfiles
+          : config.remoteBaseUrl || config.remoteOpenApiUrl
+            ? [{
+                id: 'legacy-remote-api',
+                name: 'Remote API',
+                description: 'Configured from Program.cs.',
+                remoteBaseUrl: config.remoteBaseUrl ?? '',
+                remoteOpenApiUrl: config.remoteOpenApiUrl ?? '',
+                remoteOpenApiApiKeyHeader: config.remoteOpenApiApiKeyHeader ?? '',
+                remoteOpenApiApiKeyValue: '',
+                remoteOpenApiBearerToken: '',
+                remoteOpenApiApiKeyConfigured: false,
+                remoteOpenApiBearerTokenConfigured: false,
+                remoteDefaultHeaders: config.remoteDefaultHeaders ?? {},
+                source: 'server' as const,
+                proxyMode: 'server' as const,
+              }]
+            : []
+        ).map(normalizeRemoteProfile);
 
-        // Only seed fields that the user hasn't already set in the browser
-        const patch: Partial<typeof remote> = {};
-        if (config.remoteBaseUrl && !remote.remoteBaseUrl)
-          patch.remoteBaseUrl = config.remoteBaseUrl;
-        if (config.remoteOpenApiUrl && !remote.remoteOpenApiUrl)
-          patch.remoteOpenApiUrl = config.remoteOpenApiUrl;
-        if (config.remoteOpenApiApiKeyHeader && !remote.remoteOpenApiApiKeyHeader)
-          patch.remoteOpenApiApiKeyHeader = config.remoteOpenApiApiKeyHeader;
-        if (config.remoteOpenApiApiKeyValue && !remote.remoteOpenApiApiKeyValue)
-          patch.remoteOpenApiApiKeyValue = config.remoteOpenApiApiKeyValue;
-        if (config.remoteOpenApiBearerToken && !remote.remoteOpenApiBearerToken)
-          patch.remoteOpenApiBearerToken = config.remoteOpenApiBearerToken;
-        if (config.remoteDefaultHeaders && Object.keys(config.remoteDefaultHeaders).length > 0
-            && Object.keys(remote.remoteDefaultHeaders).length === 0)
-          patch.remoteDefaultHeaders = config.remoteDefaultHeaders;
-        if (Object.keys(patch).length > 0) remote.set(patch);
-
-        // Re-read after seeding so merged state reflects any patch applied above
+        remote.setServerProfiles(serverProfiles);
         const r = useRemoteConfigStore.getState();
+        const visibleProfiles = getVisibleRemoteProfiles(r);
+        const first = visibleProfiles[0];
         setConfig({
           ...config,
-          remoteBaseUrl:              r.remoteBaseUrl              || config.remoteBaseUrl,
-          remoteOpenApiUrl:           r.remoteOpenApiUrl           || config.remoteOpenApiUrl,
-          remoteOpenApiApiKeyHeader:  r.remoteOpenApiApiKeyHeader  || config.remoteOpenApiApiKeyHeader,
-          remoteOpenApiApiKeyValue:   r.remoteOpenApiApiKeyValue   || config.remoteOpenApiApiKeyValue,
-          remoteOpenApiBearerToken:   r.remoteOpenApiBearerToken   || config.remoteOpenApiBearerToken,
-          remoteDefaultHeaders:       Object.keys(r.remoteDefaultHeaders).length > 0
-            ? r.remoteDefaultHeaders
-            : (config.remoteDefaultHeaders ?? {}),
+          remoteApiProfiles: visibleProfiles,
+          remoteBaseUrl: first?.remoteBaseUrl || config.remoteBaseUrl,
+          remoteOpenApiUrl: first?.remoteOpenApiUrl || config.remoteOpenApiUrl,
+          remoteOpenApiApiKeyHeader: first?.remoteOpenApiApiKeyHeader || config.remoteOpenApiApiKeyHeader,
+          remoteOpenApiApiKeyValue: first?.remoteOpenApiApiKeyValue || undefined,
+          remoteOpenApiBearerToken: first?.remoteOpenApiBearerToken || undefined,
+          remoteDefaultHeaders: first?.remoteDefaultHeaders ?? config.remoteDefaultHeaders ?? {},
         });
       }
 
