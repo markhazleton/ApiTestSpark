@@ -179,7 +179,7 @@ if [[ "$scope" == "full" || "$scope" == "comments" || "$scope" == "scan" ]]; the
     # Truncate matched text to 200 characters to prevent malformed JSON from
     # minified source files that have very long single lines.
     if [[ ${#text} -gt 200 ]]; then
-      text="${text:0:200}…"
+      text="${text:0:200}â€¦"
     fi
     rel=${file#"$repo_root/"}
     code_comments+=("{\"file\":$(json_escape "$rel"),\"line\":$line,\"text\":$(json_escape "$text"),\"type\":\"spec-reference\"}")

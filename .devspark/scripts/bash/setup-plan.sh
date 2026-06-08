@@ -33,7 +33,7 @@ if [[ -n "${DEVSPARK_APP_ID:-}" || "${DEVSPARK_REPO_SCOPE:-false}" == "true" ]];
     resolve_app_scope 2>/dev/null || true
 fi
 
-# Get all paths and variables — use app-aware version if scope is resolved
+# Get all paths and variables â€” use app-aware version if scope is resolved
 if [[ -n "${DEVSPARK_SCOPE:-}" ]]; then
     eval "$(get_feature_paths_app_aware)"
     print_scope_summary >&2
@@ -69,3 +69,4 @@ else
     echo "BRANCH: $CURRENT_BRANCH"
     echo "HAS_GIT: $HAS_GIT"
 fi
+
