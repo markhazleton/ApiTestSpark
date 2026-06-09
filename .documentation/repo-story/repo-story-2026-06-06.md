@@ -1,6 +1,6 @@
 # Repository Story: ApiTestSpark
 
-> Generated 2026-06-06 | Window: 18 days (full project history) | Scope: full | v1.3.0 update
+> Generated 2026-06-06 | Updated 2026-06-09 | Window: full project history | Scope: full | v1.4.0 update
 
 ---
 
@@ -8,9 +8,9 @@
 
 ApiTestSpark is a developer productivity tool that embeds a polished REST API testing harness directly into any .NET 10 Minimal API application — no separate Postman window, no external tooling, no configuration server. A single `MapApiTestSpark()` call serves a React SPA at `/api-test-spark/`, pre-loaded with the host app's OpenAPI spec, ready to test endpoints from the browser. As a NuGet package, it deploys wherever the host app deploys, making it natural for development, staging, and internal demos without any additional infrastructure.
 
-The project launched on 2026-05-18 and reached v1.3.0 in just 19 days, delivering 6 tagged releases across 124 commits. That is not a maintenance pace — it is a purpose-built sprint. The commit history tells the story of a project built with deliberate engineering discipline: 87% conventional commit adoption (108 of 124 commits), 2 spec-driven feature PRs reviewed and merged through a formal constitution-aligned process, and a fully automated CI/CD pipeline that publishes to NuGet.org on every version tag with zero manual steps.
+The project launched on 2026-05-18 and reached v1.4.0 on 2026-06-09, delivering 7 tagged releases across 135 commits. That is not a maintenance pace — it is a purpose-built sprint. The commit history tells the story of a project built with deliberate engineering discipline: conventional commits, 3 spec-driven feature PRs reviewed and merged through a formal constitution-aligned process, and a fully automated CI/CD pipeline that publishes to NuGet.org on every version tag with zero manual steps.
 
-The v1.3.0 milestone, tagged on 2026-06-06, is the most significant release to date. It adds a server-side Remote API Explorer — a feature that lets the harness proxy OpenAPI spec fetches through the host server, keeping credentials off the browser network tab and eliminating CORS friction entirely. The release also introduces header token expansion (`{request-guid}`, `{session-guid}`), a Remote API Doc Builder that generates markdown for AI agents, and a `harnessVersion`/`harnessBuiltAt` config bridge that fixes broken build-info rendering in NuGet-embedded deployments. Six new `ApiTestSparkOptions` properties were added, growing the public API surface from 8 to 14 properties, and integration test coverage expanded from 21 to 30 tests.
+The v1.4.0 milestone, tagged on 2026-06-09, is the most significant release to date. It evolves the v1.3.0 Remote API Explorer into full Remote API Profiles: multiple named remote APIs configured in `Program.cs` or personalized from the browser, profile-specific explorer and documentation routes, server-profile-only spec proxying, redacted server credentials, browser-local profile persistence, and duplicate profile-name validation. The public API now includes the additive `RemoteApiProfile` model and `RemoteApiProfiles` collection, while legacy single-remote options remain supported as a compatibility seed. Integration test coverage is 33 tests.
 
 The live demo at [apitest.makeboldspark.com](https://apitest.makeboldspark.com) demonstrates all features end-to-end, including the Remote API Explorer configured against JSONPlaceholder as a publicly accessible target. The NuGet package is published at [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark).
 
@@ -20,7 +20,7 @@ The live demo at [apitest.makeboldspark.com](https://apitest.makeboldspark.com) 
 
 ### Development Velocity
 
-The project produced 124 commits across 18 days — an average of 6.9 commits per day. Activity was front-loaded: 102 commits in May (the foundation and core tooling sprint) followed by 22 commits in June covering two feature PRs, a patch, the v1.3.0 release, documentation overhaul, and tooling refinements.
+The project produced 135 commits through the v1.4.0 release. Activity was front-loaded: 102 commits in May (the foundation and core tooling sprint) followed by focused June work covering three feature PRs, the v1.3.0 and v1.4.0 releases, documentation overhaul, release workflow refinements, and SampleApi deployment packaging.
 
 The three largest single-commit changesets in the project, by lines touched, tell the architectural story cleanly:
 
@@ -38,7 +38,7 @@ All 124 commits are from a single contributor (Lead Architect). Bus factor is 1,
 
 ### Quality Signals
 
-**Test coverage**: The project has 184 test-related files tracked and 26 test-related commits. The .NET integration tests grew from 21 (v1.1.0 baseline) to 30 (v1.3.0), with 9 new tests added in PR #2 covering the proxy's full error-path matrix: 400 for unconfigured URL, 400 for non-HTTP/HTTPS schemes (SSRF guard), 502 for non-2xx upstream, 502 for `text/html` content-type, 502 on network timeout, and SPA middleware pass-through guard. The React SPA has no test framework by explicit constitutional decision (§VII) — TypeScript strict mode and ESLint serve as the compile-time safety net.
+**Test coverage**: The .NET integration suite now has 33 tests. It grew from 21 (v1.1.0 baseline) to 30 (v1.3.0) for the remote spec proxy's error-path matrix, then to 33 in v1.4.0 for multi-profile configuration, credential redaction, server-profile-only proxy resolution, and duplicate-name validation support. The React SPA has no test framework by explicit constitutional decision (§VII) — TypeScript strict mode and ESLint serve as the compile-time safety net.
 
 **Conventional commits**: 108 of 124 commits (87%) use conventional commit format. The commit prefix distribution across the full history:
 
@@ -67,7 +67,7 @@ The project operates a formal spec-driven development lifecycle:
 
 Both feature PRs went through this full cycle. PR #2 (Remote OpenAPI config) was reviewed at two revisions: Rev 1 identified 1 medium, 2 low, and 1 constitution finding; Rev 2 confirmed all 4 resolved with 0 remaining. The constitution itself has been amended 6 times since ratification, evolving from v1.0.0 to v1.1.2 as the codebase grew and new patterns emerged.
 
-**Tag discipline**: 6 tags in 19 days — v1.0.0, v1.0.1, v1.0.2, v1.1.0, v1.2.0, v1.3.0 — demonstrates clean semver practice. Patch releases (v1.0.1, v1.0.2) were used for bug fixes and the CSP localhost fix. Minor releases (v1.1.0, v1.2.0, v1.3.0) corresponded to spec-driven feature deliveries.
+**Tag discipline**: 7 tags through 2026-06-09 — v1.0.0, v1.0.1, v1.0.2, v1.1.0, v1.2.0, v1.3.0, v1.4.0 — demonstrates clean semver practice. Patch releases (v1.0.1, v1.0.2) were used for bug fixes and the CSP localhost fix. Minor releases (v1.1.0, v1.2.0, v1.3.0, v1.4.0) corresponded to spec-driven feature deliveries.
 
 ### Architecture & Technology
 
@@ -148,7 +148,7 @@ The constitution has grown organically with the codebase — 6 amendments in 19 
 
 ### What does this project do?
 
-ApiTestSpark is a .NET NuGet package that embeds a React-based REST API testing harness into any .NET 10 Minimal API application. One `MapApiTestSpark()` call in `Program.cs` serves a complete API explorer at `/api-test-spark/`, pre-configured with the host app's OpenAPI spec. As of v1.3.0, it also includes a Remote API Explorer that proxies spec fetches through the host server — keeping credentials off the browser network tab and handling CORS automatically. The live demo runs at [apitest.makeboldspark.com](https://apitest.makeboldspark.com).
+ApiTestSpark is a .NET NuGet package that embeds a React-based REST API testing harness into any .NET 10 Minimal API application. One `MapApiTestSpark()` call in `Program.cs` serves a complete API explorer at `/api-test-spark/`, pre-configured with the host app's OpenAPI spec. As of v1.4.0, it also includes Remote API Profiles: multiple named remote APIs with profile-specific explorer and documentation routes, server-held credential redaction, and browser-personalized profile management. The live demo runs at [apitest.makeboldspark.com](https://apitest.makeboldspark.com).
 
 ### What tech stack does it use?
 
@@ -156,7 +156,7 @@ The React SPA uses TypeScript 5.x (strict mode), React 19, Vite 8, Tailwind CSS 
 
 ### Where do I start?
 
-For the React SPA: [src/App.tsx](../../src/App.tsx) defines all routes; [src/components/HomeScreen.tsx](../../src/components/HomeScreen.tsx) lists every section with its nav card. For the .NET library: [ApiTestSpark/ApiTestSparkExtensions.cs](../../ApiTestSpark/ApiTestSparkExtensions.cs) is where `MapApiTestSpark()` registers all endpoints — it is the entry point for understanding how the SPA is served and configured. For the demo: [SampleApi/Program.cs](../../SampleApi/Program.cs) shows a complete working integration with all v1.3.0 options.
+For the React SPA: [src/App.tsx](../../src/App.tsx) defines all routes; [src/components/HomeScreen.tsx](../../src/components/HomeScreen.tsx) lists every section with its nav card. For the .NET library: [ApiTestSpark/ApiTestSparkExtensions.cs](../../ApiTestSpark/ApiTestSparkExtensions.cs) is where `MapApiTestSpark()` registers all endpoints — it is the entry point for understanding how the SPA is served and configured. For the demo: [SampleApi/Program.cs](../../SampleApi/Program.cs) shows a complete working integration with the v1.4.0 remote profile options.
 
 ### How do I run it locally?
 
@@ -206,9 +206,9 @@ Yes — the constitution at [.documentation/memory/constitution.md](../../.docum
 
 ### What version is currently released?
 
-**v1.3.0**, tagged on 2026-06-06. It adds the Remote API Explorer (server-side OpenAPI spec proxy), SSRF guard, header token expansion (`{request-guid}`, `{session-guid}`), Remote API Doc Builder, and `harnessVersion`/`harnessBuiltAt` config bridge. The NuGet package is live at [nuget.org/packages/ApiTestSpark/1.3.0](https://www.nuget.org/packages/ApiTestSpark/1.3.0). The demo site at [apitest.makeboldspark.com](https://apitest.makeboldspark.com) runs v1.3.0 with all remote features enabled.
+**v1.4.0**, tagged on 2026-06-09. It adds Remote API Profiles: multiple named remote APIs configured in `Program.cs` or personalized in the browser Config page, profile-specific explorer and documentation routes, server-profile-only spec proxying, redacted server credentials in `/api-test-spark/config`, browser-local profile persistence, and duplicate profile-name validation. The NuGet package is live at [nuget.org/packages/ApiTestSpark/1.4.0](https://www.nuget.org/packages/ApiTestSpark/1.4.0). The demo site at [apitest.makeboldspark.com](https://apitest.makeboldspark.com) is documented for v1.4.0 content and remote profile management.
 
 ---
 
 *Generated by /devspark.repo-story | DevSpark — Adaptive System Life Cycle Development*
-*Evidence drawn from 124 commits, 6 tagged releases, 2 merged PRs, and constitution v1.1.2*
+*Evidence drawn from 135 commits, 7 tagged releases, 3 merged PRs, and constitution v1.1.2*

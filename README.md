@@ -458,7 +458,7 @@ The [SampleApi source](SampleApi/) is the live reference implementation — ever
 | [Current State of OpenAPI in .NET](OPENAPI-DOTNET.md) | Complete ecosystem guide — package versions, compatibility matrix, known issues, recommended combinations, React SPA parsing tips |
 | [NuGet Package Walkthrough](NUGET-PACKAGE-WALKTHROUGH.md) | How ApiTestSpark is built and packed — MSBuild/Vite bridge, embedded resources, Source Link, public API tracking, CI/CD |
 | [Package README](ApiTestSpark/README.md) | Consumer-facing reference — all `ApiTestSparkOptions`, quickstart snippets, semver policy |
-| [Repo Story (2026-06-06)](.documentation/repo-story/repo-story-2026-06-06.md) | Evidence-based narrative of this repository's development history, contributor patterns, and architecture — updated for v1.3.0 |
+| [Repo Story (2026-06-06)](.documentation/repo-story/repo-story-2026-06-06.md) | Evidence-based narrative of this repository's development history, contributor patterns, and architecture — updated with the v1.4.0 release state |
 | [Live Demo](https://apitest.makeboldspark.com) | Running SampleApi on .NET 10 with 16 endpoints and ApiTestSpark installed |
 | [NuGet Package](https://www.nuget.org/packages/ApiTestSpark) | Package page, download stats, version history |
 

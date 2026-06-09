@@ -183,11 +183,11 @@ The top three hotspots are `ApiTestSpark/ApiTestSpark.csproj` (14 changes — Nu
 
 ### Are there coding standards I must follow?
 
-Yes — strictly enforced by tooling and documented in the constitution (`v1.1.1`). The non-negotiable gates: (1) `npm run verify` must pass — TypeScript strict mode, zero errors; (2) `npm run lint` must pass — ESLint zero errors, no Prettier; (3) `dotnet build ApiTestSpark` must pass — zero C# errors; (4) `dotnet test ApiTestSpark.Tests` must pass — 20/20 integration tests. Conventional commit format is the project norm (91% adoption). No `console.log` anywhere in `src/` — all observability routes through `useDebugStore`. No `@ts-ignore` without a comment. See `CLAUDE.md` for the complete developer reference.
+Yes — strictly enforced by tooling and documented in the constitution. The non-negotiable gates: (1) `npm run verify` must pass — TypeScript strict mode, zero errors; (2) `npm run lint` must pass — ESLint zero errors, no Prettier; (3) `dotnet build ApiTestSpark` must pass — zero C# errors; (4) `dotnet test ApiTestSpark.Tests` must pass — 33/33 integration tests as of v1.4.0. Conventional commit format is the project norm. No `console.log` anywhere in `src/` — all observability routes through `useDebugStore`. No `@ts-ignore` without a comment. See `CLAUDE.md` for the complete developer reference.
 
 ### What version is currently released?
 
-The latest NuGet release is `v1.0.2`, tagged on 2026-05-30. It is live at [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark). The release fixed a blank harness in Development environments (CSP localhost connections) and a missing trailing-slash redirect at `/api-test-spark`. Post-release work on 2026-05-31 (constitution amendments, `EnableDemoIntegrations` feature, type hardening, compliance audit) is untagged on `main` and represents candidate content for `v1.0.3` or `v1.1.0`.
+The latest NuGet release is `v1.4.0`, tagged on 2026-06-09. It is live at [nuget.org/packages/ApiTestSpark/1.4.0](https://www.nuget.org/packages/ApiTestSpark/1.4.0). It adds Remote API Profiles: multiple named remote APIs configured in `Program.cs` or personalized in the browser Config page, profile-specific explorer and documentation routes, server-profile-only spec proxying, redacted server credentials, browser-local profile persistence, and duplicate profile-name validation.
 
 ---
 

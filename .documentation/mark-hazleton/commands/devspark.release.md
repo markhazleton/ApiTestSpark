@@ -472,7 +472,7 @@ Follow semantic versioning:
 
 ### CI/CD Pipeline Reference
 
-The `publish-nuget.yml` workflow (`.github/workflows/publish-nuget.yml`) is the canonical quality gate and publisher. **Read the actual file** if you need the ground truth — this summary reflects v1.3.0.
+The `publish-nuget.yml` workflow (`.github/workflows/publish-nuget.yml`) is the canonical quality gate and publisher. **Read the actual file** if you need the ground truth — this summary reflects v1.4.0.
 
 **Triggers:**
 
@@ -501,7 +501,7 @@ The `publish-nuget.yml` workflow (`.github/workflows/publish-nuget.yml`) is the 
 **Critical invariant**: The workflow reads `VERSION` from `package.json` via `node -p "require('./package.json').version"`, then passes it to `dotnet build` and `dotnet pack` via `/p:Version=$VERSION`. This means:
 
 - `package.json` version controls what gets published — the tag name is just the trigger
-- If `package.json` says `1.3.0` and you push tag `v1.4.0`, the published package will be `1.3.0`
+- If `package.json` says `1.4.0` and you push tag `v1.5.0`, the published package will be `1.4.0`
 - Always bump `package.json` AND `ApiTestSpark.csproj` to `{NEXT_VERSION}` before tagging
 
 **`--skip-duplicate`**: The push uses `--skip-duplicate`, so accidentally pushing the same tag twice will not fail — NuGet.org silently skips the already-published version. This is a safety net, not an excuse to push duplicate tags.

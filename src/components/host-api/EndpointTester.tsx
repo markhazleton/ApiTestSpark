@@ -26,7 +26,7 @@ interface EndpointTesterProps {
   remoteProfile?: RemoteApiProfile;
 }
 
-// ── T005: JSONPath helper ─────────────────────────────────────────────────────
+// ── JSONPath helper ───────────────────────────────────────────────────────────
 
 function toJsonPath(parentKey: string | null, fieldKey: string, inArray = false): string {
   if (inArray) {
@@ -35,7 +35,7 @@ function toJsonPath(parentKey: string | null, fieldKey: string, inArray = false)
   return parentKey ? `$.${parentKey}.${fieldKey}` : `$.${fieldKey}`;
 }
 
-// ── Clipboard helper (critic-002: guard against non-HTTPS contexts) ───────────
+// ── Clipboard helper ──────────────────────────────────────────────────────────
 
 function copyToClipboard(text: string, addError: (e: { id: string; category: 'Unknown'; message: string; timestamp: Date; context: Record<string, unknown> }) => void): void {
   if (!navigator?.clipboard) {
@@ -250,7 +250,7 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-// ── T006: SortableTable inner function (also used for nested arrays) ──────────
+// ── SortableTable inner function (also used for nested arrays) ────────────────
 
 function SortableTable({
   rows,
@@ -263,7 +263,7 @@ function SortableTable({
 }) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
-  // T029: 2-row default; resets on each render (local state, not store)
+  // Keep table expansion local so each rendered response starts compact.
   const [tableExpanded, setTableExpanded] = useState(false);
 
   if (rows.length === 0) {
@@ -327,7 +327,7 @@ function SortableTable({
           ))}
         </tbody>
       </table>
-      {/* T030: Show all / Show less controls */}
+      {/* Show all / Show less controls for large arrays. */}
       <div className="px-3 py-1 border-t border-gray-100 flex items-center justify-between">
         <p className="text-gray-400">
           {rows.length} {rows.length === 1 ? 'row' : 'rows'} — full JSON in debug panel
@@ -346,7 +346,7 @@ function SortableTable({
   );
 }
 
-// ── T007–T013: ResponseObjectForm with editable nested objects ────────────────
+// ── ResponseObjectForm with editable nested objects ───────────────────────────
 
 function ResponseObjectForm({
   data,
@@ -359,8 +359,8 @@ function ResponseObjectForm({
 }) {
   const entries = Object.entries(data);
 
-  // critic-001: state is initialised from data on mount. Reset on new data is handled by
-  // the parent passing key={responseKey} to force a remount (not useEffect setState).
+  // State is initialised from data on mount. Reset on new data is handled by
+  // the parent passing key={responseKey} to force a remount instead of syncing with useEffect.
   const [fields, setFields] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     for (const [k, v] of entries) {
@@ -374,12 +374,12 @@ function ResponseObjectForm({
   const [copied, setCopied] = useState(false);
 
   function copyJson() {
-    // T010: reconstruct with nested edits merged in
+    // Reconstruct the response with any editable nested-field changes merged in.
     const seen = new WeakSet<object>();
     const out: Record<string, unknown> = {};
     for (const [k, orig] of entries) {
       if (isPlainObject(orig)) {
-        // T011: circular reference guard
+        // Guard against circular references while rebuilding nested objects.
         if (seen.has(orig)) { out[k] = '[Circular reference detected]'; continue; }
         seen.add(orig);
         const nested = nestedFields[k] ?? {};
@@ -424,7 +424,7 @@ function ResponseObjectForm({
         </button>
       </div>
       {entries.map(([key, orig]) => {
-        // T033a: treat undefined same as null
+        // Render undefined explicitly instead of coercing it into an editable empty string.
         if (orig === undefined) {
           return (
             <div key={key} className="flex items-center gap-3 px-3 py-1.5 even:bg-gray-50 border-b border-gray-100 last:border-0">
@@ -438,7 +438,7 @@ function ResponseObjectForm({
           );
         }
 
-        // T011: null top-level field — read-only
+        // Null top-level fields are displayed read-only because there is no source type to coerce back to.
         if (orig === null) {
           return (
             <div key={key} className="flex items-center gap-3 px-3 py-1.5 even:bg-gray-50 border-b border-gray-100 last:border-0">
@@ -452,7 +452,7 @@ function ResponseObjectForm({
           );
         }
 
-        // T008: nested array of objects — SortableTable (FR-003)
+        // Nested arrays of objects reuse the sortable table renderer.
         if (Array.isArray(orig) && orig.length > 0 && isPlainObject(orig[0])) {
           return (
             <div key={key} className="px-3 py-1.5 border-b border-gray-100 last:border-0">
@@ -468,9 +468,9 @@ function ResponseObjectForm({
           );
         }
 
-        // T008: nested plain object — collapsible editable form (FR-001, FR-012)
+        // Nested plain objects render as collapsible editable forms.
         if (isPlainObject(orig)) {
-          // T011: circular reference guard
+          // Track this object so recursive shapes can be shown safely.
           const seen = new WeakSet<object>();
           seen.add(orig);
           const nestedEntries = Object.entries(orig);
@@ -488,7 +488,7 @@ function ResponseObjectForm({
                 </summary>
                 <div className="mt-1 ml-2 border border-gray-100 rounded overflow-hidden">
                   {nestedEntries.map(([nk, nv]) => {
-                    // T011: depth-2 circular guard
+                    // Detect recursive depth-2 objects before rendering nested values.
                     if (isPlainObject(nv) && seen.has(nv)) {
                       return (
                         <div key={nk} className="flex items-center gap-3 px-2 py-1 even:bg-gray-50 border-b border-gray-50 last:border-0">
@@ -498,7 +498,7 @@ function ResponseObjectForm({
                       );
                     }
                     const jsonPath = toJsonPath(key, nk);
-                    // T011: null nested field — read-only
+                    // Null or undefined nested fields are displayed read-only.
                     if (nv === null || nv === undefined) {
                       return (
                         <div key={nk} className="flex items-center gap-3 px-2 py-1 even:bg-gray-50 border-b border-gray-50 last:border-0">
@@ -511,7 +511,7 @@ function ResponseObjectForm({
                         </div>
                       );
                     }
-                    // FR-002: depth-2+ objects — read-only JSON
+                    // Deeper objects and arrays are shown as read-only JSON.
                     if (isPlainObject(nv) || Array.isArray(nv)) {
                       return (
                         <div key={nk} className="flex items-start gap-3 px-2 py-1 even:bg-gray-50 border-b border-gray-50 last:border-0">
@@ -563,7 +563,7 @@ function ResponseObjectForm({
           );
         }
 
-        // Array of primitives — read-only JSON (FR-003)
+        // Arrays of primitives are shown as read-only JSON.
         if (Array.isArray(orig)) {
           const jsonStr = jsonViewMode === 'minified' ? JSON.stringify(orig) : JSON.stringify(orig, null, 2);
           return (
@@ -618,7 +618,7 @@ function ResponseObjectForm({
   );
 }
 
-// ── T018–T020: ResponseView with pretty/minified toggle ───────────────────────
+// ── ResponseView with pretty/minified toggle ──────────────────────────────────
 
 function ResponseView({
   data,
@@ -629,11 +629,11 @@ function ResponseView({
   responseKey: number;
   addError: (e: { id: string; category: 'Unknown'; message: string; timestamp: Date; context: Record<string, unknown> }) => void;
 }) {
-  // T018: read from store — not local state — for session persistence (US5)
+  // Read the JSON view mode from the session store so the preference survives endpoint calls.
   const { jsonViewMode, setJsonViewMode } = useHarnessConfigStore();
 
   if (Array.isArray(data) && data.length > 0 && isPlainObject(data[0])) {
-    // Array of objects — sortable table (no toggle — FR-007 excludes table views)
+    // Arrays of objects use the sortable table; table views do not need a JSON formatting toggle.
     return <SortableTable rows={data as Record<string, unknown>[]} addError={addError} />;
   }
 
@@ -642,7 +642,7 @@ function ResponseView({
   }
 
   if (isPlainObject(data)) {
-    // critic-001 + M-01: responseKey counter forces remount on every new response (O(1))
+    // The responseKey counter forces an O(1) remount on every new object response.
     return <ResponseObjectForm key={responseKey} data={data as Record<string, unknown>} jsonViewMode={jsonViewMode} addError={addError} />;
   }
 
@@ -671,7 +671,7 @@ function ResponseView({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-// T014: LastRequest type (data-model.md)
+// Snapshot of the request that produced the currently displayed response.
 type LastRequest = CurlArgs;
 
 export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps) {
@@ -679,10 +679,10 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
   const { addError } = useDebugStore();
   const { mutate, isPending, data, error } = useHostApi();
   const [copied, setCopied] = useState(false);
-  // T014: captured in onSuccess, not handleFire (critic-005)
+  // Capture only after success so response-panel cURL matches the displayed response.
   const [lastRequest, setLastRequest] = useState<LastRequest | null>(null);
   const [curlCopied, setCurlCopied] = useState(false);
-  // M-01: O(1) counter replaces key={JSON.stringify(data)} — incremented in onSuccess
+  // O(1) remount key for object responses; incremented after successful calls.
   const [responseKey, setResponseKey] = useState(0);
 
   const needsBody = ['POST', 'PUT', 'PATCH'].includes(endpoint.method);
@@ -747,9 +747,9 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
       { method: endpoint.method, path: endpoint.path, pathParams, queryParams, body, extraHeaders, remoteProfile },
       {
         onSuccess: () => {
-          // T014: capture at success time so cURL always matches displayed response (critic-005)
+          // Capture at success time so cURL always matches the displayed response.
           setLastRequest(pendingRequest);
-          // M-01: increment O(1) key counter instead of JSON.stringify(data)
+          // Increment the O(1) remount key instead of deriving a key from response JSON.
           setResponseKey((k) => k + 1);
         },
       }
@@ -990,7 +990,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
         <div>
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-semibold text-gray-500">Response</p>
-            {/* T015: Copy as cURL — present after successful call */}
+            {/* Copy as cURL is available after a successful call. */}
             {lastRequest && (
               <button
                 type="button"

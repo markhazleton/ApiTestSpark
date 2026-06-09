@@ -370,9 +370,9 @@ softprops/action-gh-release → GitHub Release with CHANGELOG.md as body
 To publish a new version:
 
 1. Update `version` in `package.json` (e.g. `1.4.0`)
-2. Add a `[1.4.0]` entry to `CHANGELOG.md`
+2. Add a `[v1.4.0]` entry to `CHANGELOG.md`
 3. Commit and push
-4. `git tag v1.4.0 && git push origin v1.4.0`
+4. `git tag -a v1.4.0 -m "Release v1.4.0" && git push origin main --tags`
 
 The publish workflow fires automatically. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full step-by-step release process.
 
