@@ -18,6 +18,8 @@ ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.set -> void
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteApiProfiles.get -> System.Collections.Generic.List<ApiTestSpark.RemoteApiProfile!>!
+ApiTestSpark.ApiTestSparkOptions.RemoteApiProfiles.set -> void
 ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.set -> void
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiUrl.get -> string?
@@ -30,4 +32,24 @@ ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.get -> string?
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.set -> void
 ApiTestSpark.ApiTestSparkOptions.TestHttpClient.get -> System.Net.Http.HttpClient?
 ApiTestSpark.ApiTestSparkOptions.TestHttpClient.set -> void
+ApiTestSpark.RemoteApiProfile
+ApiTestSpark.RemoteApiProfile.Description.get -> string?
+ApiTestSpark.RemoteApiProfile.Description.set -> void
+ApiTestSpark.RemoteApiProfile.Id.get -> string!
+ApiTestSpark.RemoteApiProfile.Id.set -> void
+ApiTestSpark.RemoteApiProfile.Name.get -> string!
+ApiTestSpark.RemoteApiProfile.Name.set -> void
+ApiTestSpark.RemoteApiProfile.RemoteBaseUrl.get -> string?
+ApiTestSpark.RemoteApiProfile.RemoteBaseUrl.set -> void
+ApiTestSpark.RemoteApiProfile.RemoteDefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
+ApiTestSpark.RemoteApiProfile.RemoteDefaultHeaders.set -> void
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiApiKeyHeader.get -> string?
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiApiKeyHeader.set -> void
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiApiKeyValue.get -> string?
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiApiKeyValue.set -> void
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiBearerToken.get -> string?
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiBearerToken.set -> void
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiUrl.get -> string?
+ApiTestSpark.RemoteApiProfile.RemoteOpenApiUrl.set -> void
+ApiTestSpark.RemoteApiProfile.RemoteApiProfile() -> void
 static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!

@@ -1,3 +1,22 @@
+export type RemoteApiProfileSource = 'server' | 'browser';
+export type RemoteProxyMode = 'server' | 'browser';
+
+export interface RemoteApiProfile {
+  id: string;
+  name: string;
+  description?: string;
+  remoteBaseUrl?: string;
+  remoteOpenApiUrl?: string;
+  remoteOpenApiApiKeyHeader?: string;
+  remoteOpenApiApiKeyValue?: string;
+  remoteOpenApiBearerToken?: string;
+  remoteOpenApiApiKeyConfigured?: boolean;
+  remoteOpenApiBearerTokenConfigured?: boolean;
+  remoteDefaultHeaders: Record<string, string>;
+  source: RemoteApiProfileSource;
+  proxyMode: RemoteProxyMode;
+}
+
 export interface HarnessConfig {
   baseUrl: string;
   openApiUrl: string | null;
@@ -10,6 +29,7 @@ export interface HarnessConfig {
   remoteOpenApiApiKeyHeader?: string;
   remoteOpenApiApiKeyValue?: string;
   remoteOpenApiBearerToken?: string;
+  remoteApiProfiles?: RemoteApiProfile[];
   /** NuGet package version of the embedded harness, e.g. "1.2.0". */
   harnessVersion?: string;
   /** ISO-8601 build timestamp baked into the assembly at pack time. */

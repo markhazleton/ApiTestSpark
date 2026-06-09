@@ -64,24 +64,47 @@ app.MapApiTestSpark(options =>
 | `CorsOrigins` | `[]` (same-origin) | Extra origins allowed to call the config endpoint. Use when the Vite dev server and .NET API run on different ports. |
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback. Alternatively set `Logging:LogLevel:ApiTestSpark=Debug` in appsettings. |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes. Set to `false` to present a clean harness showing only your host API and API Doc Builder. |
-| `RemoteBaseUrl` | `null` | Base URL of the remote REST API. Added to CSP `connect-src` so browser direct-calls are permitted. |
-| `RemoteOpenApiUrl` | `null` | Full URL of the remote OpenAPI JSON document. Fetched server-side via the spec proxy. Must begin with `http://` or `https://`. |
-| `RemoteOpenApiApiKeyHeader` | `null` | Header name for the remote API key (e.g. `x-api-key`). Only used when `RemoteOpenApiApiKeyValue` is also set. |
-| `RemoteOpenApiApiKeyValue` | `null` | API key value. Injected server-side; never sent to the browser. |
-| `RemoteOpenApiBearerToken` | `null` | Bearer token for the remote spec proxy. Injected server-side as `Authorization: Bearer <token>`. |
-| `RemoteDefaultHeaders` | `{}` | Headers injected into every browser-side request to the remote API. Supports `{session-guid}` and `{request-guid}` tokens expanded at request time. |
+| `RemoteApiProfiles` | `[]` | List of named remote APIs. Each profile has `Id`, `Name`, `Description`, `RemoteBaseUrl`, `RemoteOpenApiUrl`, credentials, and default headers. |
+| `RemoteBaseUrl` | `null` | Legacy single-remote base URL. Used as one compatibility profile when `RemoteApiProfiles` is empty. |
+| `RemoteOpenApiUrl` | `null` | Legacy single-remote OpenAPI URL. Used as one compatibility profile when `RemoteApiProfiles` is empty. |
+| `RemoteOpenApiApiKeyHeader` | `null` | Legacy header name for the remote API key. |
+| `RemoteOpenApiApiKeyValue` | `null` | Legacy API key value. Used server-side only and redacted from config. |
+| `RemoteOpenApiBearerToken` | `null` | Legacy bearer token. Used server-side only and redacted from config. |
+| `RemoteDefaultHeaders` | `{}` | Legacy headers injected into browser-side requests to the remote API. Supports `{session-guid}` and `{request-guid}` tokens. |
+
+### Multiple remote APIs
+
+Configure named profiles in `Program.cs`:
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "orders-api",
+        Name = "Orders API",
+        Description = "Order management endpoints.",
+        RemoteBaseUrl = "https://orders.example.com",
+        RemoteOpenApiUrl = "https://orders.example.com/openapi.json",
+        RemoteOpenApiApiKeyHeader = "x-api-key",
+        RemoteOpenApiApiKeyValue = builder.Configuration["Orders:ApiKey"],
+    });
+});
+```
+
+Server profile credentials are redacted from `/api-test-spark/config` and used only by `/api-test-spark/remote-spec?profileId=...`. Browser-created profiles on the Config page are stored locally and fetch OpenAPI documents directly from the browser.
 
 ---
 
 ## Features
 
 - **OpenAPI autodiscovery** — endpoints grouped by tag in a collapsible accordion; real-time search filter
-- **Remote API Explorer** — browse and test a remote REST API from its OpenAPI document via a server-side spec proxy; API key and Bearer token injected server-side so credentials never appear in the browser network tab
+- **Remote API Explorer** — browse and test one or more named remote REST APIs from their OpenAPI documents; server-configured credentials stay server-side and browser-created profiles stay local
 - **Full metadata surface** — descriptions rendered as markdown, response codes as coloured badges with expandable inline schemas, `operationId` as a copyable chip, schema constraint tables
 - **JSON scaffold** — request body pre-filled from `example → default → enum[0] → type placeholder`; nested objects and arrays scaffolded recursively
 - **Response rendering** — arrays as sortable tables, objects as editable forms, primitives in pre blocks
 - **API Doc Builder** (`/api-docs`) — select endpoints, capture live curl + responses, annotate sections, export markdown
-- **Remote API Doc Builder** (`/remote-api-docs`) — same documentation capture for remote API endpoints
+- **Remote API Doc Builder** (`/remote-docs/{profileId}`) — same documentation capture for remote API endpoints
 - **Header token expansion** — `{session-guid}` and `{request-guid}` tokens in header values are replaced at request time with real UUIDs
 - **Debug panel** — drag-resizable, captures every request/response/error/metric; cURL snippet per request; FIFO buffered
 - **Environment gating** — one option keeps the harness off production
@@ -102,21 +125,29 @@ app.MapApiTestSpark(options =>
 });
 ```
 
-### Remote API Explorer
+### Remote API Profiles
 
-Point the harness at a remote REST API by configuring `RemoteBaseUrl` and `RemoteOpenApiUrl`. The harness fetches the remote spec server-side (credentials stay off the browser network tab) and exposes a full endpoint explorer and doc builder for the remote API.
+Point the harness at one or more remote REST APIs by configuring `RemoteApiProfiles`. Each profile gets its own explorer and doc builder route, displayed by `Name` and `Description`. Server-configured specs are fetched through `/api-test-spark/remote-spec?profileId=...` with credential values held server-side and redacted from `/api-test-spark/config`. Browser-created profiles are managed on the Config page, stored in `localStorage`, and fetch OpenAPI documents directly from the browser.
 
 ```csharp
 app.MapApiTestSpark(options =>
 {
-    options.OpenApiUrl                   = "/openapi/v1.json";
-    options.RemoteBaseUrl                = "https://api.example.com";
-    options.RemoteOpenApiUrl             = "https://api.example.com/openapi.json";
-    options.RemoteOpenApiApiKeyHeader    = "x-api-key";
-    options.RemoteOpenApiApiKeyValue     = "your-api-key";
-    // Optional: correlation headers with per-request UUID tokens
-    options.RemoteDefaultHeaders["correlationId"] = "{request-guid}";
-    options.RemoteDefaultHeaders["sessionId"]     = "{session-guid}";
+    options.OpenApiUrl = "/openapi/v1.json";
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "partner-api",
+        Name = "Partner API",
+        Description = "External partner integration endpoints.",
+        RemoteBaseUrl = "https://api.example.com",
+        RemoteOpenApiUrl = "https://api.example.com/openapi.json",
+        RemoteOpenApiApiKeyHeader = "x-api-key",
+        RemoteOpenApiApiKeyValue = "your-api-key",
+        RemoteDefaultHeaders =
+        {
+            ["correlationId"] = "{request-guid}",
+            ["sessionId"] = "{session-guid}",
+        },
+    });
 });
 ```
 

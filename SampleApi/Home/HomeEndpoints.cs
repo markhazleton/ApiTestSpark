@@ -27,11 +27,16 @@ public static class HomeEndpoints
                 body { font-family: system-ui, -apple-system, sans-serif; color: #1a1a2e; background: #f8fafc; line-height: 1.6; }
 
                 /* ── Nav ── */
-                nav { background: #0f172a; color: #e2e8f0; padding: 0.75rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-                nav .brand { font-weight: 700; font-size: 1.1rem; color: #38bdf8; text-decoration: none; }
-                nav .links { display: flex; gap: 1.5rem; }
-                nav .links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+                nav { background: #0f172a; color: #e2e8f0; padding: 0.75rem 2rem; position: sticky; top: 0; z-index: 100; }
+                nav .nav-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+                nav .brand { min-width: 0; font-weight: 700; font-size: 1.05rem; color: #38bdf8; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                nav .links { display: flex; align-items: center; gap: 1rem; }
+                nav .links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; white-space: nowrap; }
                 nav .links a:hover { color: #e2e8f0; }
+                nav .menu-toggle { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+                nav .menu-button { display: none; width: 2.25rem; height: 2.25rem; border: 1px solid #334155; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; color: #cbd5e1; flex-shrink: 0; }
+                nav .menu-icon { display: flex; flex-direction: column; gap: 0.25rem; }
+                nav .menu-icon span { display: block; width: 1.15rem; height: 2px; background: currentColor; border-radius: 999px; }
 
                 /* ── Hero ── */
                 .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0c4a6e 100%); color: white; padding: 5rem 2rem 4rem; text-align: center; }
@@ -116,9 +121,9 @@ public static class HomeEndpoints
                 .pkg-title .pkg-version { display: inline-block; background: #0ea5e9; color: white; border-radius: 6px; padding: 0.2rem 0.75rem; font-size: 0.82rem; font-weight: 700; letter-spacing: .03em; margin-bottom: 0.25rem; }
                 .pkg-title p { color: #475569; font-size: 0.95rem; margin-top: 0.3rem; }
                 .pkg-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-                .pkg-meta-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
+                .pkg-meta-item { min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
                 .pkg-meta-item .label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 0.2rem; }
-                .pkg-meta-item .value { font-size: 0.95rem; font-weight: 600; color: #0f172a; }
+                .pkg-meta-item .value { min-width: 0; font-size: 0.95rem; font-weight: 600; color: #0f172a; overflow-wrap: anywhere; }
                 .pkg-meta-item .value a { color: #0ea5e9; text-decoration: none; }
                 .pkg-meta-item .value a:hover { text-decoration: underline; }
                 .pkg-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
@@ -160,26 +165,32 @@ public static class HomeEndpoints
                 footer .footer-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
 
                 /* ── Responsive ── */
+                @media (max-width: 920px) {
+                    nav { padding: 0.65rem 1rem; }
+                    nav .menu-button { display: flex; }
+                    nav .links { display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #1e293b; flex-direction: column; align-items: stretch; gap: 0.2rem; }
+                    nav .links a { padding: 0.55rem 0.25rem; }
+                    nav .menu-toggle:checked ~ .links { display: flex; }
+                }
                 @media (max-width: 600px) {
                     .step { grid-template-columns: 2.5rem 1fr; }
-                    nav .links { gap: 1rem; }
                 }
             </style>
         </head>
         <body>
 
         <nav>
-            <a href="/" class="brand">⚡ API Test Spark</a>
+            <input class="menu-toggle" type="checkbox" id="home-nav-toggle" aria-label="Toggle navigation menu" />
+            <div class="nav-row">
+                <a href="/" class="brand">⚡ API Test Spark</a>
+                <label class="menu-button" for="home-nav-toggle" aria-label="Toggle navigation menu">
+                    <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+                </label>
+            </div>
             <div class="links">
                 <a href="#quickstart">Quickstart</a>
-                <a href="#features">Features</a>
-                <a href="#options">Options</a>
                 <a href="#demo">Live Demo</a>
                 <a href="#remote-api">Remote API</a>
-                <a href="#best-practices">Best Practices</a>
-                <a href="#history">History</a>
-                <a href="https://www.nuget.org/packages/ApiTestSpark" target="_blank" rel="noopener">NuGet</a>
-                <a href="https://github.com/markhazleton/ApiTestSpark" target="_blank" rel="noopener">GitHub</a>
             </div>
         </nav>
 
@@ -339,13 +350,13 @@ public static class HomeEndpoints
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🌐</div>
-                        <h3>Remote API Explorer</h3>
-                        <p>Browse and test any remote REST API from its OpenAPI document. Configure <code class="inline">RemoteBaseUrl</code> and <code class="inline">RemoteOpenApiUrl</code> in <code class="inline">Program.cs</code> — the harness fetches the spec server-side so credentials never appear in the browser network tab.</p>
+                        <h3>Remote API Profiles</h3>
+                        <p>Browse and test multiple named remote REST APIs from their OpenAPI documents. Configure <code class="inline">RemoteApiProfiles</code> in <code class="inline">Program.cs</code> or add browser-local profiles from the Config page.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🔑</div>
                         <h3>Credential-Safe Proxy</h3>
-                        <p>A server-side proxy endpoint (<code class="inline">GET /api-test-spark/remote-spec</code>) injects your API key or Bearer token before fetching the remote OpenAPI document. An SSRF guard rejects non-HTTP/HTTPS schemes before any outbound call.</p>
+                        <p>A server-side proxy endpoint (<code class="inline">GET /api-test-spark/remote-spec?profileId=...</code>) resolves server profiles by id and injects API keys or Bearer tokens without serializing secrets to the browser.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🪪</div>
@@ -355,7 +366,7 @@ public static class HomeEndpoints
                     <div class="feature-card">
                         <div class="feature-icon">📑</div>
                         <h3>Remote API Doc Builder</h3>
-                        <p>The same endpoint-capture and markdown-export experience as the host API Doc Builder, but for remote API endpoints. Capture live remote responses and export complete markdown documentation.</p>
+                        <p>The same endpoint-capture and markdown-export experience as the host API Doc Builder, but scoped to the selected remote profile so generated docs use that profile's name and description.</p>
                     </div>
                 </div>
             </section>
@@ -481,34 +492,39 @@ app.<span class="cm">Run</span>();</pre>
                             <td>When <code class="inline">false</code>, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes (<code class="inline">/joke-api</code>, <code class="inline">/json-placeholder</code>). The home page shows only <strong>Host API Explorer</strong> and <strong>API Doc Builder</strong>. Default <code class="inline">true</code> — existing installs are unaffected.</td>
                         </tr>
                         <tr>
+                            <td>RemoteApiProfiles</td>
+                            <td>[]</td>
+                            <td>List of named remote API defaults. Each profile includes an id, name, description, base URL, OpenAPI URL, credentials, and default headers.</td>
+                        </tr>
+                        <tr>
                             <td>RemoteBaseUrl</td>
                             <td>null</td>
-                            <td>Base URL of the remote REST API. Added to <code class="inline">Content-Security-Policy connect-src</code> automatically so the browser can make direct endpoint calls without modifying the remote server.</td>
+                            <td>Legacy single-remote base URL. Used as one compatibility profile when <code class="inline">RemoteApiProfiles</code> is empty.</td>
                         </tr>
                         <tr>
                             <td>RemoteOpenApiUrl</td>
                             <td>null</td>
-                            <td>Full URL of the remote OpenAPI JSON document. Fetched server-side via the spec proxy. Must begin with <code class="inline">http://</code> or <code class="inline">https://</code> — other schemes are rejected with 400 (SSRF guard).</td>
+                            <td>Legacy single-remote OpenAPI URL. Used as one compatibility profile when <code class="inline">RemoteApiProfiles</code> is empty.</td>
                         </tr>
                         <tr>
                             <td>RemoteOpenApiApiKeyHeader</td>
                             <td>null</td>
-                            <td>Header name for the remote API key (e.g. <code class="inline">x-api-key</code>). Only active when <code class="inline">RemoteOpenApiApiKeyValue</code> is also set.</td>
+                            <td>Legacy API key header name for the compatibility profile.</td>
                         </tr>
                         <tr>
                             <td>RemoteOpenApiApiKeyValue</td>
                             <td>null</td>
-                            <td>API key value. Injected server-side by the spec proxy — never visible in the browser network tab.</td>
+                            <td>Legacy API key value. Used server-side only and redacted from <code class="inline">/api-test-spark/config</code>.</td>
                         </tr>
                         <tr>
                             <td>RemoteOpenApiBearerToken</td>
                             <td>null</td>
-                            <td>Bearer token for the remote spec proxy. Injected server-side as <code class="inline">Authorization: Bearer …</code>.</td>
+                            <td>Legacy bearer token. Used server-side only and redacted from <code class="inline">/api-test-spark/config</code>.</td>
                         </tr>
                         <tr>
                             <td>RemoteDefaultHeaders</td>
                             <td>{}</td>
-                            <td>Headers injected into every browser-side request to the remote API. Supports <code class="inline">{session-guid}</code> and <code class="inline">{request-guid}</code> tokens expanded at request time. Use for correlation IDs and session tracking.</td>
+                            <td>Legacy headers injected into every browser-side request to the compatibility remote API. Supports <code class="inline">{session-guid}</code> and <code class="inline">{request-guid}</code> tokens.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -525,17 +541,26 @@ app.<span class="cm">Run</span>();</pre>
                 </div>
 
                 <div style="margin-top: 2rem;">
-                    <h3>Example — Remote API Explorer with credential-safe proxy</h3>
-                    <p style="color:#475569;font-size:0.95rem;margin:0.5rem 0 0.75rem">Configure a remote API target. The spec is fetched server-side so your API key never reaches the browser network tab.</p>
+                    <h3>Example — Remote API Profiles with credential-safe proxy</h3>
+                    <p style="color:#475569;font-size:0.95rem;margin:0.5rem 0 0.75rem">Configure named remote API profiles. Server profile specs are fetched by profile id so API key values stay server-side and redacted from the config payload.</p>
 <pre><span class="kw">app</span>.<span class="cm">MapApiTestSpark</span>(options =>
 {
     options.OpenApiUrl                   = <span class="st">"/openapi/v1.json"</span>;
-    options.RemoteBaseUrl                = <span class="st">"https://api.partner.com"</span>;
-    options.RemoteOpenApiUrl             = <span class="st">"https://api.partner.com/openapi.json"</span>;
-    options.RemoteOpenApiApiKeyHeader    = <span class="st">"x-api-key"</span>;
-    options.RemoteOpenApiApiKeyValue     = <span class="st">"your-api-key"</span>;   <span class="c">// stays server-side</span>
-    options.RemoteDefaultHeaders[<span class="st">"correlationId"</span>] = <span class="st">"{request-guid}"</span>; <span class="c">// UUID per call</span>
-    options.RemoteDefaultHeaders[<span class="st">"sessionId"</span>]     = <span class="st">"{session-guid}"</span>;  <span class="c">// UUID per page load</span>
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = <span class="st">"partner-api"</span>,
+        Name = <span class="st">"Partner API"</span>,
+        Description = <span class="st">"External partner integration endpoints."</span>,
+        RemoteBaseUrl = <span class="st">"https://api.partner.com"</span>,
+        RemoteOpenApiUrl = <span class="st">"https://api.partner.com/openapi.json"</span>,
+        RemoteOpenApiApiKeyHeader = <span class="st">"x-api-key"</span>,
+        RemoteOpenApiApiKeyValue = <span class="st">"your-api-key"</span>, <span class="c">// stays server-side</span>
+        RemoteDefaultHeaders =
+        {
+            [<span class="st">"correlationId"</span>] = <span class="st">"{request-guid}"</span>,
+            [<span class="st">"sessionId"</span>] = <span class="st">"{session-guid}"</span>,
+        },
+    });
 });</pre>
                 </div>
 
@@ -625,15 +650,26 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                         <div class="step-num">②</div>
                         <div class="step-body">
                             <h3>Config endpoint</h3>
-                            <p>Registers <code class="inline">GET /api-test-spark/config</code>. The SPA fetches this on startup to receive all configuration — host API URL, auth scheme, default headers, remote API settings, and the harness version/build date. Nothing is hardcoded in the bundle.</p>
+                            <p>Registers <code class="inline">GET /api-test-spark/config</code>. The SPA fetches this on startup to receive all configuration — host API URL, auth scheme, default headers, redacted remote API profile metadata, and the harness version/build date. Nothing is hardcoded in the bundle.</p>
                             <pre style="margin-top:0.5rem">{
   "baseUrl": "https://your-api.example.com",
   "openApiUrl": "/openapi/v1.json",
   "authScheme": "Bearer",
   "defaultHeaders": { "X-Tenant-Id": "acme" },
   "enableDemoIntegrations": true,
-  "remoteBaseUrl": "https://api.partner.com",
-  "remoteOpenApiUrl": "https://api.partner.com/openapi.json",
+  "remoteApiProfiles": [
+    {
+      "id": "partner-api",
+      "name": "Partner API",
+      "description": "External partner integration endpoints.",
+      "remoteBaseUrl": "https://api.partner.com",
+      "remoteOpenApiUrl": "https://api.partner.com/openapi.json",
+      "remoteOpenApiApiKeyValue": null,
+      "remoteOpenApiApiKeyConfigured": true,
+      "source": "server",
+      "proxyMode": "server"
+    }
+  ],
   "harnessVersion": "1.3.0",
   "harnessBuiltAt": "2026-06-06T14:41:11Z"
 }</pre>
@@ -643,7 +679,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                         <div class="step-num">③</div>
                         <div class="step-body">
                             <h3>Remote spec proxy</h3>
-                            <p>Registers <code class="inline">GET /api-test-spark/remote-spec</code>. When the Remote API Explorer loads, the SPA requests this endpoint instead of the remote URL directly. The proxy injects your API key or Bearer token server-side, fetches the remote OpenAPI document, validates it, and returns the JSON — credentials never appear in the browser network tab. Non-HTTP/HTTPS schemes are rejected with 400 (SSRF guard).</p>
+                            <p>Registers <code class="inline">GET /api-test-spark/remote-spec?profileId=...</code>. When a server-configured Remote API Explorer loads, the SPA requests this endpoint by profile id. The proxy resolves only server-provided profiles, injects API keys or Bearer tokens server-side, fetches the remote OpenAPI document, validates it, and returns the JSON. Browser-created profiles fetch their OpenAPI documents directly from the browser.</p>
                         </div>
                     </div>
                     <div class="step">
@@ -854,43 +890,51 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
             <!-- ── Remote API Explorer ── -->
             <section id="remote-api">
-                <h2>Remote API Explorer</h2>
+                <h2>Remote API Profiles</h2>
                 <p class="section-intro">
-                    New in v1.3.0 — browse and test any remote REST API from its OpenAPI document without leaving the harness.
-                    The spec is fetched via a server-side proxy so API keys and Bearer tokens stay off the browser network tab entirely.
+                    Browse and test named remote REST APIs from their OpenAPI documents without leaving the harness.
+                    Server-configured profile specs use a credential-safe proxy; browser-created profiles are stored locally and fetch specs directly.
                 </p>
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem;">
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
                         <h3 style="margin-bottom:0.4rem;">Path 1 — Spec Fetch (server-side)</h3>
-                        <p style="color:#475569;font-size:0.88rem;">Browser calls <code class="inline">GET /api-test-spark/remote-spec</code> → .NET proxy adds credentials → fetches remote OpenAPI JSON → returns body. Your API key is never visible in DevTools.</p>
+                        <p style="color:#475569;font-size:0.88rem;">For server profiles, the browser calls <code class="inline">GET /api-test-spark/remote-spec?profileId=...</code> → .NET resolves the server profile → adds credentials → fetches remote OpenAPI JSON. Credential values are redacted from config.</p>
                     </div>
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #10b981;border-radius:8px;padding:1.25rem 1.5rem;">
                         <h3 style="margin-bottom:0.4rem;">Path 2 — Endpoint Calls (browser-direct)</h3>
-                        <p style="color:#475569;font-size:0.88rem;">When you click Send, the request goes from your browser to the remote server. Default headers (including <code class="inline">{request-guid}</code> correlation tokens) and any configured API key are injected by the SPA. The CSP <code class="inline">connect-src</code> is auto-extended with <code class="inline">RemoteBaseUrl</code>.</p>
+                        <p style="color:#475569;font-size:0.88rem;">When you click Send, the request goes from your browser to the selected profile's remote server. Default headers, browser-local credentials, and token placeholders such as <code class="inline">{request-guid}</code> are injected by the SPA.</p>
                     </div>
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #f59e0b;border-radius:8px;padding:1.25rem 1.5rem;">
-                        <h3 style="margin-bottom:0.4rem;">Configuration Priority</h3>
-                        <p style="color:#475569;font-size:0.88rem;">Values set on the <strong>Config page</strong> (stored in <code class="inline">localStorage</code>) override values set in <code class="inline">Program.cs</code>. Use <strong>Clear all remote config</strong> on the Config page to revert to server defaults.</p>
+                        <h3 style="margin-bottom:0.4rem;">Configuration Management</h3>
+                        <p style="color:#475569;font-size:0.88rem;">Server profiles appear first and can be hidden locally. Browser profiles are added, edited, and deleted from the <strong>Config page</strong>, with all browser-managed values persisted in <code class="inline">localStorage</code>.</p>
                     </div>
                 </div>
 
-                <h3 style="margin-bottom:0.75rem;">This demo's remote configuration</h3>
+                <h3 style="margin-bottom:0.75rem;">This demo's remote profiles</h3>
                 <p style="color:#475569;font-size:0.95rem;margin-bottom:0.75rem;">
-                    This site uses JSONPlaceholder as a live remote target — no auth required, always available. Open the Remote API Explorer to browse its endpoints.
+                    This site seeds two remote profiles from <code class="inline">Program.cs</code>: JSONPlaceholder and the hosted API Test Spark demo. Open either profile's explorer or docs from the harness home screen.
                 </p>
 <pre><span class="kw">app</span>.<span class="cm">MapApiTestSpark</span>(options =>
 {
     options.OpenApiUrl    = <span class="st">"/openapi/v1.json"</span>;
-    <span class="c">// Remote target — JSONPlaceholder public API</span>
-    options.RemoteBaseUrl    = <span class="st">"https://jsonplaceholder.typicode.com"</span>;
-    options.RemoteOpenApiUrl = <span class="st">"https://apitest.makeboldspark.com/openapi/v1.json"</span>;
-    <span class="c">// Token headers — expanded at request time, not stored as literals</span>
-    options.RemoteDefaultHeaders[<span class="st">"correlationId"</span>] = <span class="st">"{request-guid}"</span>;
-    options.RemoteDefaultHeaders[<span class="st">"sessionId"</span>]     = <span class="st">"{session-guid}"</span>;
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = <span class="st">"jsonplaceholder-demo"</span>,
+        Name = <span class="st">"JSONPlaceholder"</span>,
+        Description = <span class="st">"Public demo API for posts, users, and comments."</span>,
+        RemoteBaseUrl = <span class="st">"https://jsonplaceholder.typicode.com"</span>,
+        RemoteOpenApiUrl = <span class="st">"https://apitest.makeboldspark.com/openapi/v1.json"</span>,
+        RemoteDefaultHeaders =
+        {
+            [<span class="st">"correlationId"</span>] = <span class="st">"{request-guid}"</span>,
+            [<span class="st">"sessionId"</span>] = <span class="st">"{session-guid}"</span>,
+        },
+    });
 });</pre>
                 <div style="margin-top:1rem;">
-                    <a href="/api-test-spark/remote-api" class="btn-primary" style="font-size:0.95rem;padding:0.75rem 1.75rem;">🌐 Open Remote API Explorer</a>
+                    <a href="/api-test-spark/remote-api/jsonplaceholder-demo" class="btn-primary" style="font-size:0.95rem;padding:0.75rem 1.75rem;">🌐 Open JSONPlaceholder Explorer</a>
+                    <a href="/api-test-spark/remote-docs/jsonplaceholder-demo" class="btn-primary" style="font-size:0.95rem;padding:0.75rem 1.75rem;margin-left:0.75rem;background:#0369a1;">📄 Open JSONPlaceholder Docs</a>
                 </div>
             </section>
 
@@ -907,7 +951,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                             <span style="color:#94a3b8;font-size:0.85rem;">June 6, 2026</span>
                             <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
                         </div>
-                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote API Explorer.</strong> Browse and test remote REST APIs from their OpenAPI documents. Server-side spec proxy keeps credentials off the browser network tab. New <code class="inline">ApiTestSparkOptions</code>: <code class="inline">RemoteBaseUrl</code>, <code class="inline">RemoteOpenApiUrl</code>, <code class="inline">RemoteOpenApiApiKeyHeader</code>, <code class="inline">RemoteOpenApiApiKeyValue</code>, <code class="inline">RemoteOpenApiBearerToken</code>, <code class="inline">RemoteDefaultHeaders</code>. Header token expansion (<code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>). SSRF guard on proxy. Harness version and build date on About page. HeadersEditor focus-loss fix.</p>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote API Explorer.</strong> Browse and test remote REST APIs from named <code class="inline">RemoteApiProfiles</code>. Server-side spec proxy resolves server profile ids and redacts credential values from config; browser-created profiles stay local and fetch specs directly. Header token expansion (<code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>). Harness version and build date on About page.</p>
                     </div>
 
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #6366f1;border-radius:8px;padding:1.25rem 1.5rem;">
@@ -995,7 +1039,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                     </div>
                     <div>
                         <h3>How does the Remote API Explorer keep credentials safe?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">When the Remote API Explorer loads, the SPA calls <code class="inline">GET /api-test-spark/remote-spec</code> — a .NET endpoint in the same process as your app. That endpoint reads the configured API key or Bearer token from <code class="inline">ApiTestSparkOptions</code> (server-side memory, never the browser) and injects them into the outbound request before fetching the remote OpenAPI document. The credentials never travel to the browser at all — only the parsed JSON response does.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">For server-configured profiles, the SPA calls <code class="inline">GET /api-test-spark/remote-spec?profileId=...</code> — a .NET endpoint in the same process as your app. That endpoint resolves only server-provided profile ids, reads that profile's API key or Bearer token from <code class="inline">ApiTestSparkOptions</code> (server-side memory, never the browser), and injects them into the outbound spec request. Browser-created profiles do not use the proxy; they fetch OpenAPI documents directly from the browser.</p>
                     </div>
                     <div>
                         <h3>What are {session-guid} and {request-guid}?</h3>
@@ -1003,11 +1047,11 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                     </div>
                     <div>
                         <h3>Can I use the Remote API Explorer to test an API that requires CORS?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">Yes. When you set <code class="inline">RemoteBaseUrl</code>, the harness automatically adds that origin to the page's <code class="inline">Content-Security-Policy connect-src</code> directive. This means the browser will allow direct calls from the harness to the remote server without needing a preflight change on the remote server — as long as the remote server already sends permissive CORS headers (e.g. <code class="inline">Access-Control-Allow-Origin: *</code>).</p>
+                        <p style="color:#475569;margin-top:0.25rem;">Yes, if the remote server allows browser calls. Server-configured profiles add their <code class="inline">RemoteBaseUrl</code> to the page's <code class="inline">Content-Security-Policy connect-src</code> directive, and browser-created profiles are allowed by the harness CSP as well. The remote server still needs permissive CORS headers for browser-direct endpoint calls and browser-created OpenAPI spec fetches.</p>
                     </div>
                     <div>
-                        <h3>I updated remote config on the Config page but the proxy still uses the old key — why?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">The <code class="inline">/api-test-spark/remote-spec</code> proxy reads credentials from <code class="inline">ApiTestSparkOptions</code> at request time — that is, from the values set in <code class="inline">Program.cs</code> at startup. UI-entered credential changes are persisted in <code class="inline">localStorage</code> and applied to <em>browser-direct</em> endpoint calls immediately, but they do not reach the proxy until you restart the .NET host with the updated values in <code class="inline">Program.cs</code>. This is by design: passing credentials from the browser to the proxy would put them on the network tab, defeating the purpose of the server-side proxy.</p>
+                        <h3>Why don't browser-created profiles use the server proxy?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">The proxy accepts server-provided profile ids only. Browser-created profile credentials are persisted in <code class="inline">localStorage</code> and applied to browser-direct spec fetches and endpoint calls, but they are never submitted to <code class="inline">/api-test-spark/remote-spec</code>. This keeps the proxy from becoming an arbitrary server-side URL fetcher and keeps browser-local secrets out of the proxy request.</p>
                     </div>
                 </div>
             </section>

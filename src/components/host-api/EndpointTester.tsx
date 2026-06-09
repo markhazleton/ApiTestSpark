@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { DiscoveredEndpoint, EndpointParameter, ResponseCode, ResolvedSchema } from '../../types';
+import type { DiscoveredEndpoint, EndpointParameter, RemoteApiProfile, ResponseCode, ResolvedSchema } from '../../types';
 import { useHostApi } from '../../hooks';
 import { useHarnessConfigStore, useDebugStore } from '../../store';
 import { buildJsonScaffold } from '../../utils/openApiParser';
@@ -23,6 +23,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 interface EndpointTesterProps {
   endpoint: DiscoveredEndpoint;
+  remoteProfile?: RemoteApiProfile;
 }
 
 // ── T005: JSONPath helper ─────────────────────────────────────────────────────
@@ -673,7 +674,7 @@ function ResponseView({
 // T014: LastRequest type (data-model.md)
 type LastRequest = CurlArgs;
 
-export function EndpointTester({ endpoint }: EndpointTesterProps) {
+export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps) {
   const { config } = useHarnessConfigStore();
   const { addError } = useDebugStore();
   const { mutate, isPending, data, error } = useHostApi();
@@ -696,7 +697,7 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
   const queryParamList = endpoint.parameters.filter((p) => p.in === 'query');
 
   function buildResolvedUrl(): string {
-    const baseUrl = config?.baseUrl ?? window.location.origin;
+    const baseUrl = remoteProfile?.remoteBaseUrl || config?.baseUrl || window.location.origin;
     let resolved = endpoint.path;
     for (const [key, value] of Object.entries(pathParams)) {
       resolved = resolved.replace(`{${key}}`, encodeURIComponent(value));
@@ -719,14 +720,17 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
     }
 
     // Build the request snapshot for lastRequest capture — use remote or local headers
-    const isRemote = !!config?.remoteBaseUrl;
+    const isRemote = !!remoteProfile;
     const baseConfigHeaders = isRemote
-      ? (config?.remoteDefaultHeaders ?? {})
+      ? (remoteProfile?.remoteDefaultHeaders ?? {})
       : (config?.defaultHeaders ?? {});
     const requestHeaders: Record<string, string> = {
       ...baseConfigHeaders,
-      ...(isRemote && config?.remoteOpenApiApiKeyHeader && config?.remoteOpenApiApiKeyValue
-        ? { [config.remoteOpenApiApiKeyHeader]: config.remoteOpenApiApiKeyValue }
+      ...(isRemote && remoteProfile?.source !== 'server' && remoteProfile?.remoteOpenApiApiKeyHeader && remoteProfile?.remoteOpenApiApiKeyValue
+        ? { [remoteProfile.remoteOpenApiApiKeyHeader]: remoteProfile.remoteOpenApiApiKeyValue }
+        : {}),
+      ...(isRemote && remoteProfile?.source !== 'server' && remoteProfile?.remoteOpenApiBearerToken
+        ? { Authorization: `Bearer ${remoteProfile.remoteOpenApiBearerToken}` }
         : {}),
       ...extraHeaders,
       ...(needsBody && body !== undefined ? { 'Content-Type': 'application/json' } : {}),
@@ -740,7 +744,7 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
     };
 
     mutate(
-      { method: endpoint.method, path: endpoint.path, pathParams, queryParams, body, extraHeaders },
+      { method: endpoint.method, path: endpoint.path, pathParams, queryParams, body, extraHeaders, remoteProfile },
       {
         onSuccess: () => {
           // T014: capture at success time so cURL always matches displayed response (critic-005)
@@ -822,9 +826,17 @@ export function EndpointTester({ endpoint }: EndpointTesterProps) {
 
       {/* ── Default headers from config ── */}
       {(() => {
-        const isRemote = !!config?.remoteBaseUrl;
+        const isRemote = !!remoteProfile;
         const effectiveHeaders = isRemote
-          ? { ...(config?.remoteDefaultHeaders ?? {}), ...(config?.remoteOpenApiApiKeyHeader && config?.remoteOpenApiApiKeyValue ? { [config.remoteOpenApiApiKeyHeader]: config.remoteOpenApiApiKeyValue } : {}) }
+          ? {
+              ...(remoteProfile?.remoteDefaultHeaders ?? {}),
+              ...(remoteProfile?.source !== 'server' && remoteProfile?.remoteOpenApiApiKeyHeader && remoteProfile?.remoteOpenApiApiKeyValue
+                ? { [remoteProfile.remoteOpenApiApiKeyHeader]: remoteProfile.remoteOpenApiApiKeyValue }
+                : {}),
+              ...(remoteProfile?.source !== 'server' && remoteProfile?.remoteOpenApiBearerToken
+                ? { Authorization: `Bearer ${remoteProfile.remoteOpenApiBearerToken}` }
+                : {}),
+            }
           : (config?.defaultHeaders ?? {});
         const entries = Object.entries(effectiveHeaders);
         if (entries.length === 0) return null;

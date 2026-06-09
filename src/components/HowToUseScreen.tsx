@@ -84,8 +84,8 @@ export const HowToUseScreen: React.FC = () => {
           <p className="text-sm text-gray-700 leading-relaxed">
             {BRANDING.productName} is embedded in your .NET application at{' '}
             <Code>/api-test-spark/</Code>. It autodiscovers your app's OpenAPI endpoints and
-            lets you call them interactively — plus it can proxy a <em>second</em>, remote API
-            so you can test integrations between your local service and an external one, all
+            lets you call them interactively — plus it can connect to named remote API profiles
+            so you can test integrations between your local service and external services, all
             from the same browser tab.
           </p>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -99,8 +99,8 @@ export const HowToUseScreen: React.FC = () => {
             <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
               <p className="font-semibold text-gray-800 mb-1">Remote API Explorer</p>
               <p className="text-gray-600 text-xs leading-relaxed">
-                Tests endpoints from a completely separate API. The spec is fetched server-side
-                so credentials never appear in the browser network tab.
+                Tests endpoints from one or more separate APIs. Server-configured specs are
+                fetched by profile id; browser-created profiles fetch specs directly.
               </p>
             </div>
             <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
@@ -155,8 +155,8 @@ export const HowToUseScreen: React.FC = () => {
         <Card>
           <H2>Remote API Configuration</H2>
           <p className="text-sm text-gray-700 leading-relaxed mb-4">
-            The remote API feature lets you point the harness at a second API — typically one
-            you are integrating with. There are two places to set it up: server-side in{' '}
+            The remote API feature lets you point the harness at one or more APIs — typically
+            services you are integrating with. There are two places to set them up: server-side in{' '}
             <Code>Program.cs</Code> (permanent, shared across all users of the harness) or
             browser-side on the <Link to="/config" className="text-blue-600 hover:underline">Config page</Link>{' '}
             (persisted in <Code>localStorage</Code>, personal to your browser).
@@ -164,42 +164,43 @@ export const HowToUseScreen: React.FC = () => {
 
           <H3>Option A — Configure in Program.cs</H3>
           <p className="text-xs text-gray-500 mb-2">
-            Permanent defaults. Every developer who opens the harness gets these values pre-loaded.
+            Permanent defaults. Every developer who opens the harness gets these profiles pre-loaded.
           </p>
           <pre className="text-xs bg-gray-900 text-green-300 rounded p-4 overflow-x-auto font-mono leading-relaxed">
 {`app.MapApiTestSpark(options =>
 {
     options.OpenApiUrl = "/openapi/v1.json";         // host API spec
 
-    // ── Remote API ──────────────────────────────────
-    options.RemoteBaseUrl     = "https://api.example.com";
-    options.RemoteOpenApiUrl  = "https://api.example.com/openapi.json";
-
-    // API key sent when fetching the spec AND on every call
-    options.RemoteOpenApiApiKeyHeader = "x-api-key";
-    options.RemoteOpenApiApiKeyValue  = "your-key-here";
-
-    // OR: Bearer token (use one or the other)
-    // options.RemoteOpenApiBearerToken = "your-token-here";
-
-    // Headers injected into every remote API call
-    options.RemoteDefaultHeaders["bsw-CorrelationId"] = "abc-123";
-    options.RemoteDefaultHeaders["bsw-SessionId"]     = "session-456";
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "orders-api",
+        Name = "Orders API",
+        Description = "Order management endpoints.",
+        RemoteBaseUrl = "https://api.example.com",
+        RemoteOpenApiUrl = "https://api.example.com/openapi.json",
+        RemoteOpenApiApiKeyHeader = "x-api-key",
+        RemoteOpenApiApiKeyValue = "your-key-here",
+        RemoteDefaultHeaders =
+        {
+            ["bsw-CorrelationId"] = "{request-guid}",
+            ["bsw-SessionId"] = "{session-guid}",
+        },
+    });
 });`}
           </pre>
 
           <H3>Option B — Configure in the Browser</H3>
           <p className="text-xs text-gray-500 mb-2">
-            Personal overrides stored in <Code>localStorage</Code>.
-            Browser values take precedence over <Code>Program.cs</Code> values.
-            Useful when you need different credentials than the shared defaults.
+            Personal profiles stored in <Code>localStorage</Code>. Useful when you need
+            different credentials or a temporary remote API without changing shared defaults.
           </p>
           <div className="space-y-2 text-sm text-gray-700">
             <Step n={1}>
               Open the <Link to="/config" className="text-blue-600 hover:underline font-medium">Config page</Link> from the top navigation bar.
             </Step>
             <Step n={2}>
-              Fill in <strong>Remote Base URL</strong> (where API calls are sent) and{' '}
+              Click <strong>Add remote</strong>, then fill in a <strong>Name</strong>, optional
+              <strong>Description</strong>, <strong>Remote Base URL</strong> (where API calls are sent), and{' '}
               <strong>OpenAPI Spec URL</strong> (where the spec JSON is fetched from — these
               can be the same host or different).
             </Step>
@@ -214,19 +215,17 @@ export const HowToUseScreen: React.FC = () => {
               correlation IDs, session tokens, tenant identifiers).
             </Step>
             <Step n={5}>
-              Click <strong>Save</strong>. The Remote API Explorer and Doc Builder are now
-              available on the home screen.
+              The Remote API Explorer and Doc Builder entries are now available on the home screen.
             </Step>
           </div>
 
           <div className="mt-4 space-y-3">
             <Callout color="amber" title="How the spec fetch works">
-              When you open the Remote API Explorer, the browser calls{' '}
-              <InlineCode>GET /api-test-spark/remote-spec</InlineCode> — a proxy endpoint
-              inside your .NET app. That proxy forwards the request to the remote server,
-              injecting the API key or Bearer token server-side. This means credentials never
-              appear in the browser's network tab, which is especially important when the
-              harness is used in a team environment.
+              When you open a server-configured Remote API Explorer, the browser calls{' '}
+              <InlineCode>GET /api-test-spark/remote-spec?profileId=...</InlineCode>. That proxy
+              resolves the server profile id, forwards the request to the remote server, and
+              injects the API key or Bearer token server-side. Browser-created profiles do not use
+              this proxy; they fetch their OpenAPI documents directly from the browser.
             </Callout>
 
             <Callout color="blue" title="How API calls work">
@@ -238,11 +237,9 @@ export const HowToUseScreen: React.FC = () => {
             </Callout>
 
             <Callout color="green" title="Priority: browser overrides server">
-              If both <Code>Program.cs</Code> and the Config page have a value set for the
-              same field, the browser-stored value wins. This lets each developer use their
-              own credentials without changing the shared server configuration. Use{' '}
-              <strong>Clear all remote config</strong> on the Config page to revert to the
-              server defaults.
+              Server profiles appear first and browser profiles extend the list. Hiding a server
+              profile stores only that hidden id in the browser. Use <strong>Reset browser remote config</strong>
+              on the Config page to clear browser profiles and hidden server ids.
             </Callout>
           </div>
         </Card>
@@ -261,11 +258,13 @@ export const HowToUseScreen: React.FC = () => {
               </thead>
               <tbody className="font-mono">
                 {[
-                  ['Remote Base URL',       'RemoteBaseUrl',             'Base URL for all remote API endpoint calls. Enables the Remote API section on the home screen.'],
-                  ['OpenAPI Spec URL',       'RemoteOpenApiUrl',          'URL of the remote OpenAPI JSON document. Fetched server-side via the /api-test-spark/remote-spec proxy.'],
-                  ['API Key Header',         'RemoteOpenApiApiKeyHeader', 'Name of the header to send the API key in, e.g. x-api-key.'],
-                  ['API Key Value',          'RemoteOpenApiApiKeyValue',  'Value of the API key. Sent on both the spec fetch (server-side) and every direct API call.'],
-                  ['Bearer Token',           'RemoteOpenApiBearerToken',  'Token sent as Authorization: Bearer <value>. Alternative to API key — use one or the other.'],
+                  ['Name',                  'RemoteApiProfile.Name',     'Display name used on the home screen, explorer, and generated documentation.'],
+                  ['Description',           'RemoteApiProfile.Description', 'Short display description for the remote API.'],
+                  ['Remote Base URL',       'RemoteApiProfile.RemoteBaseUrl', 'Base URL for all remote API endpoint calls.'],
+                  ['OpenAPI Spec URL',      'RemoteApiProfile.RemoteOpenApiUrl', 'URL of the remote OpenAPI JSON document. Server profiles fetch by profile id; browser profiles fetch directly.'],
+                  ['API Key Header',        'RemoteApiProfile.RemoteOpenApiApiKeyHeader', 'Name of the header to send the API key in, e.g. x-api-key.'],
+                  ['API Key Value',         'RemoteApiProfile.RemoteOpenApiApiKeyValue', 'Value of the API key. Server profile values are redacted from config.'],
+                  ['Bearer Token',          'RemoteApiProfile.RemoteOpenApiBearerToken', 'Token sent as Authorization: Bearer <value>. Alternative to API key.'],
                   ['Default Request Headers','RemoteDefaultHeaders',      'Key-value pairs injected into every direct remote API call (not the spec fetch). Good for correlation IDs, session tokens, tenant IDs.'],
                 ].map(([field, prop, desc]) => (
                   <tr key={field} className="border-b border-gray-100 hover:bg-gray-50">

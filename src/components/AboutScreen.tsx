@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useRemoteConfigStore } from '../store/remoteConfigStore';
+import { getVisibleRemoteProfiles, useRemoteConfigStore } from '../store/remoteConfigStore';
 import { useHarnessConfigStore } from '../store/harnessConfigStore';
 import { BRANDING } from '../utils';
 
@@ -39,9 +39,8 @@ export const AboutScreen: React.FC = () => {
     return total;
   })();
 
-  const remoteConfigured = !!(remote.remoteBaseUrl || remote.remoteOpenApiUrl);
-  const hasDefaultHeaders = Object.keys(remote.remoteDefaultHeaders).length > 0;
-  const defaultHeaderCount = Object.keys(remote.remoteDefaultHeaders).length;
+  const visibleProfiles = getVisibleRemoteProfiles(remote);
+  const remoteConfigured = visibleProfiles.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,7 +84,7 @@ export const AboutScreen: React.FC = () => {
             </li>
             <li className="flex gap-2">
               <span className="text-blue-500 font-bold shrink-0">2.</span>
-              <span><strong>Remote API Explorer</strong> — tests a second, external API using a server-side spec proxy that keeps credentials off the browser network tab.</span>
+              <span><strong>Remote API Explorer</strong> — tests named external API profiles; server-configured specs use a credential-safe proxy and browser-created profiles stay local.</span>
             </li>
           </ul>
           <p className="text-sm text-gray-700 leading-relaxed mt-3">
@@ -110,18 +109,18 @@ export const AboutScreen: React.FC = () => {
             </div>
             <div className="p-4 space-y-2 text-xs text-gray-700 leading-relaxed">
               <p>
-                When the Remote API Explorer loads, the browser calls{' '}
-                <code className="bg-gray-100 px-1 rounded font-mono">GET /api-test-spark/remote-spec</code>.
+                When a server-configured Remote API Explorer loads, the browser calls{' '}
+                <code className="bg-gray-100 px-1 rounded font-mono">GET /api-test-spark/remote-spec?profileId=...</code>.
                 This is a .NET endpoint that:
               </p>
               <ol className="list-decimal list-inside space-y-1 pl-2">
                 <li>Validates the configured remote URL uses <code className="bg-gray-100 px-1 rounded font-mono">http://</code> or <code className="bg-gray-100 px-1 rounded font-mono">https://</code> (SSRF guard).</li>
-                <li>Adds the API key or Bearer token as a request header server-side.</li>
+                <li>Resolves only server-provided profile ids and adds the API key or Bearer token server-side.</li>
                 <li>Fetches the remote OpenAPI JSON document.</li>
                 <li>Returns it to the browser — credentials never appear in the browser's network tab.</li>
               </ol>
               <p className="text-gray-500 italic">
-                This means your API key is not exposed to anyone who can view the browser's developer tools.
+                Browser-created profiles fetch their OpenAPI document directly from the browser, so they cannot submit arbitrary URLs to the server proxy.
               </p>
             </div>
           </div>
@@ -153,14 +152,11 @@ export const AboutScreen: React.FC = () => {
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-blue-800 leading-relaxed">
             <p className="font-bold mb-1">Configuration Priority</p>
             <p>
-              Values set on the{' '}
+              Browser profiles set on the{' '}
               <Link to="/config" className="underline">Config page</Link>{' '}
-              (stored in <code className="bg-blue-100 px-1 rounded font-mono">localStorage</code>) override
-              values set in <code className="bg-blue-100 px-1 rounded font-mono">Program.cs</code>. On first
-              load, if the browser has no stored value, the server-provided default is seeded into{' '}
-              <code className="bg-blue-100 px-1 rounded font-mono">localStorage</code> automatically.
-              Use <strong>Clear all remote config</strong> on the Config page to discard browser overrides
-              and revert to the server defaults.
+              are stored in <code className="bg-blue-100 px-1 rounded font-mono">localStorage</code>.
+              Profiles configured in <code className="bg-blue-100 px-1 rounded font-mono">Program.cs</code> are
+              shown first and can be hidden locally without exposing server-held credentials.
             </p>
           </div>
         </Card>
@@ -175,40 +171,17 @@ export const AboutScreen: React.FC = () => {
 
           {remoteConfigured ? (
             <div className="space-y-0 divide-y divide-gray-100">
-              <Badge
-                label="Remote Base URL"
-                value={remote.remoteBaseUrl || <em className="text-gray-400 font-normal not-italic">not set</em>}
-                mono
-              />
-              <Badge
-                label="OpenAPI Spec URL"
-                value={remote.remoteOpenApiUrl || <em className="text-gray-400 font-normal not-italic">not set</em>}
-                mono
-              />
-              <Badge
-                label="API Key Header"
-                value={remote.remoteOpenApiApiKeyHeader || <em className="text-gray-400 font-normal not-italic">not set</em>}
-                mono
-              />
-              <Badge
-                label="API Key Value"
-                value={remote.remoteOpenApiApiKeyValue
-                  ? <span className="text-gray-400">{'•'.repeat(Math.min(remote.remoteOpenApiApiKeyValue.length, 12))} (set)</span>
-                  : <em className="text-gray-400 font-normal not-italic">not set</em>}
-              />
-              <Badge
-                label="Bearer Token"
-                value={remote.remoteOpenApiBearerToken
-                  ? <span className="text-gray-400">{'•'.repeat(12)} (set)</span>
-                  : <em className="text-gray-400 font-normal not-italic">not set</em>}
-              />
-              <Badge
-                label="Default Headers"
-                value={hasDefaultHeaders
-                  ? `${defaultHeaderCount} header${defaultHeaderCount !== 1 ? 's' : ''}: ${Object.keys(remote.remoteDefaultHeaders).join(', ')}`
-                  : <em className="text-gray-400 font-normal not-italic">none</em>}
-                mono={hasDefaultHeaders}
-              />
+              {visibleProfiles.map((profile) => {
+                const headerCount = Object.keys(profile.remoteDefaultHeaders ?? {}).length;
+                return (
+                  <Badge
+                    key={profile.id}
+                    label={profile.name || 'Remote API'}
+                    value={`${profile.source === 'server' ? 'Program.cs' : 'browser'} • ${profile.remoteBaseUrl || profile.remoteOpenApiUrl || 'not set'} • ${headerCount} header${headerCount === 1 ? '' : 's'}`}
+                    mono
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm text-gray-500">

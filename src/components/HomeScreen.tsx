@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { BRANDING } from "../utils";
 import { SECTION_CONFIGS } from "../config";
 import { useHarnessConfigStore } from "../store/harnessConfigStore";
+import { getRemoteProfileLabel, getVisibleRemoteProfiles, useRemoteConfigStore } from "../store/remoteConfigStore";
+import type { RemoteApiProfile } from "../types";
 
 interface NavItem {
   icon: string;
@@ -40,7 +42,32 @@ const YOUR_API_SECTION: NavSection = {
   ],
 };
 
-function buildRemoteSection(remoteBaseUrl: string): NavSection {
+function buildRemoteSections(profiles: RemoteApiProfile[]): NavSection[] {
+  return profiles.map((profile) => {
+    const label = getRemoteProfileLabel(profile);
+    const description = profile.description?.trim() || profile.remoteBaseUrl || profile.remoteOpenApiUrl || 'Remote API';
+    return {
+      label,
+      defaultOpen: true,
+      items: [
+        {
+          icon: "🌐",
+          title: `${label} Explorer`,
+          description: `Test endpoints from ${description}.`,
+          path: `/remote-api/${encodeURIComponent(profile.id)}`,
+        },
+        {
+          icon: "📄",
+          title: `${label} Docs`,
+          description: `Capture live responses and generate markdown documentation for ${description}.`,
+          path: `/remote-docs/${encodeURIComponent(profile.id)}`,
+        },
+      ],
+    };
+  });
+}
+
+function buildLegacyRemoteSection(remoteBaseUrl: string): NavSection {
   return {
     label: "Remote API",
     defaultOpen: true,
@@ -121,11 +148,15 @@ function SectionGroup({ section }: { section: NavSection }) {
 // ---------------------------------------------------------------------------
 export default function HomeScreen() {
   const config = useHarnessConfigStore((s) => s.config);
+  const remoteStore = useRemoteConfigStore();
   const showDemos = config?.enableDemoIntegrations ?? true;
+  const remoteProfiles = getVisibleRemoteProfiles(remoteStore);
 
   const sections: NavSection[] = [YOUR_API_SECTION];
-  if (config?.remoteBaseUrl) {
-    sections.unshift(buildRemoteSection(config.remoteBaseUrl));
+  if (remoteProfiles.length > 0) {
+    sections.unshift(...buildRemoteSections(remoteProfiles));
+  } else if (config?.remoteBaseUrl) {
+    sections.unshift(buildLegacyRemoteSection(config.remoteBaseUrl));
   }
   if (showDemos) sections.push(DEMO_SECTION);
 
