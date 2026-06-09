@@ -104,11 +104,17 @@ function HeadersEditor({
 function ServerProfileRow({
   profile,
   hidden,
+  customized,
   onToggle,
+  onCustomize,
+  onResetOverride,
 }: {
   profile: RemoteApiProfile;
   hidden: boolean;
+  customized: boolean;
   onToggle: (hidden: boolean) => void;
+  onCustomize: () => void;
+  onResetOverride: () => void;
 }) {
   return (
     <div className="border border-gray-200 rounded bg-white p-4 flex items-start justify-between gap-4">
@@ -118,6 +124,11 @@ function ServerProfileRow({
           <span className="text-[10px] uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded">
             Program.cs
           </span>
+          {customized && (
+            <span className="text-[10px] uppercase tracking-wide bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded">
+              customized
+            </span>
+          )}
           {hidden && <span className="text-[10px] uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded">hidden</span>}
         </div>
         {profile.description && <p className="text-xs text-gray-500 mt-1">{profile.description}</p>}
@@ -134,13 +145,31 @@ function ServerProfileRow({
           </span>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={() => onToggle(!hidden)}
-        className="text-xs font-semibold text-blue-600 hover:text-blue-800 shrink-0"
-      >
-        {hidden ? 'Show' : 'Hide'}
-      </button>
+      <div className="flex items-center gap-3 shrink-0">
+        <button
+          type="button"
+          onClick={onCustomize}
+          className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+        >
+          {customized ? 'Edit override' : 'Customize'}
+        </button>
+        {customized && (
+          <button
+            type="button"
+            onClick={onResetOverride}
+            className="text-xs font-semibold text-red-600 hover:text-red-800"
+          >
+            Reset override
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onToggle(!hidden)}
+          className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+        >
+          {hidden ? 'Show' : 'Hide'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -162,7 +191,7 @@ function BrowserProfileEditor({
   const authError = errors.find((error) => error.startsWith('API key'));
 
   return (
-    <div className="border border-gray-200 rounded bg-white p-4 space-y-4">
+    <div id={`browser-profile-${profile.id}`} className="border border-gray-200 rounded bg-white p-4 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-gray-900">{getRemoteProfileLabel(profile)}</h3>
@@ -257,6 +286,14 @@ function BrowserProfileEditor({
 export function ConfigScreen() {
   const remote = useRemoteConfigStore();
   const visibleProfiles = useMemo(() => getVisibleRemoteProfiles(remote), [remote]);
+  const activeServerProfiles = useMemo(
+    () => remote.serverProfiles.filter((profile) => !remote.hiddenServerProfileIds.includes(profile.id)),
+    [remote.hiddenServerProfileIds, remote.serverProfiles]
+  );
+  const hiddenServerProfiles = useMemo(
+    () => remote.serverProfiles.filter((profile) => remote.hiddenServerProfileIds.includes(profile.id)),
+    [remote.hiddenServerProfileIds, remote.serverProfiles]
+  );
   const duplicateNames = useMemo(() => {
     const counts = new Map<string, number>();
     for (const profile of visibleProfiles) {
@@ -267,10 +304,30 @@ export function ConfigScreen() {
   }, [visibleProfiles]);
   const [saved, setSaved] = useState(false);
 
-  function addProfile() {
-    remote.addProfile(createEmptyRemoteProfile({ name: 'New Remote API' }));
+  function markSaved() {
     setSaved(true);
     setTimeout(() => setSaved(false), 1600);
+  }
+
+  function addProfile() {
+    remote.addProfile(createEmptyRemoteProfile({ name: 'New Remote API' }));
+    markSaved();
+  }
+
+  function customizeServerProfile(profile: RemoteApiProfile) {
+    if (!remote.profiles.some((item) => item.id === profile.id)) {
+      remote.upsertProfile({
+        ...profile,
+        remoteOpenApiApiKeyConfigured: false,
+        remoteOpenApiBearerTokenConfigured: false,
+        source: 'browser',
+        proxyMode: 'browser',
+      });
+      markSaved();
+    }
+    setTimeout(() => {
+      document.getElementById(`browser-profile-${profile.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   }
 
   return (
@@ -303,21 +360,46 @@ export function ConfigScreen() {
         <section className="space-y-3">
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="text-sm font-bold text-gray-800">Server Profiles</h2>
-            <span className="text-xs text-gray-400">{remote.serverProfiles.length} configured</span>
+            <span className="text-xs text-gray-400">{activeServerProfiles.length} visible</span>
           </div>
-          {remote.serverProfiles.length === 0 ? (
+          {activeServerProfiles.length === 0 ? (
             <div className="border border-dashed border-gray-300 rounded p-4 text-sm text-gray-500">
-              No remote API profiles are configured in Program.cs.
+              {remote.serverProfiles.length === 0
+                ? 'No remote API profiles are configured in Program.cs.'
+                : 'All Program.cs remote API profiles are hidden for this browser.'}
             </div>
           ) : (
-            remote.serverProfiles.map((profile) => (
+            activeServerProfiles.map((profile) => (
               <ServerProfileRow
                 key={profile.id}
                 profile={profile}
                 hidden={remote.hiddenServerProfileIds.includes(profile.id)}
+                customized={remote.profiles.some((item) => item.id === profile.id)}
                 onToggle={(hidden) => remote.hideServerProfile(profile.id, hidden)}
+                onCustomize={() => customizeServerProfile(profile)}
+                onResetOverride={() => remote.deleteProfile(profile.id)}
               />
             ))
+          )}
+          {hiddenServerProfiles.length > 0 && (
+            <details className="border border-dashed border-gray-300 rounded bg-white">
+              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-600">
+                Hidden Program.cs profiles ({hiddenServerProfiles.length})
+              </summary>
+              <div className="px-4 pb-4 space-y-3">
+                {hiddenServerProfiles.map((profile) => (
+                  <ServerProfileRow
+                    key={profile.id}
+                    profile={profile}
+                    hidden
+                    customized={remote.profiles.some((item) => item.id === profile.id)}
+                    onToggle={(hidden) => remote.hideServerProfile(profile.id, hidden)}
+                    onCustomize={() => customizeServerProfile(profile)}
+                    onResetOverride={() => remote.deleteProfile(profile.id)}
+                  />
+                ))}
+              </div>
+            </details>
           )}
         </section>
 

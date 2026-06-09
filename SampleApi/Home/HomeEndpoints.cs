@@ -27,11 +27,16 @@ public static class HomeEndpoints
                 body { font-family: system-ui, -apple-system, sans-serif; color: #1a1a2e; background: #f8fafc; line-height: 1.6; }
 
                 /* ── Nav ── */
-                nav { background: #0f172a; color: #e2e8f0; padding: 0.75rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-                nav .brand { font-weight: 700; font-size: 1.1rem; color: #38bdf8; text-decoration: none; }
-                nav .links { display: flex; gap: 1.5rem; }
-                nav .links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+                nav { background: #0f172a; color: #e2e8f0; padding: 0.75rem 2rem; position: sticky; top: 0; z-index: 100; }
+                nav .nav-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+                nav .brand { min-width: 0; font-weight: 700; font-size: 1.05rem; color: #38bdf8; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                nav .links { display: flex; align-items: center; gap: 1rem; }
+                nav .links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; white-space: nowrap; }
                 nav .links a:hover { color: #e2e8f0; }
+                nav .menu-toggle { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+                nav .menu-button { display: none; width: 2.25rem; height: 2.25rem; border: 1px solid #334155; border-radius: 8px; align-items: center; justify-content: center; cursor: pointer; color: #cbd5e1; flex-shrink: 0; }
+                nav .menu-icon { display: flex; flex-direction: column; gap: 0.25rem; }
+                nav .menu-icon span { display: block; width: 1.15rem; height: 2px; background: currentColor; border-radius: 999px; }
 
                 /* ── Hero ── */
                 .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0c4a6e 100%); color: white; padding: 5rem 2rem 4rem; text-align: center; }
@@ -116,9 +121,9 @@ public static class HomeEndpoints
                 .pkg-title .pkg-version { display: inline-block; background: #0ea5e9; color: white; border-radius: 6px; padding: 0.2rem 0.75rem; font-size: 0.82rem; font-weight: 700; letter-spacing: .03em; margin-bottom: 0.25rem; }
                 .pkg-title p { color: #475569; font-size: 0.95rem; margin-top: 0.3rem; }
                 .pkg-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-                .pkg-meta-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
+                .pkg-meta-item { min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
                 .pkg-meta-item .label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 0.2rem; }
-                .pkg-meta-item .value { font-size: 0.95rem; font-weight: 600; color: #0f172a; }
+                .pkg-meta-item .value { min-width: 0; font-size: 0.95rem; font-weight: 600; color: #0f172a; overflow-wrap: anywhere; }
                 .pkg-meta-item .value a { color: #0ea5e9; text-decoration: none; }
                 .pkg-meta-item .value a:hover { text-decoration: underline; }
                 .pkg-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
@@ -160,26 +165,32 @@ public static class HomeEndpoints
                 footer .footer-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
 
                 /* ── Responsive ── */
+                @media (max-width: 920px) {
+                    nav { padding: 0.65rem 1rem; }
+                    nav .menu-button { display: flex; }
+                    nav .links { display: none; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #1e293b; flex-direction: column; align-items: stretch; gap: 0.2rem; }
+                    nav .links a { padding: 0.55rem 0.25rem; }
+                    nav .menu-toggle:checked ~ .links { display: flex; }
+                }
                 @media (max-width: 600px) {
                     .step { grid-template-columns: 2.5rem 1fr; }
-                    nav .links { gap: 1rem; }
                 }
             </style>
         </head>
         <body>
 
         <nav>
-            <a href="/" class="brand">⚡ API Test Spark</a>
+            <input class="menu-toggle" type="checkbox" id="home-nav-toggle" aria-label="Toggle navigation menu" />
+            <div class="nav-row">
+                <a href="/" class="brand">⚡ API Test Spark</a>
+                <label class="menu-button" for="home-nav-toggle" aria-label="Toggle navigation menu">
+                    <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+                </label>
+            </div>
             <div class="links">
                 <a href="#quickstart">Quickstart</a>
-                <a href="#features">Features</a>
-                <a href="#options">Options</a>
                 <a href="#demo">Live Demo</a>
                 <a href="#remote-api">Remote API</a>
-                <a href="#best-practices">Best Practices</a>
-                <a href="#history">History</a>
-                <a href="https://www.nuget.org/packages/ApiTestSpark" target="_blank" rel="noopener">NuGet</a>
-                <a href="https://github.com/markhazleton/ApiTestSpark" target="_blank" rel="noopener">GitHub</a>
             </div>
         </nav>
 

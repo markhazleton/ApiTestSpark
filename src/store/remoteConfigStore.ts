@@ -20,6 +20,7 @@ interface RemoteConfigStore {
   selectedProfileId: string | null;
   setServerProfiles: (profiles: RemoteApiProfile[]) => void;
   addProfile: (profile?: Partial<RemoteApiProfile>) => RemoteApiProfile;
+  upsertProfile: (profile: Partial<RemoteApiProfile>) => RemoteApiProfile;
   updateProfile: (id: string, patch: Partial<RemoteApiProfile>) => void;
   deleteProfile: (id: string) => void;
   hideServerProfile: (id: string, hidden: boolean) => void;
@@ -94,12 +95,20 @@ export function getVisibleRemoteProfiles(store: Pick<RemoteConfigStore, 'profile
     .map(normalizeRemoteProfile)
     .filter((profile) => !store.hiddenServerProfileIds.includes(profile.id));
 
-  const seen = new Set<string>();
-  return [...visibleServerProfiles, ...browserProfiles].filter((profile) => {
-    if (seen.has(profile.id)) return false;
-    seen.add(profile.id);
-    return true;
-  });
+  const order: string[] = [];
+  const byId = new Map<string, RemoteApiProfile>();
+
+  for (const profile of visibleServerProfiles) {
+    order.push(profile.id);
+    byId.set(profile.id, profile);
+  }
+
+  for (const profile of browserProfiles) {
+    if (!byId.has(profile.id)) order.push(profile.id);
+    byId.set(profile.id, profile);
+  }
+
+  return order.map((id) => byId.get(id)!);
 }
 
 function migrateLegacyConfig(value: unknown): Partial<RemoteConfigStore> {
@@ -148,6 +157,20 @@ export const useRemoteConfigStore = create<RemoteConfigStore>()(
         return next;
       },
 
+      upsertProfile: (profile) => {
+        const next = createEmptyRemoteProfile(profile);
+        set((state) => {
+          const exists = state.profiles.some((item) => item.id === next.id);
+          return {
+            profiles: exists
+              ? state.profiles.map((item) => (item.id === next.id ? next : item))
+              : [...state.profiles, next],
+            selectedProfileId: next.id,
+          };
+        });
+        return next;
+      },
+
       updateProfile: (id, patch) => set((state) => ({
         profiles: state.profiles.map((profile) =>
           profile.id === id ? normalizeRemoteProfile({ ...profile, ...patch, id, source: 'browser' }) : profile
@@ -156,7 +179,6 @@ export const useRemoteConfigStore = create<RemoteConfigStore>()(
 
       deleteProfile: (id) => set((state) => ({
         profiles: state.profiles.filter((profile) => profile.id !== id),
-        hiddenServerProfileIds: state.hiddenServerProfileIds.filter((profileId) => profileId !== id),
         selectedProfileId: state.selectedProfileId === id ? null : state.selectedProfileId,
       })),
 

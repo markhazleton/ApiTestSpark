@@ -108,6 +108,18 @@ public static class ApiTestSparkExtensions
         {
             FileProvider = fileProvider,
             RequestPath = MountPath,
+            OnPrepareResponse = ctx =>
+            {
+                if (string.Equals(
+                    Path.GetExtension(ctx.File.Name),
+                    ".css",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    ctx.Context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                    ctx.Context.Response.Headers["Pragma"] = "no-cache";
+                    ctx.Context.Response.Headers["Expires"] = "0";
+                }
+            },
         });
 
         // Compute once — baked into every config response so the SPA can display version/build date

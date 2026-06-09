@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 import useDebugStore from '../store/debugStore';
 import { useHarnessConfigStore } from '../store/harnessConfigStore';
-import { useRemoteConfigStore } from '../store/remoteConfigStore';
+import { getVisibleRemoteProfiles, useRemoteConfigStore } from '../store/remoteConfigStore';
 import { HostApiClient } from '../api/hostApiClient';
 import { buildDebugCallbacks, withMetric } from './hookUtils';
 import { resolveHeaderTokens } from '../utils/session';
@@ -42,10 +42,7 @@ export function useHostApi() {
 
   return useMutation({
     mutationFn: async (req: HostApiRequest) => {
-      const visibleProfiles = [
-        ...remoteStore.serverProfiles.filter((profile) => !remoteStore.hiddenServerProfileIds.includes(profile.id)),
-        ...remoteStore.profiles,
-      ];
+      const visibleProfiles = getVisibleRemoteProfiles(remoteStore);
       const remoteProfile = req.remoteProfile
         ?? visibleProfiles.find((profile) => profile.id === remoteStore.selectedProfileId)
         ?? visibleProfiles[0];
