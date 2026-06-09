@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.4.0] - 2026-06-09
+
+### Added
+
+- **Remote API Profiles** — the remote API experience now supports a collection of named profiles instead of one global remote target. Each profile has a stable id, name, description, base URL, OpenAPI URL, credentials, and profile-scoped headers.
+- **Program.cs multi-profile defaults** — host apps can seed multiple remote APIs with `RemoteApiProfiles`. The legacy single-remote options remain supported and seed one compatibility profile when no profile collection is configured.
+- **Browser profile management** — the Config page can add, edit, delete, hide, reset, and persist browser-managed remote API profiles. New browser profiles receive GUID ids, and duplicate visible names are blocked with a clear validation alert before save.
+- **Profile-specific explorer and documentation routes** — the home screen, Remote API Explorer, and Remote API Doc Builder now render one entry per visible profile using each profile's name and description.
+- **Server-profile-only remote spec proxy** — `GET /api-test-spark/remote-spec?profileId=...` resolves only server-provided profile ids. Browser-created profiles fetch OpenAPI documents directly from the browser, preventing browser-submitted URLs from driving server-side fetches.
+- **Credential redaction for server profiles** — server-provided API key values and bearer tokens are no longer serialized in `/api-test-spark/config`; configured flags tell the browser that credentials exist without exposing values.
+
+### Changed
+
+- **Remote configuration persistence** — existing single-remote browser configuration migrates into one GUID-backed profile where feasible, while hidden server profile ids and browser overrides preserve the prior reload-surviving behavior.
+- **SampleApi demo content** — the demo app now documents the remote profile model, server-default personalization, duplicate-name validation, and profile-specific API/documentation sections.
+
+### Breaking Changes
+
+None. The new `RemoteApiProfiles` collection and `RemoteApiProfile` model are additive. Existing `RemoteBaseUrl`, `RemoteOpenApiUrl`, `RemoteOpenApiApiKeyHeader`, `RemoteOpenApiApiKeyValue`, `RemoteOpenApiBearerToken`, and `RemoteDefaultHeaders` options remain supported for this release.
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.3.0] - 2026-06-06
 
 ### Added
@@ -163,7 +187,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.4.0...HEAD
+[v1.4.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.0.2...v1.1.0

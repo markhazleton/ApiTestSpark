@@ -1,0 +1,34 @@
+{
+  "version": "1.4.0",
+  "releaseDate": "2026-06-09",
+  "release": {
+    "from": "2026-06-06",
+    "to": "2026-06-09"
+  },
+  "commitRange": {
+    "baseRef": "v1.3.0",
+    "baseSha": "78bef9d72ac23977b5649d57ff5bdbe3cdaf0d00",
+    "headRef": "HEAD",
+    "headSha": "c460003d5b3928b1371639435187f147a946a26e",
+    "rangeSpec": "v1.3.0..HEAD"
+  },
+  "previousVersion": "v1.3.0",
+  "features": {
+    "completed": 1,
+    "deferred": 0
+  },
+  "quickfixes": 0,
+  "pullRequests": {
+    "merged": 1,
+    "numbers": [3],
+    "filesChanged": 0,
+    "testsAdded": 3,
+    "breakingChanges": 0,
+    "resolvedHighFindings": 1
+  },
+  "adrs": 1,
+  "commits": 13,
+  "contributors": 1,
+  "specs": ["001-remote-api-list"],
+  "timestamp": "2026-06-09T01:24:11Z"
+}

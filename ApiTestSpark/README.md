@@ -99,7 +99,7 @@ Server profile credentials are redacted from `/api-test-spark/config` and used o
 ## Features
 
 - **OpenAPI autodiscovery** — endpoints grouped by tag in a collapsible accordion; real-time search filter
-- **Remote API Explorer** — browse and test one or more named remote REST APIs from their OpenAPI documents; server-configured credentials stay server-side and browser-created profiles stay local
+- **Remote API Explorer** — browse and test one or more named remote REST APIs from their OpenAPI documents; server-configured credentials stay server-side, browser-created profiles stay local, and duplicate visible names are blocked before save
 - **Full metadata surface** — descriptions rendered as markdown, response codes as coloured badges with expandable inline schemas, `operationId` as a copyable chip, schema constraint tables
 - **JSON scaffold** — request body pre-filled from `example → default → enum[0] → type placeholder`; nested objects and arrays scaffolded recursively
 - **Response rendering** — arrays as sortable tables, objects as editable forms, primitives in pre blocks
@@ -127,7 +127,7 @@ app.MapApiTestSpark(options =>
 
 ### Remote API Profiles
 
-Point the harness at one or more remote REST APIs by configuring `RemoteApiProfiles`. Each profile gets its own explorer and doc builder route, displayed by `Name` and `Description`. Server-configured specs are fetched through `/api-test-spark/remote-spec?profileId=...` with credential values held server-side and redacted from `/api-test-spark/config`. Browser-created profiles are managed on the Config page, stored in `localStorage`, and fetch OpenAPI documents directly from the browser.
+Point the harness at one or more remote REST APIs by configuring `RemoteApiProfiles`. Each profile gets its own explorer and doc builder route, displayed by `Name` and `Description`. Server-configured specs are fetched through `/api-test-spark/remote-spec?profileId=...` with credential values held server-side and redacted from `/api-test-spark/config`. Browser-created profiles are managed on the Config page, stored in `localStorage`, receive GUID ids, and fetch OpenAPI documents directly from the browser. Visible profile names must be unique, so users get a clear validation message before saving duplicates.
 
 ```csharp
 app.MapApiTestSpark(options =>

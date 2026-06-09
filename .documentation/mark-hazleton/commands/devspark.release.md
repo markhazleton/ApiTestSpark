@@ -16,12 +16,14 @@
 ---
 description: Seal a release — version-stamp, generate CHANGELOG and release notes, create ADRs, and archive completed specs into the releases directory
 handoffs:
-  - label: Run Post-Release Harvest
-    agent: devspark.harvest
-    prompt: Clean up stale docs, rewrite spec-linked comments, and archive to .archive/ after the release is complete
-  - label: Run Final Audit
-    agent: devspark.site-audit
-    prompt: Run a final site audit before release
+
+- label: Run Post-Release Harvest
+  agent: devspark.harvest
+  prompt: Clean up stale docs, rewrite spec-linked comments, and archive to .archive/ after the release is complete
+- label: Run Final Audit
+  agent: devspark.site-audit
+  prompt: Run a final site audit before release
+
 ---
 
 ## User Input
@@ -408,19 +410,19 @@ Create `.gitkeep` files if directories are now empty.
    git commit -m "docs: release v{NEXT_VERSION}"
    ```
 
-3. Tag release:
+1. Tag release:
 
    ```powershell
    git tag -a v{NEXT_VERSION} -m "Release v{NEXT_VERSION}"
    ```
 
-4. Push to remote (this triggers CI/CD):
+1. Push to remote (this triggers CI/CD):
 
    ```powershell
    git push origin main --tags
    ```
 
-5. **CI/CD auto-publish**: The `publish-nuget.yml` workflow fires automatically on the
+1. **CI/CD auto-publish**: The `publish-nuget.yml` workflow fires automatically on the
    `v*.*.*` tag push. It runs `npm run build`, all `.NET` integration tests, vulnerability
    audits, packs the library, and pushes `ApiTestSpark.{NEXT_VERSION}.nupkg` + `.snupkg`
    to nuget.org. It also creates the GitHub Release with `CHANGELOG.md` as the body.
@@ -433,19 +435,20 @@ Create `.gitkeep` files if directories are now empty.
    > **Note**: `pack.ps1` ends with "ready for 'dotnet nuget push'" — ignore that message.
    > It is leftover text in the script. CI publishes; you do not need to push manually.
 
-6. After CI passes (~3-5 min), verify the package is live:
+1. After CI passes (~3-5 min), verify the package is live:
    `https://www.nuget.org/packages/ApiTestSpark/{NEXT_VERSION}`
 
    NuGet.org indexing can take an additional 5-15 min after the push succeeds.
 
-7. Verify the demo site reflects the new version:
+1. Verify the demo site reflects the new version:
    `https://apitest.makeboldspark.com`
 
    **The NuGet publish does NOT deploy SampleApi.** SampleApi is a separate IIS deployment
    on a Windows VM. If you updated `SampleApi/Home/HomeEndpoints.cs` in this release,
    you must `dotnet publish SampleApi` and deploy to the VM manually. See `DEPLOYMENT.md`.
 
-8. Run `/devspark.harvest` to complete the cleanup cycle.
+1. Run `/devspark.harvest` to complete the cleanup cycle.
+
 ```
 
 ## Guidelines

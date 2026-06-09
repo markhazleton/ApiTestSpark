@@ -222,15 +222,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.3.0</span>
+                            <span class="pkg-version">v1.4.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 6, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 9, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.3.0</div>
+                            <div class="value">1.4.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -624,7 +624,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.3.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.4.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 181 KB</div>
                     </div>
@@ -670,8 +670,8 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
       "proxyMode": "server"
     }
   ],
-  "harnessVersion": "1.3.0",
-  "harnessBuiltAt": "2026-06-06T14:41:11Z"
+  "harnessVersion": "1.4.0",
+  "harnessBuiltAt": "2026-06-09T01:24:11Z"
 }</pre>
                         </div>
                     </div>
@@ -947,9 +947,17 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#0ea5e9;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.4.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 9, 2026</span>
+                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote API Profiles.</strong> Configure multiple named remote APIs in <code class="inline">Program.cs</code> or from the browser Config page. Each profile has its own explorer and doc builder route, safe name/description display, scoped headers and credentials, redacted server secrets, server-profile-only proxying, local browser-created profiles, and duplicate-name validation before save.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
                             <span style="background:#0ea5e9;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.3.0</span>
                             <span style="color:#94a3b8;font-size:0.85rem;">June 6, 2026</span>
-                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote API Explorer.</strong> Browse and test remote REST APIs from named <code class="inline">RemoteApiProfiles</code>. Server-side spec proxy resolves server profile ids and redacts credential values from config; browser-created profiles stay local and fetch specs directly. Header token expansion (<code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>). Harness version and build date on About page.</p>
                     </div>
