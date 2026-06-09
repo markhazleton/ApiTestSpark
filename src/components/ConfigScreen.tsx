@@ -101,6 +101,32 @@ function HeadersEditor({
   );
 }
 
+function normalizedProfileLabel(profile: RemoteApiProfile): string {
+  return getRemoteProfileLabel(profile).trim().toLowerCase();
+}
+
+function hasDuplicateVisibleLabel(
+  visibleProfiles: RemoteApiProfile[],
+  profile: RemoteApiProfile,
+  patch: Partial<RemoteApiProfile>
+): boolean {
+  const candidate = createEmptyRemoteProfile({ ...profile, ...patch, id: profile.id });
+  const candidateLabel = normalizedProfileLabel(candidate);
+  return visibleProfiles.some((item) => item.id !== profile.id && normalizedProfileLabel(item) === candidateLabel);
+}
+
+function nextBrowserProfileName(visibleProfiles: RemoteApiProfile[]): string {
+  const existingNames = new Set(visibleProfiles.map(normalizedProfileLabel));
+  const baseName = 'New Remote API';
+  if (!existingNames.has(baseName.toLowerCase())) return baseName;
+
+  let index = 2;
+  while (existingNames.has(`${baseName} ${index}`.toLowerCase())) {
+    index += 1;
+  }
+  return `${baseName} ${index}`;
+}
+
 function ServerProfileRow({
   profile,
   hidden,
@@ -310,8 +336,16 @@ export function ConfigScreen() {
   }
 
   function addProfile() {
-    remote.addProfile(createEmptyRemoteProfile({ name: 'New Remote API' }));
+    remote.addProfile(createEmptyRemoteProfile({ name: nextBrowserProfileName(visibleProfiles) }));
     markSaved();
+  }
+
+  function updateBrowserProfile(profile: RemoteApiProfile, patch: Partial<RemoteApiProfile>) {
+    if (hasDuplicateVisibleLabel(visibleProfiles, profile, patch)) {
+      window.alert('Remote API profile names must be unique. Please choose a unique name before saving.');
+      return;
+    }
+    remote.updateProfile(profile.id, patch);
   }
 
   function customizeServerProfile(profile: RemoteApiProfile) {
@@ -418,7 +452,7 @@ export function ConfigScreen() {
                 key={profile.id}
                 profile={profile}
                 duplicateName={duplicateNames.has(getRemoteProfileLabel(profile).trim().toLowerCase())}
-                onChange={(patch) => remote.updateProfile(profile.id, patch)}
+                onChange={(patch) => updateBrowserProfile(profile, patch)}
                 onDelete={() => remote.deleteProfile(profile.id)}
               />
             ))

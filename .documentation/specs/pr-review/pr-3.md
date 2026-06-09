@@ -2,8 +2,8 @@
 gate: pr-review
 status: fail
 blocking: true
-severity: critical
-summary: "PR #3 implements the remote API profile feature, but one mandatory constitution violation and two spec-behavior gaps should be fixed before merge."
+severity: error
+summary: "PR #3 resolved the prior critical client-pattern issue and profile precedence gap, but duplicate-name persistence still violates the spec and the browser spec caller now risks CORS preflight failures."
 ---
 
 # Pull Request Review: Remote API profiles
@@ -14,51 +14,58 @@ summary: "PR #3 implements the remote API profile feature, but one mandatory con
 - **Source Branch**: 001-remote-api-list
 - **Target Branch**: main
 - **Review Date**: 2026-06-09
-- **Reviewed Commit**: b860b82
+- **Reviewed Commit**: 904533e
 - **Reviewer**: devspark.pr-review
 - **Constitution Version**: 1.1.2
+- **Trust Tier**: full-compliance
 
 ## Revision Log
 
 | Rev | Commit | Date | Critical | High | Medium | Low | CON | Test Command | Result |
 |-----|--------|------|----------|------|--------|-----|-----|--------------|--------|
 | 1 | b860b82 | 2026-06-09 | 1 | 0 | 2 | 0 | 0 | `npm run verify` | pass |
-| 1 | b860b82 | 2026-06-09 | 1 | 0 | 2 | 0 | 0 | `dotnet test ApiTestSpark.Tests` | blocked by sandbox socket bind; escalation unavailable due usage-limit denial |
+| 1 | b860b82 | 2026-06-09 | 1 | 0 | 2 | 0 | 0 | `dotnet test ApiTestSpark.Tests` | blocked by sandbox socket bind; escalation unavailable |
+| 2 | 904533e | 2026-06-09 | 0 | 0 | 2 | 0 | 0 | `npm run verify` | pass |
+| 2 | 904533e | 2026-06-09 | 0 | 0 | 2 | 0 | 0 | `dotnet test ApiTestSpark.Tests` | pass 33/33 |
 
 ## PR Summary
 
 - **Author**: @markhazleton
 - **Created**: 2026-06-08
 - **Status**: OPEN
-- **Files Changed**: 34
-- **Commits**: 2
-- **Lines**: +2416 -569
+- **Files Changed**: 36
+- **Commits**: 4
+- **Lines**: +2741 -606
 - **Branch Sync**: PASS - source branch is not behind target
-- **Spec Lifecycle**: Full-compliance tier, 50/50 tasks complete
+- **Spec Lifecycle**: Full-compliance tier, 50/50 tasks complete; requirements checklist 19/19 complete
 
 ## Executive Summary
 
-- **Constitution Compliance**: FAIL - raw browser fetch was added outside `executeRequest`
-- **Spec Compliance**: FAIL - browser override precedence and duplicate-name prevention do not match the accepted requirements
-- **Security**: No credential exposure found in the server config/proxy path during review
-- **Testing**: `npm run verify` passes; .NET test rerun was attempted but the sandbox blocked vstest socket binding and elevated rerun was unavailable
+- **Constitution Compliance**: PASS for reviewed mandatory principles. Prior C-01 raw-fetch violation is resolved.
+- **Spec Compliance**: PARTIAL. Browser override precedence is fixed, but duplicate visible names can still be persisted.
+- **Functional Risk**: Browser OpenAPI spec loading now uses the shared client, but inherits its default `Content-Type: application/json` header on GET, which can trigger CORS preflight against public spec URLs.
+- **Testing**: `npm run verify` passes; `dotnet test ApiTestSpark.Tests` passes 33/33.
 
-**Approval Recommendation**: DO NOT APPROVE until C-01 is fixed. M-01 and M-02 are also requirement gaps and should be resolved before merge.
+**Approval Recommendation**: DO NOT APPROVE until M-02 is fixed. M-03 should also be addressed before merge because it can break browser-created remote profile spec discovery.
 
 ## Action Items
 
 ### Immediate Actions
 
-- [ ] **C-01** Replace direct browser OpenAPI `fetch` with a constitution-compliant client path through `executeRequest`.
-- [ ] **M-01** Fix visible profile merge precedence so browser-saved profiles override server profiles with the same stable id.
 - [ ] **M-02** Prevent duplicate visible profile names from being persisted/activated, not just displayed as an error.
+- [ ] **M-03** Keep browser OpenAPI spec GETs on the shared `executeRequest` path without forcing default JSON headers that can trigger CORS preflight.
+
+### Resolved Since Rev 1
+
+- [x] **C-01** Browser OpenAPI spec loading no longer uses raw `fetch`.
+- [x] **M-01** Browser profiles now override server profiles with the same stable id.
 
 ## What's Good
 
-- The server-side proxy is constrained to configured server profile ids and redacts server-held API key and bearer-token values from `/api-test-spark/config`.
-- The proxy now rejects redirects, non-JSON content, oversized specs, unknown profile ids, and no-profile ambiguity.
-- Documentation and sample content were updated to explain named profiles, descriptions, Program.cs configuration, and browser-managed profiles.
-- Integration tests were expanded for multi-profile config, credential redaction, and server-profile spec fetching.
+- Server-configured profiles can now be customized into browser-local overrides while preserving the Program.cs baseline.
+- Hidden Program.cs profiles are removed from the active visible list and can be restored from a collapsed hidden section.
+- The server-side proxy remains constrained to configured server profile ids and redacts server-held API key and bearer-token values from `/api-test-spark/config`.
+- SampleApi and embedded harness navigation were simplified for smaller viewports, and embedded CSS now emits no-cache headers for local/package testing.
 
 ## Findings Detail
 
@@ -66,7 +73,7 @@ summary: "PR #3 implements the remote API profile feature, but one mandatory con
 
 | ID | Status | Principle | File:Line | Issue | Recommendation |
 |----|--------|-----------|-----------|-------|----------------|
-| C-01 | Open | Constitution §IV API Client Pattern | `src/hooks/useRemoteOpenApi.ts:34` | Browser-created profiles fetch OpenAPI docs with raw `fetch(...)`. Constitution §IV says raw `fetch` calls outside `executeRequest` MUST NOT be added because they bypass UUID correlation, timing, debug callbacks, and the shared error path. This new branch also skips request/response debug entries for direct browser spec loads. | Keep browser-created profiles as direct browser fetches, but route them through `executeRequest` by adding a small remote OpenAPI caller in `src/api/` or extending `createRemoteOpenApiCaller` to accept a browser profile URL and headers. The hook should call that client rather than `fetch` directly. |
+| C-01 | Resolved | Constitution §IV API Client Pattern | `src/hooks/useRemoteOpenApi.ts:23` | Rev 1 found raw browser `fetch(...)` for browser-created OpenAPI specs. The hook now calls `createBrowserRemoteOpenApiCaller`, which composes `createRestCaller` and therefore flows through `executeRequest`. | No further action for the constitution violation. See M-03 for the functional side effect introduced by this fix. |
 
 ### High Priority Issues
 
@@ -76,8 +83,9 @@ None found.
 
 | ID | Status | Principle | File:Line | Issue | Recommendation |
 |----|--------|-----------|-----------|-------|----------------|
-| M-01 | Open | Spec FR-015 / plan merge rules | `src/store/remoteConfigStore.ts:97` | `getVisibleRemoteProfiles` orders server profiles before browser profiles and de-duplicates by first-seen id. When a browser-saved profile has the same stable id as a server default, the server version wins and the browser override is discarded. The accepted clarification says browser-saved profiles override server defaults with the same id. | Merge server profiles first into a map, then apply browser profiles so matching browser ids replace server defaults. Add deterministic coverage for same-id override behavior. |
-| M-02 | Open | Spec FR-007 / FR-008 | `src/components/ConfigScreen.tsx:177` | Duplicate visible names are detected and rendered as an error, but edits are still written immediately to the persisted Zustand store via `remote.updateProfile` at `src/components/ConfigScreen.tsx:339`. Because there is no save gate, a duplicate name is already saved/active while the warning is shown. | Move browser profile edits through local draft state and commit only valid profiles, or reject/roll back `updateProfile` changes that create duplicate visible names. The visible profile list should never persist two active profiles with the same display name. |
+| M-01 | Resolved | Spec FR-015 / plan merge rules | `src/store/remoteConfigStore.ts:98` | Rev 1 found server profiles winning over browser profiles with the same id. `getVisibleRemoteProfiles` now seeds a map with visible server profiles and then applies browser profiles, so matching browser ids replace server defaults while preserving order. | Add deterministic coverage when a JS test harness exists; behavior is now correct by inspection. |
+| M-02 | Still Present | Spec FR-007 / FR-008 | `src/components/ConfigScreen.tsx:420` | Duplicate visible names are still detected only as UI state. Every edit calls `remote.updateProfile(profile.id, patch)` immediately, so a duplicate name is already persisted and active while the warning from `duplicateName` is shown. This still contradicts FR-008: "System MUST prevent saving a remote API profile when its name duplicates another visible profile's name." | Reject/roll back updates that create duplicate visible names, or move browser-profile editing to local draft state with an explicit commit/save that is disabled while duplicate names exist. |
+| M-03 | Open | Remote profile usability / API client side effect | `src/api/remoteOpenApiClient.ts:32` | The Rev 2 fix for C-01 uses `createRestCaller` for browser-created OpenAPI specs. That caller always adds `Content-Type: application/json` at `src/api/client.ts:260`, even for GET requests with no body. A public OpenAPI URL that permits a simple CORS GET may reject the resulting preflight, causing browser-created remote profiles to fail loading specs despite having a valid URL. | Keep the call on `executeRequest`, but avoid unconditional JSON headers for GET spec loads. Options: add a `defaultHeaders`/`includeJsonContentType` flag to `createRestCaller`, or call `executeRequest` directly from a small API helper with only the profile-provided headers. |
 
 ### Low Priority Improvements
 
@@ -90,35 +98,40 @@ None found.
 | §I TypeScript Strict | Pass | `npm run verify` passes | TypeScript build completed successfully |
 | §II ESLint Only, No Prettier | Pass | `npm run verify` passes | ESLint completed successfully |
 | §III Layer Separation & Barrel Exports | Pass | Reviewed changed hook/store/component paths | No component-to-API-client layering violation found |
-| §IV API Client Pattern | Fail | C-01 | Direct `fetch` was added in `useRemoteOpenApi` |
-| §V Zustand Store Rules | Pass with spec caveats | `useRemoteConfigStore` remains a single persisted concern | Merge and validation behavior need requirement fixes |
-| §VI Observability & Logging | Fail via C-01 | Direct fetch path bypasses request/response debug callbacks | No `console.log` issue found in reviewed paths |
-| §VII Testing Stance | Partial | `npm run verify` pass; .NET rerun blocked by sandbox | Prior PR body reports 33/33 .NET tests, but this review could not independently rerun them |
+| §IV API Client Pattern | Pass | `useRemoteOpenApi` now uses `createRemoteOpenApiCaller` / `createBrowserRemoteOpenApiCaller` | Prior raw-fetch violation resolved |
+| §V Zustand Store Rules | Pass with spec caveat | `useRemoteConfigStore` remains focused and persisted under one key | Duplicate-name enforcement still needs behavior fix |
+| §VI Observability & Logging | Pass | Browser spec calls now flow through debug callbacks via `executeRequest` | No `console.log` issue found in reviewed paths |
+| §VII Testing Stance | Pass | `npm run verify`; `dotnet test ApiTestSpark.Tests` 33/33 | React remains no-test-framework per constitution |
 | §VIII PII/PHI Protection | Pass | Server credential values are redacted from config response | Browser-managed secrets remain browser-local by design |
 
 ## Testing Notes
 
-- `npm run verify` passed on the reviewed commit. Vite/Rolldown still prints third-party `INVALID_ANNOTATION` warnings from Application Insights packages, but the command exits successfully.
-- `dotnet test ApiTestSpark.Tests` was attempted. It built the SPA and test assembly, then failed when vstest tried to bind its local socket inside the sandbox. A required elevated rerun was requested but rejected by the environment because the session had hit its usage limit, so .NET test results are not independently refreshed in this review artifact.
+- `npm run verify` passed on commit `904533e`.
+- `dotnet test ApiTestSpark.Tests` passed: 33 passed, 0 failed.
+- Vite/Rolldown still prints third-party `INVALID_ANNOTATION` warnings from Application Insights packages, but both build commands exit successfully.
 
 ## Review Scope
 
 Deep-reviewed files:
 
 - `src/hooks/useRemoteOpenApi.ts`
+- `src/api/remoteOpenApiClient.ts`
+- `src/api/client.ts`
 - `src/store/remoteConfigStore.ts`
 - `src/components/ConfigScreen.tsx`
-- `src/api/remoteOpenApiClient.ts`
+- `src/hooks/useHostApi.ts`
 - `ApiTestSpark/ApiTestSparkExtensions.cs`
-- `ApiTestSpark/ApiTestSparkOptions.cs`
-- `ApiTestSpark.Tests/HarnessIntegrationTests.cs`
+- `SampleApi/Home/HomeEndpoints.cs`
 - `.documentation/specs/001-remote-api-list/spec.md`
-- `.documentation/specs/001-remote-api-list/plan.md`
 - `.documentation/specs/001-remote-api-list/tasks.md`
 - `.documentation/memory/constitution.md`
 
+Co-mingling check:
+
+- PASS. Review artifact commit `bbb3f88` is separate from production-code commits `b860b82` and `904533e`.
+
 ## Approval Decision
 
-**Recommendation**: DO NOT APPROVE.
+**Recommendation**: DO NOT APPROVE YET.
 
-**Reasoning**: The implementation is close and much of the server-side work is solid, but C-01 violates a mandatory constitution rule and M-01/M-02 contradict explicit accepted requirements for the remote profile list. Fix those and rerun `npm run verify` plus `dotnet test ApiTestSpark.Tests` before approval.
+**Reasoning**: The critical constitution issue is resolved and the profile precedence fix is sound. The remaining duplicate-name behavior still violates an explicit MUST requirement, and the revised browser OpenAPI client can break public spec URL loading via unnecessary CORS preflight. Fix those two medium findings, then rerun `npm run verify` and `dotnet test ApiTestSpark.Tests`.
