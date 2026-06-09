@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SampleApi</name>
+    </assembly>
+    <members>
+        <member name="T:SampleApi.Customers.Address">
+            <summary>A mailing / shipping address.</summary>
+        </member>
+        <member name="M:SampleApi.Customers.Address.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>A mailing / shipping address.</summary>
+        </member>
+        <member name="T:SampleApi.Customers.Customer">
+            <summary>A customer account.</summary>
+        </member>
+        <member name="M:SampleApi.Customers.Customer.#ctor(System.Int32,System.String,System.String,System.String,System.String,SampleApi.Customers.Address)">
+            <summary>A customer account.</summary>
+        </member>
+        <member name="T:SampleApi.Customers.CustomerCache">
+            <summary>
+            Thread-safe in-memory customer store. Registered as a singleton so state
+            persists for the lifetime of the application process.
+            </summary>
+        </member>
+        <member name="M:SampleApi.Customers.CustomerCache.GetAll">
+            <summary>Returns a read-only snapshot of all customers.</summary>
+        </member>
+        <member name="M:SampleApi.Customers.CustomerCache.GetById(System.Int32)">
+            <summary>Returns the customer with the given ID, or <c>null</c> if not found.</summary>
+        </member>
+        <member name="M:SampleApi.Customers.CustomerCache.Add(SampleApi.Customers.Customer)">
+            <summary>Adds a new customer, assigning a server-generated ID. Returns the created customer.</summary>
+        </member>
+        <member name="M:SampleApi.Customers.CustomerCache.Update(System.Int32,SampleApi.Customers.Customer)">
+            <summary>
+            Replaces the customer at <paramref name="id"/> with the supplied values.
+            Returns the updated customer, or <c>null</c> if no customer with that ID exists.
+            </summary>
+        </member>
+        <member name="M:SampleApi.Customers.CustomerCache.Remove(System.Int32)">
+            <summary>
+            Removes the customer with <paramref name="id"/>.
+            Returns <c>true</c> if the customer was found and removed.
+            </summary>
+        </member>
+        <member name="T:SampleApi.Customers.CustomerEndpoints">
+            <summary>
+            Registers all /customers routes onto a <see cref="T:Microsoft.AspNetCore.Routing.RouteGroupBuilder"/>.
+            Called from Program.cs: <c>app.MapGroup("/customers").WithTags("Customers: Accounts").MapCustomers();</c>
+            </summary>
+        </member>
+        <member name="T:SampleApi.Home.HomeEndpoints">
+            <summary>
+            Registers the promotional home page route.
+            Called from Program.cs: <c>app.MapHome();</c>
+            </summary>
+        </member>
+        <member name="T:SampleApi.Orders.OrderLine">
+            <summary>A single line item within an order.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderLine.#ctor(System.Int32,System.String,System.Int32,System.Decimal)">
+            <summary>A single line item within an order.</summary>
+        </member>
+        <member name="P:SampleApi.Orders.OrderLine.LineTotal">
+            <summary>Line total: Quantity × UnitPrice.</summary>
+        </member>
+        <member name="T:SampleApi.Orders.Order">
+            <summary>A customer order with line items and a computed total.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.Order.#ctor(System.Int32,System.Int32,SampleApi.Orders.OrderStatus,System.Collections.Generic.IReadOnlyList{SampleApi.Orders.OrderLine},System.DateTime)">
+            <summary>A customer order with line items and a computed total.</summary>
+        </member>
+        <member name="P:SampleApi.Orders.Order.Total">
+            <summary>Sum of all line totals (computed, not stored).</summary>
+        </member>
+        <member name="T:SampleApi.Orders.CreateOrderRequest">
+            <summary>Request body for placing a new order.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.CreateOrderRequest.#ctor(System.Int32,System.Collections.Generic.IReadOnlyList{SampleApi.Orders.OrderLineRequest})">
+            <summary>Request body for placing a new order.</summary>
+        </member>
+        <member name="T:SampleApi.Orders.OrderLineRequest">
+            <summary>A single line item in a CreateOrderRequest.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderLineRequest.#ctor(System.Int32,System.Int32)">
+            <summary>A single line item in a CreateOrderRequest.</summary>
+        </member>
+        <member name="T:SampleApi.Orders.OrderStatus">
+            <summary>Lifecycle states an order can occupy.</summary>
+        </member>
+        <member name="F:SampleApi.Orders.OrderStatus.Pending">
+            <summary>Order received, awaiting confirmation.</summary>
+        </member>
+        <member name="F:SampleApi.Orders.OrderStatus.Confirmed">
+            <summary>Order confirmed and being prepared.</summary>
+        </member>
+        <member name="F:SampleApi.Orders.OrderStatus.Shipped">
+            <summary>Order dispatched to the carrier.</summary>
+        </member>
+        <member name="F:SampleApi.Orders.OrderStatus.Delivered">
+            <summary>Order delivered to the customer.</summary>
+        </member>
+        <member name="F:SampleApi.Orders.OrderStatus.Cancelled">
+            <summary>Order cancelled — no further transitions possible.</summary>
+        </member>
+        <member name="T:SampleApi.Orders.OrderCache">
+            <summary>
+            Thread-safe in-memory order store. Registered as a singleton so state
+            persists for the lifetime of the application process.
+            </summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderCache.GetAll">
+            <summary>Returns a read-only snapshot of all orders, newest first.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderCache.GetByCustomer(System.Int32)">
+            <summary>Returns orders belonging to a specific customer, newest first.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderCache.GetByStatus(SampleApi.Orders.OrderStatus)">
+            <summary>Returns orders in the given status.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderCache.GetById(System.Int32)">
+            <summary>Returns the order with the given ID, or <c>null</c> if not found.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderCache.Add(SampleApi.Orders.Order)">
+            <summary>Creates a new order from a validated request. Returns the created order.</summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderCache.UpdateStatus(System.Int32,SampleApi.Orders.OrderStatus)">
+            <summary>
+            Advances or changes an order's status.
+            Returns the updated order, or <c>null</c> if the order does not exist.
+            </summary>
+        </member>
+        <member name="M:SampleApi.Orders.OrderCache.Cancel(System.Int32)">
+            <summary>
+            Cancels the order with <paramref name="id"/> by setting its status to Cancelled.
+            Returns <c>true</c> if found, <c>false</c> if not found.
+            </summary>
+        </member>
+        <member name="T:SampleApi.Orders.OrderEndpoints">
+            <summary>
+            Registers all /orders routes onto a <see cref="T:Microsoft.AspNetCore.Routing.RouteGroupBuilder"/>.
+            Called from Program.cs: <c>app.MapGroup("/orders").WithTags("Orders: Lifecycle").MapOrders();</c>
+            </summary>
+        </member>
+        <member name="T:SampleApi.Products.Product">
+            <summary>A product in the catalog.</summary>
+        </member>
+        <member name="M:SampleApi.Products.Product.#ctor(System.Int32,System.String,System.Decimal,System.String,System.String,System.Int32)">
+            <summary>A product in the catalog.</summary>
+        </member>
+        <member name="T:SampleApi.Products.ProductCache">
+            <summary>
+            Thread-safe in-memory product store. Registered as a singleton so state
+            persists for the lifetime of the application process.
+            </summary>
+        </member>
+        <member name="M:SampleApi.Products.ProductCache.GetAll">
+            <summary>Returns a read-only snapshot of all products.</summary>
+        </member>
+        <member name="M:SampleApi.Products.ProductCache.GetById(System.Int32)">
+            <summary>Returns the product with the given ID, or <c>null</c> if not found.</summary>
+        </member>
+        <member name="M:SampleApi.Products.ProductCache.GetCategories">
+            <summary>Returns all distinct category names currently in the catalog.</summary>
+        </member>
+        <member name="M:SampleApi.Products.ProductCache.GetByCategory(System.String)">
+            <summary>Returns all products in the specified category (case-insensitive).</summary>
+        </member>
+        <member name="M:SampleApi.Products.ProductCache.Add(SampleApi.Products.Product)">
+            <summary>Adds a new product, assigning a server-generated ID. Returns the created product.</summary>
+        </member>
+        <member name="M:SampleApi.Products.ProductCache.Update(System.Int32,SampleApi.Products.Product)">
+            <summary>
+            Replaces the product at <paramref name="id"/> with the supplied values.
+            Returns the updated product, or <c>null</c> if no product with that ID exists.
+            </summary>
+        </member>
+        <member name="M:SampleApi.Products.ProductCache.Remove(System.Int32)">
+            <summary>
+            Removes the product with <paramref name="id"/>.
+            Returns <c>true</c> if the product was found and removed.
+            </summary>
+        </member>
+        <member name="T:SampleApi.Products.ProductEndpoints">
+            <summary>
+            Registers all /products routes onto a <see cref="T:Microsoft.AspNetCore.Routing.RouteGroupBuilder"/>.
+            Called from Program.cs: <c>app.MapGroup("/products").WithTags("Products: Catalog").MapProducts();</c>
+            </summary>
+        </member>
+        <member name="T:Program">
+            <summary>
+            Auto-generated public partial Program class for top-level statement apps.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type)">
+            <summary>
+            Generates a documentation comment ID for a type.
+            Example: T:Namespace.Outer+Inner`1 becomes T:Namespace.Outer.Inner`1
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.PropertyInfo)">
+            <summary>
+            Generates a documentation comment ID for a property.
+            Example: P:Namespace.ContainingType.PropertyName or for an indexer P:Namespace.ContainingType.Item(System.Int32)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Type,System.String)">
+            <summary>
+            Generates a documentation comment ID for a property given its container type and property name.
+            Example: P:Namespace.ContainingType.PropertyName
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.CreateDocumentationId(System.Reflection.MethodInfo)">
+            <summary>
+            Generates a documentation comment ID for a method (or constructor).
+            For example:
+              M:Namespace.ContainingType.MethodName(ParamType1,ParamType2)~ReturnType
+              M:Namespace.ContainingType.#ctor(ParamType)
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.GetTypeDocId(System.Type,System.Boolean,System.Boolean)">
+            <summary>
+            Generates a documentation ID string for a type.
+            This method handles nested types (replacing '+' with '.'),
+            generic types, arrays, pointers, by-ref types, and generic parameters.
+            The <paramref name="includeGenericArguments"/> flag controls whether
+            constructed generic type arguments are emitted, while <paramref name="omitGenericArity"/>
+            controls whether the generic arity marker (e.g. "`1") is appended.
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.OpenApi.Generated.DocumentationCommentIdHelper.NormalizeDocId(System.String)">
+            <summary>
+            Normalizes a documentation comment ID to match the compiler-style format.
+            Strips the return type suffix for ordinary methods but retains it for conversion operators.
+            </summary>
+            <param name="docId">The documentation comment ID to normalize.</param>
+            <returns>The normalized documentation comment ID.</returns>
+        </member>
+    </members>
+</doc>
