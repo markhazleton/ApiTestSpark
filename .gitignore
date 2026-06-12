@@ -9,6 +9,10 @@ dist-ssr/
 out/
 coverage/
 .nyc_output/
+publish/SampleApi/
+
+# Local source brand pack used to generate app assets
+.documentation/branding/
 
 # Build metadata — generated from package.json on every build
 src/public/build-info.json
