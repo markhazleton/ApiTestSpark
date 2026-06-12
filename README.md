@@ -20,7 +20,7 @@
 
 **API Test Spark** is a Make Bold Spark NuGet package, fully owned and managed by **[Make Bold Solutions](https://makeboldsolutions.com)**. It embeds a full-featured, React-powered API test harness directly into any **.NET 10 Minimal API** application. Drop in one method call — `MapApiTestSpark()` — and your API instantly gains an interactive testing UI at `/api-test-spark/`.
 
-No separate deployment. No Swagger UI dependency. No `wwwroot` changes. The entire React SPA (181 KB) ships as embedded resources inside the package.
+No separate deployment. No Swagger UI dependency. No `wwwroot` changes. The entire branded React SPA ships as embedded resources inside the package.
 
 ```
 dotnet add package ApiTestSpark
@@ -35,15 +35,15 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.4.0 |
+| **Version** | 1.5.0 |
 | **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
-| **Package Size** | 181 KB |
+| **Package Size** | 500 KB |
 | **Symbol Package** | 15.7 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | June 9, 2026 |
+| **Last Updated** | June 12, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Product Family** | [Make Bold Spark](https://makeboldspark.com) |
@@ -168,7 +168,7 @@ Server profile secrets are redacted from `GET /api-test-spark/config`. The serve
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.4.0 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.5.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -192,6 +192,10 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 ---
 
 ## Release Notes
+
+### v1.5.0 — June 12, 2026
+
+Make Bold Solutions brand alignment: API Test Spark now presents as a Make Bold Spark product across the embedded React UI, favicon set, package icon, NuGet metadata, package README, and public documentation. The app uses Make Bold Solutions colors, logo assets, and Inter Tight typography. No public .NET API changes.
 
 ### v1.4.0 — June 9, 2026
 
@@ -461,7 +465,7 @@ The [SampleApi source](SampleApi/) is the live reference implementation — ever
 | [Current State of OpenAPI in .NET](OPENAPI-DOTNET.md) | Complete ecosystem guide — package versions, compatibility matrix, known issues, recommended combinations, React SPA parsing tips |
 | [NuGet Package Walkthrough](NUGET-PACKAGE-WALKTHROUGH.md) | How ApiTestSpark is built and packed — MSBuild/Vite bridge, embedded resources, Source Link, public API tracking, CI/CD |
 | [Package README](ApiTestSpark/README.md) | Consumer-facing reference — all `ApiTestSparkOptions`, quickstart snippets, semver policy |
-| [Repo Story (2026-06-06)](.documentation/repo-story/repo-story-2026-06-06.md) | Evidence-based narrative of this repository's development history, contributor patterns, and architecture — updated with the v1.4.0 release state |
+| [Repo Story (2026-06-06)](.documentation/repo-story/repo-story-2026-06-06.md) | Evidence-based narrative of this repository's development history, contributor patterns, and architecture — updated with the v1.5.0 release state |
 | [Live Demo](https://apitest.makeboldspark.com) | Running SampleApi on .NET 10 with 16 endpoints and ApiTestSpark installed |
 | [NuGet Package](https://www.nuget.org/packages/ApiTestSpark) | Package page, download stats, version history |
 

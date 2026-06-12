@@ -102,6 +102,7 @@ Server profile credentials are redacted from `/api-test-spark/config` and used o
 
 ## Features
 
+- **Make Bold Spark branded UI** — Make Bold Solutions colors, package icon, favicon, logo assets, and Inter Tight typography are embedded with the harness.
 - **OpenAPI autodiscovery** — endpoints grouped by tag in a collapsible accordion; real-time search filter
 - **Remote API Explorer** — browse and test one or more named remote REST APIs from their OpenAPI documents; server-configured credentials stay server-side, browser-created profiles stay local, and duplicate visible names are blocked before save
 - **Full metadata surface** — descriptions rendered as markdown, response codes as coloured badges with expandable inline schemas, `operationId` as a copyable chip, schema constraint tables
@@ -113,7 +114,7 @@ Server profile credentials are redacted from `/api-test-spark/config` and used o
 - **Debug panel** — drag-resizable, captures every request/response/error/metric; cURL snippet per request; FIFO buffered
 - **Environment gating** — one option keeps the harness off production
 - **Demo integration toggle** — set `EnableDemoIntegrations = false` to hide the built-in JokeAPI and JSONPlaceholder screens; show only your host API and the API Doc Builder
-- **Zero extra dependencies** — 181 KB package, no `wwwroot` changes, nothing copied to your project
+- **Zero extra dependencies** — branded embedded package, no `wwwroot` changes, nothing copied to your project
 
 ### Clean install — your API only
 

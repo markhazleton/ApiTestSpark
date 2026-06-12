@@ -20,16 +20,16 @@ public static class HomeEndpoints
         <head>
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <meta name="description" content="API Test Spark — embed an interactive API test harness into any .NET 10 Minimal API project with one line of code." />
-            <title>API Test Spark — Interactive API Test Harness for .NET</title>
+            <meta name="description" content="API Test Spark — a Make Bold Spark API testing workbench for .NET 10 Minimal API projects." />
+            <title>API Test Spark — Make Bold Spark API Testing Workbench</title>
             <style>
                 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
                 body { font-family: system-ui, -apple-system, sans-serif; color: #1a1a2e; background: #f8fafc; line-height: 1.6; }
 
                 /* ── Nav ── */
-                nav { background: #0f172a; color: #e2e8f0; padding: 0.75rem 2rem; position: sticky; top: 0; z-index: 100; }
+                nav { background: #040605; color: #e2e8f0; padding: 0.75rem 2rem; position: sticky; top: 0; z-index: 100; }
                 nav .nav-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-                nav .brand { min-width: 0; font-weight: 700; font-size: 1.05rem; color: #38bdf8; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                nav .brand { min-width: 0; font-weight: 700; font-size: 1.05rem; color: #d9aaa0; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                 nav .links { display: flex; align-items: center; gap: 1rem; }
                 nav .links a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; white-space: nowrap; }
                 nav .links a:hover { color: #e2e8f0; }
@@ -39,21 +39,21 @@ public static class HomeEndpoints
                 nav .menu-icon span { display: block; width: 1.15rem; height: 2px; background: currentColor; border-radius: 999px; }
 
                 /* ── Hero ── */
-                .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0c4a6e 100%); color: white; padding: 5rem 2rem 4rem; text-align: center; }
+                .hero { background: linear-gradient(135deg, #040605 0%, #741b05 60%, #741b05 100%); color: white; padding: 5rem 2rem 4rem; text-align: center; }
                 .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 1rem; line-height: 1.1; }
-                .hero h1 span { color: #38bdf8; }
+                .hero h1 span { color: #d9aaa0; }
                 .hero p { font-size: 1.2rem; color: #94a3b8; max-width: 600px; margin: 0 auto 2.5rem; }
                 .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-                .btn-primary { background: #0ea5e9; color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.1s; display: inline-block; }
-                .btn-primary:hover { background: #0284c7; transform: translateY(-1px); }
+                .btn-primary { background: #982407; color: white; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: background 0.2s, transform 0.1s; display: inline-block; }
+                .btn-primary:hover { background: #741b05; transform: translateY(-1px); }
                 .btn-secondary { background: transparent; color: #e2e8f0; padding: 0.85rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1rem; border: 2px solid #334155; transition: border-color 0.2s; display: inline-block; }
                 .btn-secondary:hover { border-color: #94a3b8; }
 
                 /* ── Install strip ── */
-                .install-strip { background: #020617; color: #e2e8f0; padding: 1.25rem 2rem; text-align: center; border-bottom: 1px solid #1e293b; }
+                .install-strip { background: #040605; color: #e2e8f0; padding: 1.25rem 2rem; text-align: center; border-bottom: 1px solid #1e293b; }
                 .install-strip p { font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; }
-                .install-cmd { display: inline-flex; align-items: center; gap: 1rem; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.6rem 1.25rem; }
-                .install-cmd code { font-family: 'Courier New', monospace; font-size: 1rem; color: #38bdf8; }
+                .install-cmd { display: inline-flex; align-items: center; gap: 1rem; background: #040605; border: 1px solid #1e293b; border-radius: 8px; padding: 0.6rem 1.25rem; }
+                .install-cmd code { font-family: 'Courier New', monospace; font-size: 1rem; color: #d9aaa0; }
                 .copy-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; }
                 .copy-btn:hover { background: #334155; color: #e2e8f0; }
 
@@ -61,24 +61,24 @@ public static class HomeEndpoints
                 .container { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
                 section { padding: 4rem 0; }
                 section + section { border-top: 1px solid #e2e8f0; }
-                h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; color: #0f172a; }
-                h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #1e3a5f; }
+                h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; color: #040605; }
+                h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #741b05; }
                 .section-intro { color: #475569; margin-bottom: 2rem; font-size: 1.05rem; }
 
                 /* ── Steps ── */
                 .steps { display: flex; flex-direction: column; gap: 2rem; }
                 .step { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; align-items: start; }
-                .step-num { width: 2.5rem; height: 2.5rem; background: #0ea5e9; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; margin-top: 0.15rem; }
+                .step-num { width: 2.5rem; height: 2.5rem; background: #982407; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; margin-top: 0.15rem; }
                 .step-body p { color: #475569; margin-top: 0.25rem; margin-bottom: 0.75rem; font-size: 0.95rem; }
 
                 /* ── Code blocks ── */
-                pre { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 1.25rem 1.5rem; overflow-x: auto; font-size: 0.88rem; line-height: 1.7; margin: 0; border: 1px solid #1e293b; }
+                pre { background: #040605; color: #e2e8f0; border-radius: 8px; padding: 1.25rem 1.5rem; overflow-x: auto; font-size: 0.88rem; line-height: 1.7; margin: 0; border: 1px solid #1e293b; }
                 pre .c  { color: #64748b; }
-                pre .kw { color: #7dd3fc; }
+                pre .kw { color: #d9aaa0; }
                 pre .st { color: #86efac; }
                 pre .ty { color: #fde68a; }
-                pre .cm { color: #38bdf8; }
-                code.inline { background: #e0f2fe; color: #0c4a6e; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88em; font-family: 'Courier New', monospace; }
+                pre .cm { color: #d9aaa0; }
+                code.inline { background: #fff7f5; color: #741b05; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88em; font-family: 'Courier New', monospace; }
 
                 /* ── Feature cards ── */
                 .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
@@ -92,7 +92,7 @@ public static class HomeEndpoints
                 .options-table th { background: #f1f5f9; padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e2e8f0; }
                 .options-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
                 .options-table tr:last-child td { border-bottom: none; }
-                .options-table td:first-child { font-family: 'Courier New', monospace; color: #0c4a6e; font-size: 0.85rem; white-space: nowrap; }
+                .options-table td:first-child { font-family: 'Courier New', monospace; color: #741b05; font-size: 0.85rem; white-space: nowrap; }
                 .options-table td:nth-child(2) { color: #64748b; font-family: 'Courier New', monospace; font-size: 0.82rem; }
                 .options-table td:nth-child(3) { color: #475569; }
 
@@ -102,7 +102,7 @@ public static class HomeEndpoints
                 .endpoint-list { text-align: left; display: inline-block; margin: 1.5rem 0; }
                 .endpoint-list li { list-style: none; padding: 0.35rem 0; font-size: 0.9rem; color: #334155; }
                 .method { display: inline-block; width: 4rem; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 4px; text-align: center; margin-right: 0.5rem; }
-                .get    { background: #dbeafe; color: #1d4ed8; }
+                .get    { background: #f7e6e1; color: #982407; }
                 .post   { background: #dcfce7; color: #15803d; }
                 .put    { background: #fef9c3; color: #854d0e; }
                 .delete { background: #fee2e2; color: #b91c1c; }
@@ -110,30 +110,30 @@ public static class HomeEndpoints
                 /* ── NuGet badge area ── */
                 .badges { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
                 .badge { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem 0.85rem; font-size: 0.82rem; color: #475569; display: flex; align-items: center; gap: 0.4rem; }
-                .badge strong { color: #0f172a; }
+                .badge strong { color: #040605; }
 
                 /* ── Package metadata card ── */
-                .pkg-card { background: white; border: 2px solid #0ea5e9; border-radius: 16px; padding: 2rem 2.5rem; box-shadow: 0 4px 24px rgba(14,165,233,0.10); margin-bottom: 2rem; }
+                .pkg-card { background: white; border: 2px solid #982407; border-radius: 16px; padding: 2rem 2.5rem; box-shadow: 0 4px 24px rgba(152,36,7,0.12); margin-bottom: 2rem; }
                 .pkg-header { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
                 .pkg-icon { font-size: 2.5rem; line-height: 1; }
                 .pkg-title { flex: 1 1 auto; }
-                .pkg-title h2 { font-size: 1.6rem; margin-bottom: 0.15rem; color: #0f172a; }
-                .pkg-title .pkg-version { display: inline-block; background: #0ea5e9; color: white; border-radius: 6px; padding: 0.2rem 0.75rem; font-size: 0.82rem; font-weight: 700; letter-spacing: .03em; margin-bottom: 0.25rem; }
+                .pkg-title h2 { font-size: 1.6rem; margin-bottom: 0.15rem; color: #040605; }
+                .pkg-title .pkg-version { display: inline-block; background: #982407; color: white; border-radius: 6px; padding: 0.2rem 0.75rem; font-size: 0.82rem; font-weight: 700; letter-spacing: .03em; margin-bottom: 0.25rem; }
                 .pkg-title p { color: #475569; font-size: 0.95rem; margin-top: 0.3rem; }
                 .pkg-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
                 .pkg-meta-item { min-width: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
                 .pkg-meta-item .label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; margin-bottom: 0.2rem; }
-                .pkg-meta-item .value { min-width: 0; font-size: 0.95rem; font-weight: 600; color: #0f172a; overflow-wrap: anywhere; }
-                .pkg-meta-item .value a { color: #0ea5e9; text-decoration: none; }
+                .pkg-meta-item .value { min-width: 0; font-size: 0.95rem; font-weight: 600; color: #040605; overflow-wrap: anywhere; }
+                .pkg-meta-item .value a { color: #982407; text-decoration: none; }
                 .pkg-meta-item .value a:hover { text-decoration: underline; }
                 .pkg-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
                 .pkg-tag-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
-                .pkg-tag { background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.75rem; font-family: 'Courier New', monospace; }
+                .pkg-tag { background: #fff7f5; color: #741b05; border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.75rem; font-family: 'Courier New', monospace; }
 
                 /* ── Best-practices section ── */
                 .bp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-                .bp-card { background: white; border: 1px solid #e2e8f0; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 1.25rem 1.5rem; }
-                .bp-card h3 { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.35rem; }
+                .bp-card { background: white; border: 1px solid #e2e8f0; border-left: 4px solid #982407; border-radius: 8px; padding: 1.25rem 1.5rem; }
+                .bp-card h3 { font-size: 1rem; font-weight: 700; color: #040605; margin-bottom: 0.35rem; }
                 .bp-card p { color: #475569; font-size: 0.88rem; margin-bottom: 0.6rem; }
                 .bp-card ul { margin: 0; padding-left: 1.1rem; color: #475569; font-size: 0.88rem; }
                 .bp-card ul li { margin-bottom: 0.2rem; }
@@ -145,7 +145,7 @@ public static class HomeEndpoints
                 .impact-table th { background: #f1f5f9; padding: 0.65rem 1rem; text-align: left; font-weight: 600; color: #374151; border-bottom: 2px solid #e2e8f0; }
                 .impact-table td { padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
                 .impact-table tr:last-child td { border-bottom: none; }
-                .impact-table td:first-child { font-family: 'Courier New', monospace; color: #0c4a6e; font-size: 0.82rem; white-space: nowrap; }
+                .impact-table td:first-child { font-family: 'Courier New', monospace; color: #741b05; font-size: 0.82rem; white-space: nowrap; }
                 .impact-table td:nth-child(2) { color: #475569; }
                 .pill { display: inline-block; border-radius: 999px; padding: 0.1rem 0.6rem; font-size: 0.72rem; font-weight: 700; }
                 .pill-high { background: #dcfce7; color: #15803d; }
@@ -159,8 +159,8 @@ public static class HomeEndpoints
                 @media (max-width: 700px) { .diff-block { grid-template-columns: 1fr; } }
 
                 /* ── Footer ── */
-                footer { background: #0f172a; color: #64748b; padding: 2rem; text-align: center; font-size: 0.85rem; }
-                footer a { color: #38bdf8; text-decoration: none; }
+                footer { background: #040605; color: #64748b; padding: 2rem; text-align: center; font-size: 0.85rem; }
+                footer a { color: #d9aaa0; text-decoration: none; }
                 footer a:hover { text-decoration: underline; }
                 footer .footer-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
 
@@ -182,7 +182,7 @@ public static class HomeEndpoints
         <nav>
             <input class="menu-toggle" type="checkbox" id="home-nav-toggle" aria-label="Toggle navigation menu" />
             <div class="nav-row">
-                <a href="/" class="brand">⚡ API Test Spark</a>
+                <a href="/" class="brand">API Test Spark · Make Bold Spark</a>
                 <label class="menu-button" for="home-nav-toggle" aria-label="Toggle navigation menu">
                     <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
                 </label>
@@ -195,9 +195,9 @@ public static class HomeEndpoints
         </nav>
 
         <div class="hero">
-            <h1>Interactive API testing,<br /><span>one line of code</span></h1>
+            <h1>Make Bold API testing,<br /><span>one line of code</span></h1>
             <p>
-                Embed a full-featured API test harness into any .NET 10 Minimal API project.
+                Embed a Make Bold Spark API testing workbench into any .NET 10 Minimal API project.
                 Autodiscovers your OpenAPI v3 endpoints. No separate deployment required.
             </p>
             <div class="hero-actions">
@@ -222,15 +222,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.4.0</span>
+                            <span class="pkg-version">v1.5.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 181 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 9, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 500 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 12, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.4.0</div>
+                            <div class="value">1.5.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -242,15 +242,15 @@ public static class HomeEndpoints
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Package Size</div>
-                            <div class="value">181 KB</div>
+                            <div class="value">500 KB</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Dependencies</div>
                             <div class="value">None</div>
                         </div>
                         <div class="pkg-meta-item">
-                            <div class="label">Author</div>
-                            <div class="value"><a href="https://markhazleton.com" target="_blank" rel="noopener">Mark Hazleton</a></div>
+                            <div class="label">Authors</div>
+                            <div class="value"><a href="https://makeboldsolutions.com" target="_blank" rel="noopener">Make Bold Solutions</a>; <a href="https://markhazleton.com" target="_blank" rel="noopener">Mark Hazleton</a></div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">NuGet</div>
@@ -258,12 +258,12 @@ public static class HomeEndpoints
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Repository</div>
-                            <div class="value"><a href="https://github.com/markhazleton/apitestspark" target="_blank" rel="noopener">github.com/markhazleton/apitestspark</a></div>
+                            <div class="value"><a href="https://github.com/MarkHazleton/ApiTestSpark" target="_blank" rel="noopener">github.com/MarkHazleton/ApiTestSpark</a></div>
                         </div>
                     </div>
                     <div class="pkg-actions">
                         <a href="https://www.nuget.org/packages/ApiTestSpark" class="btn-primary" target="_blank" rel="noopener" style="padding:0.6rem 1.5rem;font-size:0.9rem;">View on NuGet →</a>
-                        <a href="https://github.com/markhazleton/apitestspark" class="btn-secondary" target="_blank" rel="noopener" style="padding:0.6rem 1.5rem;font-size:0.9rem;">GitHub Source</a>
+                        <a href="https://github.com/MarkHazleton/ApiTestSpark" class="btn-secondary" target="_blank" rel="noopener" style="padding:0.6rem 1.5rem;font-size:0.9rem;">GitHub Source</a>
                     </div>
                     <div class="pkg-tag-list">
                         <span class="pkg-tag">api</span>
@@ -281,6 +281,8 @@ public static class HomeEndpoints
                         <span class="pkg-tag">swagger-ui-alternative</span>
                         <span class="pkg-tag">api-documentation</span>
                         <span class="pkg-tag">local-development</span>
+                        <span class="pkg-tag">make-bold-spark</span>
+                        <span class="pkg-tag">make-bold-solutions</span>
                     </div>
                 </div>
             </section>
@@ -352,6 +354,11 @@ public static class HomeEndpoints
                         <div class="feature-icon">🌐</div>
                         <h3>Remote API Profiles</h3>
                         <p>Browse and test multiple named remote REST APIs from their OpenAPI documents. Configure <code class="inline">RemoteApiProfiles</code> in <code class="inline">Program.cs</code> or add browser-local profiles from the Config page.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎨</div>
+                        <h3>Make Bold Spark Branding</h3>
+                        <p>The embedded UI ships with Make Bold Solutions colors, logo assets, favicon set, package icon, and Inter Tight typography as part of the Make Bold Spark product family.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🔑</div>
@@ -589,7 +596,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
 
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem;margin-top:1.75rem;text-align:left;">
                         <div>
-                            <div style="font-size:0.75rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Products</div>
+                            <div style="font-size:0.75rem;font-weight:700;color:#982407;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Products</div>
                             <ul class="endpoint-list">
                                 <li><span class="method get">GET</span><code>/products</code></li>
                                 <li><span class="method get">GET</span><code>/products/{id}</code></li>
@@ -599,7 +606,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                             </ul>
                         </div>
                         <div>
-                            <div style="font-size:0.75rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Customers</div>
+                            <div style="font-size:0.75rem;font-weight:700;color:#982407;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Customers</div>
                             <ul class="endpoint-list">
                                 <li><span class="method get">GET</span><code>/customers</code></li>
                                 <li><span class="method get">GET</span><code>/customers/{id}</code></li>
@@ -609,7 +616,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                             </ul>
                         </div>
                         <div>
-                            <div style="font-size:0.75rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Orders</div>
+                            <div style="font-size:0.75rem;font-weight:700;color:#982407;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem;">Orders</div>
                             <ul class="endpoint-list">
                                 <li><span class="method get">GET</span><code>/orders</code></li>
                                 <li><span class="method get">GET</span><code>/orders/{id}</code></li>
@@ -624,9 +631,9 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.4.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.5.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
-                        <div class="badge">⚖️ <strong>No dependencies</strong> — 181 KB</div>
+                        <div class="badge">⚖️ <strong>No dependencies</strong> — 500 KB</div>
                     </div>
                 </div>
             </section>
@@ -670,7 +677,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
       "proxyMode": "server"
     }
   ],
-  "harnessVersion": "1.4.0",
+  "harnessVersion": "1.5.0",
   "harnessBuiltAt": "2026-06-09T01:24:11Z"
 }</pre>
                         </div>
@@ -702,7 +709,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     your test harness. This page is itself a live example: every section below is
                     demonstrated by the running <strong>Products</strong>, <strong>Customers</strong>,
                     and <strong>Orders</strong> API.
-                    <a href="/api-test-spark/" style="color:#0ea5e9;">Open the harness</a> alongside
+                    <a href="/api-test-spark/" style="color:#982407;">Open the harness</a> alongside
                     this guide to see each technique in action.
                 </p>
 
@@ -876,11 +883,11 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                 <!-- Live example link -->
                 <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:1.25rem 1.5rem;margin-top:1.5rem;">
-                    <h3 style="color:#1d4ed8;margin-bottom:0.5rem;">This site is the live reference</h3>
+                    <h3 style="color:#982407;margin-bottom:0.5rem;">This site is the live reference</h3>
                     <p style="color:#1e40af;font-size:0.9rem;">
                         Every best practice above is implemented in this demo. The Products, Customers, and Orders
                         source code is available in the
-                        <a href="https://github.com/markhazleton/apitestspark/tree/main/SampleApi" style="color:#0ea5e9;" target="_blank" rel="noopener">SampleApi folder on GitHub</a>.
+                        <a href="https://github.com/MarkHazleton/ApiTestSpark/tree/main/SampleApi" style="color:#982407;" target="_blank" rel="noopener">SampleApi folder on GitHub</a>.
                         Open the harness and compare what you see against the source to understand exactly
                         what each annotation produces.
                     </p>
@@ -897,7 +904,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                 </p>
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem;">
-                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <h3 style="margin-bottom:0.4rem;">Path 1 — Spec Fetch (server-side)</h3>
                         <p style="color:#475569;font-size:0.88rem;">For server profiles, the browser calls <code class="inline">GET /api-test-spark/remote-spec?profileId=...</code> → .NET resolves the server profile → adds credentials → fetches remote OpenAPI JSON. Credential values are redacted from config.</p>
                     </div>
@@ -934,7 +941,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 });</pre>
                 <div style="margin-top:1rem;">
                     <a href="/api-test-spark/remote-api/jsonplaceholder-demo" class="btn-primary" style="font-size:0.95rem;padding:0.75rem 1.75rem;">🌐 Open JSONPlaceholder Explorer</a>
-                    <a href="/api-test-spark/remote-docs/jsonplaceholder-demo" class="btn-primary" style="font-size:0.95rem;padding:0.75rem 1.75rem;margin-left:0.75rem;background:#0369a1;">📄 Open JSONPlaceholder Docs</a>
+                    <a href="/api-test-spark/remote-docs/jsonplaceholder-demo" class="btn-primary" style="font-size:0.95rem;padding:0.75rem 1.75rem;margin-left:0.75rem;background:#741b05;">📄 Open JSONPlaceholder Docs</a>
                 </div>
             </section>
 
@@ -945,18 +952,26 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                 <div style="display:flex;flex-direction:column;gap:1.25rem;">
 
-                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
-                            <span style="background:#0ea5e9;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.4.0</span>
-                            <span style="color:#94a3b8;font-size:0.85rem;">June 9, 2026</span>
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.5.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 12, 2026</span>
                             <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Make Bold Solutions brand alignment.</strong> API Test Spark now presents as a Make Bold Spark product across the embedded UI, favicon set, package icon, NuGet metadata, package README, and public documentation. No public API changes.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.4.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 9, 2026</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote API Profiles.</strong> Configure multiple named remote APIs in <code class="inline">Program.cs</code> or from the browser Config page. Each profile has its own explorer and doc builder route, safe name/description display, scoped headers and credentials, redacted server secrets, server-profile-only proxying, local browser-created profiles, and duplicate-name validation before save.</p>
                     </div>
 
-                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #0ea5e9;border-radius:8px;padding:1.25rem 1.5rem;">
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
-                            <span style="background:#0ea5e9;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.3.0</span>
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.3.0</span>
                             <span style="color:#94a3b8;font-size:0.85rem;">June 6, 2026</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote API Explorer.</strong> Browse and test remote REST APIs from named <code class="inline">RemoteApiProfiles</code>. Server-side spec proxy resolves server profile ids and redacts credential values from config; browser-created profiles stay local and fetch specs directly. Header token expansion (<code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>). Harness version and build date on About page.</p>
@@ -1005,7 +1020,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                 </div>
 
                 <div style="margin-top:1.25rem;">
-                    <a href="https://github.com/markhazleton/ApiTestSpark/blob/main/CHANGELOG.md" class="btn-secondary" style="font-size:0.9rem;padding:0.6rem 1.5rem;" target="_blank" rel="noopener">View full CHANGELOG →</a>
+                    <a href="https://github.com/MarkHazleton/ApiTestSpark/blob/main/CHANGELOG.md" class="btn-secondary" style="font-size:0.9rem;padding:0.6rem 1.5rem;" target="_blank" rel="noopener">View full CHANGELOG →</a>
                 </div>
             </section>
 
@@ -1015,7 +1030,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                 <div style="display:flex;flex-direction:column;gap:1.5rem;margin-top:0.5rem;">
                     <div>
                         <h3>Does it work on .NET 8 or 9?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">The package targets <code class="inline">net10.0</code>. For earlier targets, reference the package source directly and adjust the target framework in the <code class="inline">.csproj</code>. OpenAPI support is built-in from .NET 9 onwards; for .NET 8 use <a href="https://www.nuget.org/packages/Swashbuckle.AspNetCore" style="color:#0ea5e9;">Swashbuckle</a> and point <code class="inline">OpenApiUrl</code> at your Swagger JSON URL.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">The package targets <code class="inline">net10.0</code>. For earlier targets, reference the package source directly and adjust the target framework in the <code class="inline">.csproj</code>. OpenAPI support is built-in from .NET 9 onwards; for .NET 8 use <a href="https://www.nuget.org/packages/Swashbuckle.AspNetCore" style="color:#982407;">Swashbuckle</a> and point <code class="inline">OpenApiUrl</code> at your Swagger JSON URL.</p>
                     </div>
                     <div>
                         <h3>Is it safe to leave enabled in production?</h3>
@@ -1031,7 +1046,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                     </div>
                     <div>
                         <h3>Does it support OpenAPI v2 / Swagger 2.0?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">Only OpenAPI v3.x documents are parsed. For Swagger 2.0 APIs, use a converter to produce a v3 document (e.g. <a href="https://converter.swagger.io/" style="color:#0ea5e9;">converter.swagger.io</a>) and point <code class="inline">OpenApiUrl</code> at the converted output.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">Only OpenAPI v3.x documents are parsed. For Swagger 2.0 APIs, use a converter to produce a v3 document (e.g. <a href="https://converter.swagger.io/" style="color:#982407;">converter.swagger.io</a>) and point <code class="inline">OpenApiUrl</code> at the converted output.</p>
                     </div>
                     <div>
                         <h3>Can I generate API documentation from test runs?</h3>
@@ -1070,7 +1085,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
             <div class="footer-links">
                 <a href="https://apitest.makeboldspark.com">API Test Spark</a>
                 <a href="https://www.nuget.org/packages/ApiTestSpark" target="_blank" rel="noopener">NuGet Package</a>
-                <a href="https://github.com/markhazleton/ApiTestSpark" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/MarkHazleton/ApiTestSpark" target="_blank" rel="noopener">GitHub</a>
                 <a href="https://makeboldspark.com" target="_blank" rel="noopener">Make Bold Spark</a>
                 <a href="https://makeboldsolutions.com" target="_blank" rel="noopener">Make Bold Solutions</a>
             </div>

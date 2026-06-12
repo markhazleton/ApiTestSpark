@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.5.0] - 2026-06-12
+
+### Changed
+
+- **Make Bold Solutions brand alignment** — refreshed the embedded React UI with the Make Bold Spark product family, Make Bold Solutions ownership, brand colors, Inter Tight typography, updated header/home/footer treatments, and consistent red/black/gray accent states across the app.
+- **Favicon and visual assets** — generated a multi-size `favicon.ico`, refreshed PNG favicons, added local Make Bold Solutions logo/font assets to the SPA build, and regenerated the NuGet package icon from the brand asset.
+- **NuGet package identity** — updated NuGet authors, company, copyright, title, description, tags, repository casing, package README, root README, packaging walkthrough, and license attribution to consistently present API Test Spark as a Make Bold Spark product owned and managed by Make Bold Solutions.
+
+### Breaking Changes
+
+None. This release does not change the public .NET API surface or runtime configuration model.
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.4.0] - 2026-06-09
 
 ### Added
@@ -187,7 +203,8 @@ None. The new `RemoteApiProfiles` collection and `RemoteApiProfile` model are ad
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.5.0...HEAD
+[v1.5.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.4.0...v1.5.0
 [v1.4.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.2.0...v1.3.0
 [v1.2.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.1.0...v1.2.0
