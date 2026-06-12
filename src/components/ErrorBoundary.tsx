@@ -92,7 +92,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {this.state.errorInfo && (
               <details className="mb-6">
-                <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-700 mb-2">
+                <summary className="cursor-pointer text-sm text-[#982407] hover:text-[#982407] mb-2">
                   Show Stack Trace
                 </summary>
                 <pre className="bg-gray-800 text-green-400 p-4 rounded text-xs overflow-x-auto">
@@ -107,7 +107,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-4">
               <button
                 onClick={this.handleReset}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="flex-1 px-6 py-3 bg-[#982407] text-white rounded-md hover:bg-[#741b05] transition-colors"
               >
                 Return to Configuration
               </button>

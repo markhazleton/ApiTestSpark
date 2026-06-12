@@ -77,7 +77,7 @@ export const SectionConfigPanel: React.FC<SectionConfigPanelProps> = ({ sectionK
                 onClick={() => handleEnvChange(tab.id)}
                 className={`flex-1 px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
                   activeEnv === tab.id
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-[#982407] text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -97,7 +97,7 @@ export const SectionConfigPanel: React.FC<SectionConfigPanelProps> = ({ sectionK
                 setSaved(false);
               }}
               placeholder={sectionCfg?.baseUrl ?? ''}
-              className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#982407]"
             />
           </div>
 
@@ -114,13 +114,13 @@ export const SectionConfigPanel: React.FC<SectionConfigPanelProps> = ({ sectionK
                 setSaved(false);
               }}
               placeholder="Enter API key…"
-              className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#982407]"
             />
           </div>
 
           <button
             onClick={handleSave}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="w-full px-4 py-2 bg-[#982407] text-white rounded text-sm font-medium hover:bg-[#741b05] transition-colors"
           >
             {saved ? '✓ Saved!' : `Save ${activeEnv} settings`}
           </button>

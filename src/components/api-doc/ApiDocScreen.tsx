@@ -9,7 +9,7 @@ import { resolveHeaderTokens } from '../../utils/session';
 import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc } from '../../types';
 
 const METHOD_COLORS: Record<string, string> = {
-  GET:    'bg-blue-100 text-blue-800',
+  GET:    'bg-[#f7e6e1] text-[#741b05]',
   POST:   'bg-green-100 text-green-800',
   PUT:    'bg-yellow-100 text-yellow-800',
   PATCH:  'bg-orange-100 text-orange-800',
@@ -121,7 +121,7 @@ function CaptureForm({
             value={pathParams[p.name] ?? ''}
             onChange={(e) => setPathParams((prev) => ({ ...prev, [p.name]: e.target.value }))}
             placeholder={p.schema.default != null ? String(p.schema.default) : p.schema.type}
-            className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </div>
       ))}
@@ -137,7 +137,7 @@ function CaptureForm({
               title={`${p.name} query parameter`}
               value={queryParams[p.name] ?? ''}
               onChange={(e) => setQueryParams((prev) => ({ ...prev, [p.name]: e.target.value }))}
-              className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+              className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] bg-white"
             >
               <option value="">— optional —</option>
               {p.schema.enum.map((v) => <option key={v} value={v}>{v}</option>)}
@@ -148,7 +148,7 @@ function CaptureForm({
               value={queryParams[p.name] ?? ''}
               onChange={(e) => setQueryParams((prev) => ({ ...prev, [p.name]: e.target.value }))}
               placeholder={p.schema.default != null ? String(p.schema.default) : p.schema.type}
-              className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407]"
             />
           )}
         </div>
@@ -163,7 +163,7 @@ function CaptureForm({
             value={authToken}
             onChange={(e) => setAuthToken(e.target.value)}
             placeholder="token…"
-            className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="flex-1 font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </div>
       )}
@@ -174,7 +174,7 @@ function CaptureForm({
           <div className="flex items-center justify-between mb-1">
             <span className="font-semibold text-gray-500">Body (JSON)</span>
             {ep.requestBodySchema && (
-              <button type="button" onClick={() => setBody(buildJsonScaffold(ep.requestBodySchema))} className="text-blue-500 hover:underline text-[10px]">
+              <button type="button" onClick={() => setBody(buildJsonScaffold(ep.requestBodySchema))} className="text-[#982407] hover:underline text-[10px]">
                 reset scaffold
               </button>
             )}
@@ -186,7 +186,7 @@ function CaptureForm({
             onChange={(e) => setBody(e.target.value)}
             rows={4}
             spellCheck={false}
-            className="w-full font-mono border border-gray-200 rounded px-2 py-1.5 resize-y focus:outline-none focus:ring-1 focus:ring-blue-400 text-[11px]"
+            className="w-full font-mono border border-gray-200 rounded px-2 py-1.5 resize-y focus:outline-none focus:ring-1 focus:ring-[#982407] text-[11px]"
           />
         </div>
       )}
@@ -196,7 +196,7 @@ function CaptureForm({
           type="button"
           onClick={fire}
           disabled={loading}
-          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors font-semibold"
+          className="px-3 py-1 bg-[#982407] text-white rounded hover:bg-[#741b05] disabled:opacity-50 transition-colors font-semibold"
         >
           {loading ? 'Capturing…' : 'Capture Live Response'}
         </button>
@@ -285,7 +285,7 @@ function EntryCard({
               onChange={(e) => onNoteChange(entry.id, e.target.value)}
               rows={2}
               placeholder="e.g. Call this endpoint first to get a customer ID before placing an order…"
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1 resize-y focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="w-full text-xs border border-gray-200 rounded px-2 py-1 resize-y focus:outline-none focus:ring-1 focus:ring-[#982407]"
             />
           </div>
 
@@ -430,14 +430,14 @@ export function ApiDocScreen() {
           <button
             type="button"
             onClick={() => setView('builder')}
-            className={`px-3 py-1 rounded text-xs font-medium ${view === 'builder' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`px-3 py-1 rounded text-xs font-medium ${view === 'builder' ? 'bg-[#982407] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             Builder
           </button>
           <button
             type="button"
             onClick={() => setView('preview')}
-            className={`px-3 py-1 rounded text-xs font-medium ${view === 'preview' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`px-3 py-1 rounded text-xs font-medium ${view === 'preview' ? 'bg-[#982407] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             Preview
           </button>
@@ -460,7 +460,7 @@ export function ApiDocScreen() {
 
       {isLoading && (
         <div className="flex items-center justify-center flex-1">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-[#982407] border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
@@ -507,7 +507,7 @@ export function ApiDocScreen() {
                       value={doc.title}
                       onChange={(e) => setDoc((d) => ({ ...d, title: e.target.value }))}
                       placeholder="API Integration Guide"
-                      className="w-full text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                      className="w-full text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
                     />
                   </div>
                   <div>
@@ -520,7 +520,7 @@ export function ApiDocScreen() {
                       onChange={(e) => setDoc((d) => ({ ...d, intro: e.target.value }))}
                       rows={4}
                       placeholder="Describe the API, authentication requirements, base URL, and any key concepts a front-end developer needs to know before integrating..."
-                      className="w-full text-xs border border-gray-200 rounded px-3 py-2 resize-y focus:outline-none focus:ring-1 focus:ring-blue-400"
+                      className="w-full text-xs border border-gray-200 rounded px-3 py-2 resize-y focus:outline-none focus:ring-1 focus:ring-[#982407]"
                     />
                   </div>
                 </div>
@@ -584,7 +584,7 @@ export function ApiDocScreen() {
                 <div className="border-t border-gray-200 shrink-0">
                   <div className="flex items-center justify-between px-4 py-2 bg-gray-50">
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Raw markdown</p>
-                    <button type="button" onClick={copyMarkdown} className="text-xs text-blue-500 hover:underline">
+                    <button type="button" onClick={copyMarkdown} className="text-xs text-[#982407] hover:underline">
                       {copied ? 'Copied!' : 'Copy'}
                     </button>
                   </div>

@@ -6,21 +6,21 @@ import { BRANDING } from '../utils';
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <section className="brand-card rounded-md p-6">
       {children}
     </section>
   );
 }
 
 function H2({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-bold text-gray-900 mb-4">{children}</h2>;
+  return <h2 className="text-lg font-black text-[#040605] mb-4">{children}</h2>;
 }
 
 function Badge({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
     <div className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
-      <span className="text-sm text-gray-600">{label}</span>
-      <span className={`text-sm text-gray-900 ${mono ? 'font-mono' : 'font-medium'}`}>{value}</span>
+      <span className="text-sm text-stone-600">{label}</span>
+      <span className={`text-sm text-[#040605] ${mono ? 'font-mono' : 'font-semibold'}`}>{value}</span>
     </div>
   );
 }
@@ -43,12 +43,13 @@ export const AboutScreen: React.FC = () => {
   const remoteConfigured = visibleProfiles.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       {/* Hero */}
-      <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white px-6 py-6">
+      <div className="brand-shell text-white px-6 py-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold">{BRANDING.productName}</h1>
-          <p className="text-blue-100 mt-1 text-sm">{BRANDING.tagline}</p>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#d9aaa0]">{BRANDING.productFamily}</p>
+          <h1 className="text-2xl font-black mt-1">{BRANDING.productName}</h1>
+          <p className="text-stone-200 mt-1 text-sm">{BRANDING.tagline}</p>
         </div>
       </div>
 
@@ -71,23 +72,23 @@ export const AboutScreen: React.FC = () => {
         {/* ── What This Tool Is ── */}
         <Card>
           <H2>What Is {BRANDING.productName}?</H2>
-          <p className="text-sm text-gray-700 leading-relaxed mb-4">
+          <p className="text-sm text-stone-700 leading-relaxed mb-4">
             {BRANDING.productName} is a lightweight developer harness embedded directly in your
             .NET application via <code className="text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">MapApiTestSpark()</code>.
-            It serves a React SPA at <code className="text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">/api-test-spark/</code> and
+            It serves a React SPA at <code className="text-xs bg-[#f7e6e1] px-1 py-0.5 rounded font-mono">/api-test-spark/</code> and
             provides two main capabilities:
           </p>
-          <ul className="space-y-2 text-sm text-gray-700">
+          <ul className="space-y-2 text-sm text-stone-700">
             <li className="flex gap-2">
-              <span className="text-blue-500 font-bold shrink-0">1.</span>
+              <span className="text-[#982407] font-bold shrink-0">1.</span>
               <span><strong>Host API Explorer</strong> — autodiscovers and tests your own app's endpoints from its OpenAPI document.</span>
             </li>
             <li className="flex gap-2">
-              <span className="text-blue-500 font-bold shrink-0">2.</span>
+              <span className="text-[#982407] font-bold shrink-0">2.</span>
               <span><strong>Remote API Explorer</strong> — tests named external API profiles; server-configured specs use a credential-safe proxy and browser-created profiles stay local.</span>
             </li>
           </ul>
-          <p className="text-sm text-gray-700 leading-relaxed mt-3">
+          <p className="text-sm text-stone-700 leading-relaxed mt-3">
             Both explorers have a companion <strong>Doc Builder</strong> that captures live
             endpoint responses and exports markdown documentation.
           </p>
@@ -149,13 +150,13 @@ export const AboutScreen: React.FC = () => {
           </div>
 
           {/* Priority */}
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-blue-800 leading-relaxed">
+          <div className="rounded-md border border-[#d9aaa0] bg-[#fff7f5] p-4 text-xs text-[#741b05] leading-relaxed">
             <p className="font-bold mb-1">Configuration Priority</p>
             <p>
               Browser profiles set on the{' '}
               <Link to="/config" className="underline">Config page</Link>{' '}
-              are stored in <code className="bg-blue-100 px-1 rounded font-mono">localStorage</code>.
-              Profiles configured in <code className="bg-blue-100 px-1 rounded font-mono">Program.cs</code> are
+              are stored in <code className="bg-[#f7e6e1] px-1 rounded font-mono">localStorage</code>.
+              Profiles configured in <code className="bg-[#f7e6e1] px-1 rounded font-mono">Program.cs</code> are
               shown first and can be hidden locally without exposing server-held credentials.
             </p>
           </div>
@@ -166,7 +167,7 @@ export const AboutScreen: React.FC = () => {
           <H2>Current Remote Configuration</H2>
           <p className="text-sm text-gray-500 mb-3">
             Reflects what is active in this browser session right now.{' '}
-            <Link to="/config" className="text-blue-600 hover:underline">Edit on the Config page →</Link>
+            <Link to="/config" className="text-[#982407] hover:underline">Edit on the Config page →</Link>
           </p>
 
           {remoteConfigured ? (
@@ -186,7 +187,7 @@ export const AboutScreen: React.FC = () => {
           ) : (
             <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm text-gray-500">
               No remote API configured.{' '}
-              <Link to="/config" className="text-blue-600 hover:underline">Set it up on the Config page</Link>{' '}
+              <Link to="/config" className="text-[#982407] hover:underline">Set it up on the Config page</Link>{' '}
               or add values to <code className="text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">MapApiTestSpark()</code> in{' '}
               <code className="text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">Program.cs</code>.
             </div>
@@ -194,7 +195,7 @@ export const AboutScreen: React.FC = () => {
 
           {/* Server defaults */}
           {harnessConfig?.remoteBaseUrl && (
-            <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-700">
+            <div className="mt-4 rounded-md bg-[#fff7f5] border border-[#d9aaa0] p-3 text-xs text-[#741b05]">
               <p className="font-semibold mb-1">Server defaults (from Program.cs)</p>
               <p className="font-mono break-all">{harnessConfig.remoteBaseUrl}</p>
             </div>

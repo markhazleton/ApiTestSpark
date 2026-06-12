@@ -10,11 +10,23 @@ export const BRANDING = {
   productName: "API Test Spark",
 
   /** Short tagline */
-  tagline: "Test and debug your APIs with real-time request inspection",
+  tagline: "A Make Bold Spark API testing workbench",
+
+  /** Product family under Make Bold Solutions */
+  productFamily: "Make Bold Spark",
+
+  /** Parent company */
+  companyName: "Make Bold Solutions",
+
+  /** Parent company website */
+  companyUrl: "https://makeboldsolutions.com",
+
+  /** Product family website */
+  familyUrl: "https://makeboldspark.com",
 
   /** Metadata title for browser tabs and window titles */
-  metadataTitle: "API Test Spark",
+  metadataTitle: "API Test Spark | Make Bold Spark",
 
   /** Short abbreviation shown in the header logo */
-  logoAbbreviation: "API",
+  logoAbbreviation: "ATS",
 } as const;

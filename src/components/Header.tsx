@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BRANDING } from '../utils';
+import makeBoldLogo from '../assets/brand/make-bold-solutions-logo.svg';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home' },
@@ -20,8 +21,8 @@ export function Header() {
       onClick={() => setMenuOpen(false)}
       className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
         location.pathname === to
-          ? 'bg-blue-100 text-blue-700'
-          : 'text-gray-700 hover:bg-gray-100'
+          ? 'bg-[#982407] text-white'
+          : 'text-stone-700 hover:bg-[#f7e6e1] hover:text-[#982407]'
       }`}
     >
       {label}
@@ -29,29 +30,34 @@ export function Header() {
   ));
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3">
+    <header className="bg-white/95 backdrop-blur border-b border-[#ded8d4] px-4 sm:px-6 py-3">
       <div className="flex items-center justify-between gap-3">
         <Link 
           to="/" 
           onClick={() => setMenuOpen(false)}
           className="min-w-0 flex items-center gap-3 hover:opacity-80 transition-opacity"
         >
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-sm">{BRANDING.logoAbbreviation}</span>
+          <div className="w-9 h-9 bg-[#040605] rounded-md flex items-center justify-center shrink-0 shadow-sm">
+            <span className="text-white font-black text-xs">{BRANDING.logoAbbreviation}</span>
           </div>
           <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">{BRANDING.productName}</h1>
-            <p className="hidden 2xl:block text-xs text-gray-600 truncate">{BRANDING.tagline}</p>
+            <h1 className="text-base sm:text-lg font-black text-[#040605] truncate">{BRANDING.productName}</h1>
+            <p className="hidden 2xl:block text-xs text-[#787878] truncate">{BRANDING.productFamily}</p>
           </div>
         </Link>
 
-        <nav className="hidden xl:flex items-center gap-1 shrink-0">
-          {navLinks}
-        </nav>
+        <div className="hidden xl:flex items-center gap-4 shrink-0">
+          <nav className="flex items-center gap-1">
+            {navLinks}
+          </nav>
+          <a href={BRANDING.companyUrl} aria-label={BRANDING.companyName} className="hidden 2xl:block">
+            <img src={makeBoldLogo} alt={BRANDING.companyName} className="brand-wordmark" />
+          </a>
+        </div>
 
         <button
           type="button"
-          className="xl:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+          className="xl:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-[#ded8d4] text-[#040605] hover:bg-[#f7e6e1]"
           aria-label="Toggle navigation menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
@@ -65,7 +71,7 @@ export function Header() {
         </button>
       </div>
       {menuOpen && (
-        <nav className="xl:hidden mt-3 grid gap-1 border-t border-gray-100 pt-3">
+        <nav className="xl:hidden mt-3 grid gap-1 border-t border-[#ded8d4] pt-3">
           {navLinks}
         </nav>
       )}

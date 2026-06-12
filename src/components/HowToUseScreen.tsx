@@ -6,18 +6,18 @@ import { BRANDING } from "../utils";
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
+    <div className={`brand-card rounded-md p-6 ${className}`}>
       {children}
     </div>
   );
 }
 
 function H2({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-bold text-gray-900 mb-3">{children}</h2>;
+  return <h2 className="text-lg font-black text-[#040605] mb-3">{children}</h2>;
 }
 
 function H3({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-sm font-bold text-gray-800 mt-4 mb-1.5">{children}</h3>;
+  return <h3 className="text-sm font-black text-stone-800 mt-4 mb-1.5">{children}</h3>;
 }
 
 function Code({ children }: { children: React.ReactNode }) {
@@ -30,7 +30,7 @@ function Code({ children }: { children: React.ReactNode }) {
 
 function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <code className="text-xs bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded font-mono">
+    <code className="text-xs bg-[#fff7f5] text-[#982407] px-1.5 py-0.5 rounded font-mono">
       {children}
     </code>
   );
@@ -39,17 +39,17 @@ function InlineCode({ children }: { children: React.ReactNode }) {
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <div className="flex gap-3">
-      <span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">
+      <span className="shrink-0 w-6 h-6 rounded-full bg-[#982407] text-white text-xs font-bold flex items-center justify-center mt-0.5">
         {n}
       </span>
-      <p className="text-sm text-gray-700 leading-relaxed">{children}</p>
+      <p className="text-sm text-stone-700 leading-relaxed">{children}</p>
     </div>
   );
 }
 
 function Callout({ color = 'blue', title, children }: { color?: 'blue' | 'amber' | 'green'; title: string; children: React.ReactNode }) {
   const styles = {
-    blue:  'bg-blue-50 border-blue-200 text-blue-900',
+    blue:  'bg-[#fff7f5] border-[#d9aaa0] text-[#741b05]',
     amber: 'bg-amber-50 border-amber-200 text-amber-900',
     green: 'bg-green-50 border-green-200 text-green-900',
   };
@@ -65,12 +65,13 @@ function Callout({ color = 'blue', title, children }: { color?: 'blue' | 'amber'
 
 export const HowToUseScreen: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       {/* Hero */}
-      <div className="bg-white border-b border-gray-200 px-6 py-5">
+      <div className="bg-white/90 border-b border-[#ded8d4] px-6 py-5">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900">{BRANDING.productName} — How to Use</h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#982407]">{BRANDING.productFamily}</p>
+          <h1 className="text-2xl font-black text-[#040605] mt-1">{BRANDING.productName} — How to Use</h1>
+          <p className="text-stone-500 mt-1 text-sm">
             A complete guide to testing local and remote REST APIs with the harness.
           </p>
         </div>
@@ -81,7 +82,7 @@ export const HowToUseScreen: React.FC = () => {
         {/* ── Overview ── */}
         <Card>
           <H2>Overview</H2>
-          <p className="text-sm text-gray-700 leading-relaxed">
+          <p className="text-sm text-stone-700 leading-relaxed">
             {BRANDING.productName} is embedded in your .NET application at{' '}
             <Code>/api-test-spark/</Code>. It autodiscovers your app's OpenAPI endpoints and
             lets you call them interactively — plus it can connect to named remote API profiles
@@ -89,30 +90,30 @@ export const HowToUseScreen: React.FC = () => {
             from the same browser tab.
           </p>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-              <p className="font-semibold text-gray-800 mb-1">Host API Explorer</p>
-              <p className="text-gray-600 text-xs leading-relaxed">
+            <div className="rounded-md bg-[#fbfaf8] border border-[#ded8d4] p-3">
+              <p className="font-semibold text-stone-800 mb-1">Host API Explorer</p>
+              <p className="text-stone-600 text-xs leading-relaxed">
                 Tests endpoints from your own .NET app. Reads the spec from the URL you set in{' '}
                 <Code>options.OpenApiUrl</Code>.
               </p>
             </div>
-            <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-              <p className="font-semibold text-gray-800 mb-1">Remote API Explorer</p>
-              <p className="text-gray-600 text-xs leading-relaxed">
+            <div className="rounded-md bg-[#fbfaf8] border border-[#ded8d4] p-3">
+              <p className="font-semibold text-stone-800 mb-1">Remote API Explorer</p>
+              <p className="text-stone-600 text-xs leading-relaxed">
                 Tests endpoints from one or more separate APIs. Server-configured specs are
                 fetched by profile id; browser-created profiles fetch specs directly.
               </p>
             </div>
-            <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-              <p className="font-semibold text-gray-800 mb-1">API Doc Builder</p>
-              <p className="text-gray-600 text-xs leading-relaxed">
+            <div className="rounded-md bg-[#fbfaf8] border border-[#ded8d4] p-3">
+              <p className="font-semibold text-stone-800 mb-1">API Doc Builder</p>
+              <p className="text-stone-600 text-xs leading-relaxed">
                 Select endpoints, capture live responses, add notes, and export markdown
                 documentation for your local or remote API.
               </p>
             </div>
-            <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-              <p className="font-semibold text-gray-800 mb-1">Debug Panel</p>
-              <p className="text-gray-600 text-xs leading-relaxed">
+            <div className="rounded-md bg-[#fbfaf8] border border-[#ded8d4] p-3">
+              <p className="font-semibold text-stone-800 mb-1">Debug Panel</p>
+              <p className="text-stone-600 text-xs leading-relaxed">
                 Captures every outbound HTTP call with full headers, body, status, and timing.
                 Resizable and collapsible — always visible alongside the current screen.
               </p>
@@ -123,7 +124,7 @@ export const HowToUseScreen: React.FC = () => {
         {/* ── Host API ── */}
         <Card>
           <H2>Testing Your Host API</H2>
-          <p className="text-sm text-gray-700 leading-relaxed mb-4">
+          <p className="text-sm text-stone-700 leading-relaxed mb-4">
             The Host API Explorer works out of the box once you register the harness with an
             OpenAPI URL in <Code>Program.cs</Code>:
           </p>
@@ -154,11 +155,11 @@ export const HowToUseScreen: React.FC = () => {
         {/* ── Remote API ── */}
         <Card>
           <H2>Remote API Configuration</H2>
-          <p className="text-sm text-gray-700 leading-relaxed mb-4">
+          <p className="text-sm text-stone-700 leading-relaxed mb-4">
             The remote API feature lets you point the harness at one or more APIs — typically
             services you are integrating with. There are two places to set them up: server-side in{' '}
             <Code>Program.cs</Code> (permanent, shared across all users of the harness) or
-            browser-side on the <Link to="/config" className="text-blue-600 hover:underline">Config page</Link>{' '}
+            browser-side on the <Link to="/config" className="text-[#982407] hover:underline">Config page</Link>{' '}
             (persisted in <Code>localStorage</Code>, personal to your browser).
           </p>
 
@@ -196,7 +197,7 @@ export const HowToUseScreen: React.FC = () => {
           </p>
           <div className="space-y-2 text-sm text-gray-700">
             <Step n={1}>
-              Open the <Link to="/config" className="text-blue-600 hover:underline font-medium">Config page</Link> from the top navigation bar.
+              Open the <Link to="/config" className="text-[#982407] hover:underline font-medium">Config page</Link> from the top navigation bar.
             </Step>
             <Step n={2}>
               Click <strong>Add remote</strong>, then fill in a <strong>Name</strong>, optional
@@ -269,7 +270,7 @@ export const HowToUseScreen: React.FC = () => {
                 ].map(([field, prop, desc]) => (
                   <tr key={field} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-3 py-2 border border-gray-200 font-semibold text-gray-800 not-italic font-sans text-xs">{field}</td>
-                    <td className="px-3 py-2 border border-gray-200 text-blue-700">{prop}</td>
+                    <td className="px-3 py-2 border border-gray-200 text-[#982407]">{prop}</td>
                     <td className="px-3 py-2 border border-gray-200 text-gray-600 font-sans not-italic">{desc}</td>
                   </tr>
                 ))}
@@ -318,9 +319,9 @@ export const HowToUseScreen: React.FC = () => {
         </Card>
 
         {/* ── Extending ── */}
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-[#d9aaa0] bg-[#fff7f5]">
           <H2>Adding a New API Integration (for developers)</H2>
-          <p className="text-sm text-blue-800 leading-relaxed mb-4">
+          <p className="text-sm text-[#741b05] leading-relaxed mb-4">
             Follow the six-step pattern to add a new sample integration to the harness:
           </p>
           <div className="space-y-2.5">

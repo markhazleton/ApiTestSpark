@@ -82,7 +82,7 @@ export const JokeApiScreen: React.FC = () => {
             <button
               onClick={() => ping.mutate()}
               disabled={ping.isPending}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-[#982407] text-white rounded-md text-sm font-medium hover:bg-[#741b05] disabled:opacity-50"
             >
               {ping.isPending ? 'Pinging…' : 'Ping'}
             </button>
@@ -250,13 +250,13 @@ export const JokeApiScreen: React.FC = () => {
         )}
 
         {/* Info box */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <div className="bg-[#fff7f5] border border-[#d9aaa0] rounded-lg p-4 text-sm text-[#741b05]">
           <p className="font-semibold mb-1">📝 Template note</p>
           <p>
             This screen is the sample API integration. To add your own API, follow the same
-            pattern: create a typed client in <code className="bg-blue-100 px-1 rounded">src/api/</code>,
-            a hook in <code className="bg-blue-100 px-1 rounded">src/hooks/</code>, and a screen
-            component in <code className="bg-blue-100 px-1 rounded">src/components/</code>.
+            pattern: create a typed client in <code className="bg-[#f7e6e1] px-1 rounded">src/api/</code>,
+            a hook in <code className="bg-[#f7e6e1] px-1 rounded">src/hooks/</code>, and a screen
+            component in <code className="bg-[#f7e6e1] px-1 rounded">src/components/</code>.
             All HTTP traffic is automatically captured in the Debug Panel.
           </p>
         </div>

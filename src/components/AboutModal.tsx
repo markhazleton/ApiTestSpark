@@ -23,15 +23,16 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-md shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
+        <div className="brand-shell text-white px-6 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold">{BRANDING.productName}</h2>
-              <p className="text-blue-100 text-sm mt-1">{BRANDING.tagline}</p>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#d9aaa0]">{BRANDING.productFamily}</p>
+              <h2 className="text-2xl font-black">{BRANDING.productName}</h2>
+              <p className="text-stone-200 text-sm mt-1">{BRANDING.tagline}</p>
             </div>
-            <button onClick={onClose} className="text-white hover:text-blue-200 transition-colors" aria-label="Close">
+            <button onClick={onClose} className="text-white hover:text-[#d9aaa0] transition-colors" aria-label="Close">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -59,7 +60,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
           {/* Active Environment */}
           <section className="mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Active Environment</h3>
-            <div className="bg-blue-50 rounded-lg p-4">
+            <div className="bg-[#fff7f5] rounded-md p-4">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-700">Environment:</span>
                 <span className="text-gray-900 uppercase font-semibold">{currentEnvironment}</span>

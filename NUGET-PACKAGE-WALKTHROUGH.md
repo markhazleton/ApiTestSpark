@@ -177,8 +177,10 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
 | `Version` | `1.4.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Authors` | `Make Bold Solutions; Mark Hazleton` | NuGet author display |
+| `Company` | `Make Bold Solutions` | Package ownership and assembly metadata |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
-| `PackageIcon` | `icon.png` | 128×128 transparent PNG packed at root |
+| `PackageIcon` | `icon.png` | 128×128 Make Bold Solutions branded PNG packed at root |
 | `PackageReadmeFile` | `README.md` | Rendered on nuget.org package page |
 | `PackageReleaseNotes` | v1.0.0 summary | Shown in package manager update prompts |
 | `GeneratePackageOnBuild` | `false` | Packing is explicit — only via `pack.ps1` or CI tag workflow |

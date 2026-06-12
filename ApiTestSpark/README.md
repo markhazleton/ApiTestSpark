@@ -2,13 +2,17 @@
 
 [![NuGet](https://img.shields.io/nuget/v/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ApiTestSpark)](https://www.nuget.org/packages/ApiTestSpark)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/markhazleton/apitestspark/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/MarkHazleton/ApiTestSpark/blob/main/LICENSE)
 
-Embed the **API Test Spark** React SPA into any **.NET 10 Minimal API** with a single method call.
+**API Test Spark** is a **Make Bold Spark** API testing workbench, fully owned and managed by
+**[Make Bold Solutions](https://makeboldsolutions.com)**.
+
+Embed the branded React SPA into any **.NET 10 Minimal API** with a single method call.
 Autodiscovers your OpenAPI v3 endpoints and renders a full-featured interactive test harness at `/api-test-spark/`.
 
 **[Live Demo](https://apitest.makeboldspark.com)** &nbsp;·&nbsp;
-**[GitHub](https://github.com/markhazleton/apitestspark)** &nbsp;·&nbsp;
+**[Make Bold Spark](https://makeboldspark.com)** &nbsp;·&nbsp;
+**[GitHub](https://github.com/MarkHazleton/ApiTestSpark)** &nbsp;·&nbsp;
 **[NuGet](https://www.nuget.org/packages/ApiTestSpark)**
 
 ---
@@ -199,7 +203,7 @@ public record Product(
 
 **Add a workflow walkthrough to `info.description`** — renders as markdown in the API info header; ideal for linking resource groups and describing end-to-end flows.
 
-See the [live demo](https://apitest.makeboldspark.com) and [full best-practices guide](https://github.com/markhazleton/apitestspark#maximising-your-api-test-spark-experience) for annotated source examples.
+See the [live demo](https://apitest.makeboldspark.com) and [full best-practices guide](https://github.com/MarkHazleton/ApiTestSpark#maximising-your-api-test-spark-experience) for annotated source examples.
 
 ---
 
@@ -239,4 +243,4 @@ app.MapApiTestSpark(options =>
 
 ## License
 
-MIT — [github.com/markhazleton/apitestspark](https://github.com/markhazleton/apitestspark)
+MIT — [github.com/MarkHazleton/ApiTestSpark](https://github.com/MarkHazleton/ApiTestSpark)

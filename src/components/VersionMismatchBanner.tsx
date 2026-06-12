@@ -69,11 +69,11 @@ export default function VersionMismatchBanner() {
   };
 
   return (
-    <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+    <div className="bg-[#fff7f5] border-b border-[#d9aaa0] px-4 py-3">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
           <svg 
-            className="h-5 w-5 text-blue-600 flex-shrink-0" 
+            className="h-5 w-5 text-[#982407] flex-shrink-0" 
             xmlns="http://www.w3.org/2000/svg" 
             viewBox="0 0 20 20" 
             fill="currentColor"
@@ -85,10 +85,10 @@ export default function VersionMismatchBanner() {
             />
           </svg>
           <div>
-            <p className="text-sm font-medium text-blue-900">
+            <p className="text-sm font-medium text-[#040605]">
               New version available: <span className="font-semibold">{latestVersion}</span>
             </p>
-            <p className="text-xs text-blue-700 mt-0.5">
+            <p className="text-xs text-[#982407] mt-0.5">
               You're viewing an older cached version. Refresh to get the latest updates.
             </p>
           </div>
@@ -96,13 +96,13 @@ export default function VersionMismatchBanner() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleRefresh}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-4 py-2 bg-[#982407] hover:bg-[#741b05] text-white text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-[#982407] focus:ring-offset-2"
           >
             Refresh Now
           </button>
           <button
             onClick={() => setShowBanner(false)}
-            className="text-blue-600 hover:text-blue-800 focus:outline-none"
+            className="text-[#982407] hover:text-[#741b05] focus:outline-none"
             aria-label="Dismiss version notice"
           >
             <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

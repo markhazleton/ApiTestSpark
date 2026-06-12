@@ -38,7 +38,7 @@ function KeyInput({ initialValue, onCommit }: { initialValue: string; onCommit: 
       onChange={(e) => setLocal(e.target.value)}
       onBlur={() => onCommit(local)}
       placeholder="Header name"
-      className="w-40 shrink-0 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+      className="w-40 shrink-0 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#982407]"
     />
   );
 }
@@ -78,7 +78,7 @@ function HeadersEditor({
             value={value}
             onChange={(e) => onChange({ ...headers, [key]: e.target.value })}
             placeholder="Value or {session-guid} / {request-guid}"
-            className="flex-1 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="flex-1 font-mono text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
           <button
             type="button"
@@ -93,7 +93,7 @@ function HeadersEditor({
       <button
         type="button"
         onClick={() => onChange({ ...headers, '': '' })}
-        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+        className="text-xs text-[#982407] hover:text-[#741b05] font-medium"
       >
         + Add header
       </button>
@@ -147,7 +147,7 @@ function ServerProfileRow({
       <div className="min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-semibold text-gray-900">{getRemoteProfileLabel(profile)}</h3>
-          <span className="text-[10px] uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded">
+          <span className="text-[10px] uppercase tracking-wide bg-[#fff7f5] text-[#982407] border border-[#f0c8bf] px-2 py-0.5 rounded">
             Program.cs
           </span>
           {customized && (
@@ -175,7 +175,7 @@ function ServerProfileRow({
         <button
           type="button"
           onClick={onCustomize}
-          className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+          className="text-xs font-semibold text-[#982407] hover:text-[#741b05]"
         >
           {customized ? 'Edit override' : 'Customize'}
         </button>
@@ -191,7 +191,7 @@ function ServerProfileRow({
         <button
           type="button"
           onClick={() => onToggle(!hidden)}
-          className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+          className="text-xs font-semibold text-[#982407] hover:text-[#741b05]"
         >
           {hidden ? 'Show' : 'Hide'}
         </button>
@@ -234,7 +234,7 @@ function BrowserProfileEditor({
             type="text"
             value={profile.name}
             onChange={(e) => onChange({ name: e.target.value })}
-            className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </Field>
         <Field label="Description">
@@ -242,7 +242,7 @@ function BrowserProfileEditor({
             type="text"
             value={profile.description ?? ''}
             onChange={(e) => onChange({ description: e.target.value })}
-            className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </Field>
       </div>
@@ -254,7 +254,7 @@ function BrowserProfileEditor({
             value={profile.remoteBaseUrl ?? ''}
             onChange={(e) => onChange({ remoteBaseUrl: e.target.value })}
             placeholder="https://api.example.com"
-            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </Field>
         <Field label="OpenAPI Spec URL" hint="Fetched directly by the browser." error={specError}>
@@ -263,7 +263,7 @@ function BrowserProfileEditor({
             value={profile.remoteOpenApiUrl ?? ''}
             onChange={(e) => onChange({ remoteOpenApiUrl: e.target.value })}
             placeholder="https://api.example.com/openapi.json"
-            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </Field>
       </div>
@@ -275,7 +275,7 @@ function BrowserProfileEditor({
             value={profile.remoteOpenApiApiKeyHeader ?? ''}
             onChange={(e) => onChange({ remoteOpenApiApiKeyHeader: e.target.value })}
             placeholder="x-api-key"
-            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </Field>
         <Field label="API Key Value" hint="Stored only in browser localStorage.">
@@ -284,7 +284,7 @@ function BrowserProfileEditor({
             value={profile.remoteOpenApiApiKeyValue ?? ''}
             onChange={(e) => onChange({ remoteOpenApiApiKeyValue: e.target.value })}
             autoComplete="off"
-            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </Field>
       </div>
@@ -295,7 +295,7 @@ function BrowserProfileEditor({
           value={profile.remoteOpenApiBearerToken ?? ''}
           onChange={(e) => onChange({ remoteOpenApiBearerToken: e.target.value })}
           autoComplete="off"
-          className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
         />
       </Field>
 
@@ -377,7 +377,7 @@ export function ConfigScreen() {
           <button
             type="button"
             onClick={addProfile}
-            className="px-3 py-2 bg-blue-600 text-white rounded text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="px-3 py-2 bg-[#982407] text-white rounded text-sm font-semibold hover:bg-[#741b05] transition-colors"
           >
             + Add remote
           </button>

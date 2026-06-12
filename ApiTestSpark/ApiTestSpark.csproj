@@ -10,25 +10,26 @@
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
     <Version>1.4.0</Version>
-    <Authors>Mark Hazleton</Authors>
-    <Company>MarkHazleton</Company>
-    <Copyright>Copyright © Mark Hazleton 2026</Copyright>
+    <Authors>Make Bold Solutions; Mark Hazleton</Authors>
+    <Company>Make Bold Solutions</Company>
+    <Copyright>Copyright © Make Bold Solutions 2026</Copyright>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <Title>API Test Spark — Interactive API Test UI for .NET 10 Minimal APIs</Title>
-    <Description>Embed the API Test Spark React SPA into any .NET 10 Minimal API project with a
-      single MapApiTestSpark() call. Autodiscovers OpenAPI v3 endpoints and renders an interactive
-      test harness at /api-test-spark/. Features: collapsible accordion endpoint groups, Remote API
-      Explorer (browse and test multiple named remote REST APIs via server-side profile proxies that keep
-      server credentials off the browser network tab), browser-manageable remote profiles, full response code documentation with expandable schemas, operationId
-      display, schema constraint and default-value surfacing, full markdown rendering of OpenAPI
-      descriptions, sortable response tables, editable object forms, curl command generation, API Doc
-      Builder, draggable debug panel, and Azure Application Insights integration. Zero configuration
-      required — just add MapApiTestSpark().</Description>
+    <Title>API Test Spark — Make Bold Spark API Testing Workbench for .NET 10</Title>
+    <Description>API Test Spark is a Make Bold Spark developer workbench from Make Bold Solutions.
+      Embed its branded React SPA into any .NET 10 Minimal API project with a single MapApiTestSpark()
+      call. It autodiscovers OpenAPI v3 endpoints and renders an interactive test harness at
+      /api-test-spark/. Features include collapsible accordion endpoint groups, Remote API Explorer
+      for multiple named REST APIs, credential-safe server-side profile proxies, browser-manageable
+      remote profiles, full response code documentation with expandable schemas, operationId display,
+      schema constraint and default-value surfacing, markdown rendering of OpenAPI descriptions,
+      sortable response tables, editable object forms, curl command generation, API Doc Builder,
+      draggable debug panel, and Azure Application Insights integration. Zero configuration required —
+      just add MapApiTestSpark().</Description>
     <PackageTags>
-      api;test;spark;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development;api-documentation;markdown;curl;swagger-ui-alternative</PackageTags>
+      api;test;spark;make-bold;make-bold-spark;make-bold-solutions;openapi;openapi-v3;minimal-api;aspnetcore;dotnet;net10;react;spa;developer-tools;debugging;api-testing;embedded-ui;nuget-middleware;rest-api;http;interactive;developer-experience;local-development;api-documentation;markdown;curl;swagger-ui-alternative</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://apitest.makeboldspark.com</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/markhazleton/apitestspark</RepositoryUrl>
+    <RepositoryUrl>https://github.com/MarkHazleton/ApiTestSpark</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>

@@ -5,6 +5,7 @@ import { SECTION_CONFIGS } from "../config";
 import { useHarnessConfigStore } from "../store/harnessConfigStore";
 import { getRemoteProfileLabel, getVisibleRemoteProfiles, useRemoteConfigStore } from "../store/remoteConfigStore";
 import type { RemoteApiProfile } from "../types";
+import makeBoldLogo from "../assets/brand/make-bold-solutions-logo.svg";
 
 interface NavItem {
   icon: string;
@@ -113,10 +114,10 @@ function SectionGroup({ section }: { section: NavSection }) {
     <div>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-2 text-sm font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-2 text-sm font-black text-[#787878] uppercase tracking-wider hover:text-[#982407] transition-colors"
       >
         <span>{section.label}</span>
-        <span className="text-gray-400">{open ? "▲" : "▼"}</span>
+        <span className="text-[#982407]">{open ? "▲" : "▼"}</span>
       </button>
       {open && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-2 pb-4">
@@ -130,11 +131,11 @@ function SectionGroup({ section }: { section: NavSection }) {
                   navigate(item.path);
                 }
               }}
-              className="text-left p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all"
+              className="brand-card text-left p-4 rounded-md transition-all"
             >
               <div className="text-2xl mb-2">{item.icon}</div>
-              <div className="font-semibold text-gray-900 mb-1">{item.title}</div>
-              <div className="text-sm text-gray-600">{item.description}</div>
+              <div className="font-black text-[#040605] mb-1">{item.title}</div>
+              <div className="text-sm text-stone-600">{item.description}</div>
             </button>
           ))}
         </div>
@@ -161,17 +162,25 @@ export default function HomeScreen() {
   if (showDemos) sections.push(DEMO_SECTION);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-8">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">{BRANDING.productName}</h1>
-          <p className="text-blue-100 text-lg">{BRANDING.tagline}</p>
+    <div className="min-h-screen bg-transparent">
+      <div className="brand-shell text-white px-6 py-10">
+        <div className="max-w-5xl mx-auto flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#d9aaa0]">{BRANDING.productFamily}</p>
+            <h1 className="text-4xl sm:text-5xl font-black mt-2 mb-3">{BRANDING.productName}</h1>
+            <p className="text-stone-200 text-lg max-w-2xl">
+              {BRANDING.tagline} for local, hosted, and remote APIs managed inside the Make Bold ecosystem.
+            </p>
+          </div>
+          <a href={BRANDING.companyUrl} className="bg-white rounded-md px-4 py-3 w-fit shadow-lg" aria-label={BRANDING.companyName}>
+            <img src={makeBoldLogo} alt={BRANDING.companyName} className="brand-wordmark" />
+          </a>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
         {sections.map((section) => (
-          <div key={section.label} className="bg-gray-50 rounded-lg border border-gray-200">
+          <div key={section.label} className="brand-panel rounded-md">
             <SectionGroup section={section} />
           </div>
         ))}

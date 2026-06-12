@@ -8,7 +8,7 @@ import { buildCurl } from '../../utils';
 import type { CurlArgs } from '../../utils';
 
 const METHOD_COLORS: Record<string, string> = {
-  GET:    'bg-blue-100 text-blue-800',
+  GET:    'bg-[#f7e6e1] text-[#741b05]',
   POST:   'bg-green-100 text-green-800',
   PUT:    'bg-yellow-100 text-yellow-800',
   PATCH:  'bg-orange-100 text-orange-800',
@@ -94,7 +94,7 @@ function ParamField({
           id={labelId}
           value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] bg-white"
         >
           {!param.required && <option value="">— optional —</option>}
           {param.schema.enum.map((v) => (
@@ -106,7 +106,7 @@ function ParamField({
           id={labelId}
           value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] bg-white"
         >
           {!param.required && <option value="">— optional —</option>}
           <option value="true">true</option>
@@ -119,7 +119,7 @@ function ParamField({
           value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407]"
         />
       )}
     </div>
@@ -168,7 +168,7 @@ function SchemaTable({ schema, title }: { schema: ResolvedSchema; title: string 
 
           return (
             <div key={key} className="flex items-baseline gap-2 px-2 py-1.5 even:bg-gray-50 border-b border-gray-50 last:border-0">
-              <span className="font-mono text-blue-700 shrink-0 w-28 truncate" title={key}>{key}</span>
+              <span className="font-mono text-[#982407] shrink-0 w-28 truncate" title={key}>{key}</span>
               <span className="text-gray-400 font-mono shrink-0 text-[10px]">{typeLabel}</span>
               {isRequired && (
                 <span className="text-red-400 shrink-0 text-[10px] font-semibold">required</span>
@@ -305,7 +305,7 @@ function SortableTable({
                   onDoubleClick={() => copyToClipboard(jsonPath, addError)}
                 >
                   {col}
-                  {sortKey === col && <span className="ml-1 text-blue-500">{sortAsc ? '↑' : '↓'}</span>}
+                  {sortKey === col && <span className="ml-1 text-[#982407]">{sortAsc ? '↑' : '↓'}</span>}
                 </th>
               );
             })}
@@ -313,7 +313,7 @@ function SortableTable({
         </thead>
         <tbody>
           {visibleRows.map((row, i) => (
-            <tr key={i} className="border-b border-gray-100 last:border-0 even:bg-gray-50 hover:bg-blue-50 transition-colors">
+            <tr key={i} className="border-b border-gray-100 last:border-0 even:bg-gray-50 hover:bg-[#fff7f5] transition-colors">
               {cols.map((col) => {
                 const val = row[col];
                 const display = val == null ? '' : typeof val === 'object' ? JSON.stringify(val) : String(val);
@@ -336,7 +336,7 @@ function SortableTable({
           <button
             type="button"
             onClick={() => setTableExpanded((e) => !e)}
-            className="text-blue-600 hover:text-blue-800 text-xs underline shrink-0 ml-2"
+            className="text-[#982407] hover:text-[#741b05] text-xs underline shrink-0 ml-2"
           >
             {tableExpanded ? 'Show less' : `Show all ${rows.length} items`}
           </button>
@@ -419,7 +419,7 @@ function ResponseObjectForm({
     <div className="border border-gray-200 rounded overflow-hidden text-xs">
       <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5 flex items-center justify-between">
         <span className="text-gray-500 font-semibold">Response object</span>
-        <button type="button" onClick={copyJson} className="text-blue-600 hover:text-blue-800 text-xs underline">
+        <button type="button" onClick={copyJson} className="text-[#982407] hover:text-[#741b05] text-xs underline">
           {copied ? 'Copied!' : 'Copy as JSON'}
         </button>
       </div>
@@ -429,7 +429,7 @@ function ResponseObjectForm({
           return (
             <div key={key} className="flex items-center gap-3 px-3 py-1.5 even:bg-gray-50 border-b border-gray-100 last:border-0">
               <span
-                className="font-mono font-semibold text-blue-700 shrink-0 w-28 truncate cursor-pointer"
+                className="font-mono font-semibold text-[#982407] shrink-0 w-28 truncate cursor-pointer"
                 title={toJsonPath(null, key)}
                 onClick={() => copyToClipboard(toJsonPath(null, key), addError)}
               >{key}</span>
@@ -443,7 +443,7 @@ function ResponseObjectForm({
           return (
             <div key={key} className="flex items-center gap-3 px-3 py-1.5 even:bg-gray-50 border-b border-gray-100 last:border-0">
               <span
-                className="font-mono font-semibold text-blue-700 shrink-0 w-28 truncate cursor-pointer"
+                className="font-mono font-semibold text-[#982407] shrink-0 w-28 truncate cursor-pointer"
                 title={toJsonPath(null, key)}
                 onClick={() => copyToClipboard(toJsonPath(null, key), addError)}
               >{key}</span>
@@ -457,7 +457,7 @@ function ResponseObjectForm({
           return (
             <div key={key} className="px-3 py-1.5 border-b border-gray-100 last:border-0">
               <span
-                className="font-mono font-semibold text-blue-700 text-xs cursor-pointer"
+                className="font-mono font-semibold text-[#982407] text-xs cursor-pointer"
                 title={`$.${key}[*]`}
                 onClick={() => copyToClipboard(`$.${key}[*]`, addError)}
               >{key}</span>
@@ -478,7 +478,7 @@ function ResponseObjectForm({
             <div key={key} className="px-3 py-1.5 border-b border-gray-100 last:border-0">
               <details className="group">
                 <summary
-                  className="font-mono font-semibold text-blue-700 text-xs cursor-pointer list-none flex items-center gap-1"
+                  className="font-mono font-semibold text-[#982407] text-xs cursor-pointer list-none flex items-center gap-1"
                   title={toJsonPath(null, key)}
                   onClick={(e) => { if (e.detail === 2) { e.preventDefault(); copyToClipboard(toJsonPath(null, key), addError); } }}
                 >
@@ -492,7 +492,7 @@ function ResponseObjectForm({
                     if (isPlainObject(nv) && seen.has(nv)) {
                       return (
                         <div key={nk} className="flex items-center gap-3 px-2 py-1 even:bg-gray-50 border-b border-gray-50 last:border-0">
-                          <span className="font-mono text-blue-600 shrink-0 w-24 truncate text-[11px]">{nk}</span>
+                          <span className="font-mono text-[#982407] shrink-0 w-24 truncate text-[11px]">{nk}</span>
                           <span className="font-mono text-red-400 text-[10px] italic">[Circular reference detected]</span>
                         </div>
                       );
@@ -503,7 +503,7 @@ function ResponseObjectForm({
                       return (
                         <div key={nk} className="flex items-center gap-3 px-2 py-1 even:bg-gray-50 border-b border-gray-50 last:border-0">
                           <label
-                            className="font-mono text-blue-600 shrink-0 w-24 truncate text-[11px] cursor-pointer"
+                            className="font-mono text-[#982407] shrink-0 w-24 truncate text-[11px] cursor-pointer"
                             title={jsonPath}
                             onClick={() => copyToClipboard(jsonPath, addError)}
                           >{nk}</label>
@@ -516,7 +516,7 @@ function ResponseObjectForm({
                       return (
                         <div key={nk} className="flex items-start gap-3 px-2 py-1 even:bg-gray-50 border-b border-gray-50 last:border-0">
                           <label
-                            className="font-mono text-blue-600 shrink-0 w-24 truncate text-[11px] cursor-pointer"
+                            className="font-mono text-[#982407] shrink-0 w-24 truncate text-[11px] cursor-pointer"
                             title={jsonPath}
                             onClick={() => copyToClipboard(jsonPath, addError)}
                           >{nk}</label>
@@ -531,7 +531,7 @@ function ResponseObjectForm({
                       <div key={nk} className="flex items-center gap-3 px-2 py-1 even:bg-gray-50 border-b border-gray-50 last:border-0">
                         <label
                           htmlFor={`resp-${key}-${nk}`}
-                          className="font-mono text-blue-600 shrink-0 w-24 truncate text-[11px] cursor-pointer"
+                          className="font-mono text-[#982407] shrink-0 w-24 truncate text-[11px] cursor-pointer"
                           title={jsonPath}
                           onClick={() => copyToClipboard(jsonPath, addError)}
                         >{nk}</label>
@@ -540,7 +540,7 @@ function ResponseObjectForm({
                             id={`resp-${key}-${nk}`}
                             value={curVal}
                             onChange={(e) => setNestedFields((nf) => ({ ...nf, [key]: { ...(nf[key] ?? {}), [nk]: e.target.value } }))}
-                            className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs"
+                            className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#982407] text-xs"
                           >
                             <option value="true">true</option>
                             <option value="false">false</option>
@@ -551,7 +551,7 @@ function ResponseObjectForm({
                             type={typeof nv === 'number' ? 'number' : 'text'}
                             value={curVal}
                             onChange={(e) => setNestedFields((nf) => ({ ...nf, [key]: { ...(nf[key] ?? {}), [nk]: e.target.value } }))}
-                            className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400 text-xs"
+                            className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#982407] text-xs"
                           />
                         )}
                       </div>
@@ -569,7 +569,7 @@ function ResponseObjectForm({
           return (
             <div key={key} className="flex items-center gap-3 px-3 py-1.5 even:bg-gray-50 border-b border-gray-100 last:border-0">
               <span
-                className="font-mono font-semibold text-blue-700 shrink-0 w-28 truncate cursor-pointer"
+                className="font-mono font-semibold text-[#982407] shrink-0 w-28 truncate cursor-pointer"
                 title={toJsonPath(null, key)}
                 onClick={() => copyToClipboard(toJsonPath(null, key), addError)}
               >{key}</span>
@@ -584,7 +584,7 @@ function ResponseObjectForm({
         return (
           <div key={key} className="flex items-center gap-3 px-3 py-1.5 even:bg-gray-50 border-b border-gray-100 last:border-0">
             <label
-              className="font-mono font-semibold text-blue-700 shrink-0 w-28 truncate cursor-pointer"
+              className="font-mono font-semibold text-[#982407] shrink-0 w-28 truncate cursor-pointer"
               title={jsonPath}
               htmlFor={`resp-${key}`}
               onClick={() => copyToClipboard(jsonPath, addError)}
@@ -596,7 +596,7 @@ function ResponseObjectForm({
                 id={`resp-${key}`}
                 value={fields[key] ?? ''}
                 onChange={(e) => setFields((f) => ({ ...f, [key]: e.target.value }))}
-                className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-[#982407]"
               >
                 <option value="true">true</option>
                 <option value="false">false</option>
@@ -607,7 +607,7 @@ function ResponseObjectForm({
                 type={typeof orig === 'number' ? 'number' : 'text'}
                 value={fields[key] ?? ''}
                 onChange={(e) => setFields((f) => ({ ...f, [key]: e.target.value }))}
-                className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                className="flex-1 font-mono border border-gray-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-[#982407]"
               />
             )}
           </div>
@@ -867,7 +867,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
             value={authToken}
             onChange={(e) => setAuthToken(e.target.value)}
             placeholder="Enter token…"
-            className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </div>
       )}
@@ -914,7 +914,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
               <button
                 type="button"
                 onClick={() => setBodyText(buildJsonScaffold(endpoint.requestBodySchema))}
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                className="text-xs text-[#982407] hover:text-[#741b05] underline"
               >
                 reset scaffold
               </button>
@@ -931,14 +931,14 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
                 <span
                   key={key}
                   title={[prop.description, prop.type, prop.format].filter(Boolean).join(' · ')}
-                  className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded font-mono cursor-default"
+                  className="text-[10px] bg-[#fff7f5] text-[#982407] border border-[#f0c8bf] px-1.5 py-0.5 rounded font-mono cursor-default"
                 >
                   {key}
                   {endpoint.requestBodySchema?.required?.includes(key) && (
                     <span className="text-red-400 ml-0.5">*</span>
                   )}
                   {prop.type && (
-                    <span className="text-blue-400 ml-1 opacity-70">
+                    <span className="text-[#982407] ml-1 opacity-70">
                       {prop.format ? `${prop.type}(${prop.format})` : prop.type}
                     </span>
                   )}
@@ -963,7 +963,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
             spellCheck={false}
             placeholder="{}"
             title="Request body JSON"
-            className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1.5 resize-y focus:outline-none focus:ring-1 focus:ring-blue-400"
+            className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1.5 resize-y focus:outline-none focus:ring-1 focus:ring-[#982407]"
           />
         </div>
       )}
@@ -973,7 +973,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
         onClick={handleFire}
         disabled={isPending}
         type="button"
-        className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        className="px-4 py-1.5 text-sm bg-[#982407] text-white rounded hover:bg-[#741b05] disabled:opacity-50 transition-colors"
       >
         {isPending ? 'Sending…' : 'Send Request'}
       </button>
@@ -995,7 +995,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
               <button
                 type="button"
                 onClick={copyCurl}
-                className="text-xs text-blue-600 hover:text-blue-800 underline font-mono"
+                className="text-xs text-[#982407] hover:text-[#741b05] underline font-mono"
               >
                 {curlCopied ? 'Copied!' : 'Copy as cURL'}
               </button>

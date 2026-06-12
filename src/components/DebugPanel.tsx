@@ -116,7 +116,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ isCollapsed, onToggleCol
       <div className="grid grid-cols-3 gap-2 p-2 bg-gray-700 flex-shrink-0">
         {[
           { label: 'Requests', value: String(requests.length), color: 'text-purple-300' },
-          { label: 'Avg',      value: avgMs(),                  color: 'text-blue-300' },
+          { label: 'Avg',      value: avgMs(),                  color: 'text-[#d9aaa0]' },
           { label: 'Success',  value: successRate(),             color: 'text-green-300' },
         ].map(({ label, value, color }) => (
           <div key={label} className="bg-gray-800 rounded p-1.5 text-center">
@@ -165,7 +165,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ isCollapsed, onToggleCol
                                : isPending ? 'border-yellow-200'
                                : isOk      ? 'border-green-300'
                                :              'border-red-300';
-                const methodCl = req.method === 'GET'    ? 'bg-blue-100 text-blue-700'
+                const methodCl = req.method === 'GET'    ? 'bg-[#f7e6e1] text-[#982407]'
                                : req.method === 'POST'   ? 'bg-green-100 text-green-700'
                                : req.method === 'PUT'    ? 'bg-yellow-100 text-yellow-700'
                                : req.method === 'DELETE' ? 'bg-red-100 text-red-700'

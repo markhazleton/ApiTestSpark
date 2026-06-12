@@ -10,14 +10,15 @@
 
 **[NuGet Package](https://www.nuget.org/packages/ApiTestSpark)** &nbsp;·&nbsp;
 **[Live Demo](https://apitest.makeboldspark.com)** &nbsp;·&nbsp;
-**[GitHub Repository](https://github.com/markhazleton/apitestspark)** &nbsp;·&nbsp;
-**[Report an Issue](https://github.com/markhazleton/apitestspark/issues)**
+**[Make Bold Spark](https://makeboldspark.com)** &nbsp;·&nbsp;
+**[GitHub Repository](https://github.com/MarkHazleton/ApiTestSpark)** &nbsp;·&nbsp;
+**[Report an Issue](https://github.com/MarkHazleton/ApiTestSpark/issues)**
 
 ---
 
 ## What is API Test Spark?
 
-**API Test Spark** is a NuGet package that embeds a full-featured, React-powered API test harness directly into any **.NET 10 Minimal API** application. Drop in one method call — `MapApiTestSpark()` — and your API instantly gains an interactive testing UI at `/api-test-spark/`.
+**API Test Spark** is a Make Bold Spark NuGet package, fully owned and managed by **[Make Bold Solutions](https://makeboldsolutions.com)**. It embeds a full-featured, React-powered API test harness directly into any **.NET 10 Minimal API** application. Drop in one method call — `MapApiTestSpark()` — and your API instantly gains an interactive testing UI at `/api-test-spark/`.
 
 No separate deployment. No Swagger UI dependency. No `wwwroot` changes. The entire React SPA (181 KB) ships as embedded resources inside the package.
 
@@ -35,7 +36,8 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 |---|---|
 | **Package ID** | `ApiTestSpark` |
 | **Version** | 1.4.0 |
-| **Author** | [Mark Hazleton](https://markhazleton.com) |
+| **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
+| **Company** | Make Bold Solutions |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
 | **Package Size** | 181 KB |
@@ -44,7 +46,8 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | **Last Updated** | June 9, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
-| **Source** | [github.com/markhazleton/apitestspark](https://github.com/markhazleton/apitestspark) |
+| **Product Family** | [Make Bold Spark](https://makeboldspark.com) |
+| **Source** | [github.com/MarkHazleton/ApiTestSpark](https://github.com/MarkHazleton/ApiTestSpark) |
 
 ---
 
@@ -488,7 +491,7 @@ See [OPENAPI-DOTNET.md](OPENAPI-DOTNET.md) for the full breakdown including Swas
 
 ## Contributing
 
-Issues and pull requests are welcome at [github.com/markhazleton/apitestspark](https://github.com/markhazleton/apitestspark).
+Issues and pull requests are welcome at [github.com/MarkHazleton/ApiTestSpark](https://github.com/MarkHazleton/ApiTestSpark).
 
 ---
 

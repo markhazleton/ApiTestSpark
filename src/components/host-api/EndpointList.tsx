@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { DiscoveredEndpoint } from '../../types';
 
 const METHOD_COLORS: Record<string, string> = {
-  GET:    'bg-blue-100 text-blue-800',
+  GET:    'bg-[#f7e6e1] text-[#741b05]',
   POST:   'bg-green-100 text-green-800',
   PUT:    'bg-yellow-100 text-yellow-800',
   PATCH:  'bg-orange-100 text-orange-800',
@@ -147,14 +147,14 @@ export function EndpointList({ endpoints, selected, onSelect }: EndpointListProp
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter endpoints…"
-          className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#982407]"
         />
         {namespaces.length > 1 && (
           <div className="flex gap-2 justify-end">
             <button
               type="button"
               onClick={() => setCollapsed(Object.fromEntries(namespaces.map((ns) => [ns, false])))}
-              className="text-[10px] text-blue-500 hover:text-blue-700 underline"
+              className="text-[10px] text-[#982407] hover:text-[#982407] underline"
             >
               expand all
             </button>
@@ -222,7 +222,7 @@ export function EndpointList({ endpoints, selected, onSelect }: EndpointListProp
                           title={ep.description || ep.summary}
                           className={`w-full text-left px-3 py-2.5 flex flex-col gap-1 hover:bg-gray-50 transition-colors border-l-2 ${
                             isSelected
-                              ? 'bg-blue-50 border-blue-500'
+                              ? 'bg-[#fff7f5] border-[#982407]'
                               : 'border-transparent'
                           } ${ep.deprecated ? 'opacity-60' : ''}`}
                         >

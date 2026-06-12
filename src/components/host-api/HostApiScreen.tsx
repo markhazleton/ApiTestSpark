@@ -14,7 +14,7 @@ export function HostApiScreen() {
   if (configStatus === 'loading' || configStatus === 'idle') {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#982407] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -61,10 +61,10 @@ export function HostApiScreen() {
               <span className="text-xs text-gray-400 flex items-center gap-1">
                 <span className="text-gray-300">✉</span>
                 {apiInfo.contactUrl
-                  ? <a href={apiInfo.contactUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{apiInfo.contactName}</a>
+                  ? <a href={apiInfo.contactUrl} target="_blank" rel="noopener noreferrer" className="text-[#982407] hover:underline">{apiInfo.contactName}</a>
                   : apiInfo.contactName}
                 {apiInfo.contactEmail && (
-                  <a href={`mailto:${apiInfo.contactEmail}`} className="text-blue-400 hover:underline">
+                  <a href={`mailto:${apiInfo.contactEmail}`} className="text-[#982407] hover:underline">
                     {apiInfo.contactEmail}
                   </a>
                 )}
@@ -74,7 +74,7 @@ export function HostApiScreen() {
               <span className="text-xs text-gray-400 flex items-center gap-1">
                 <span className="text-gray-300">⚖</span>
                 {apiInfo.licenseUrl
-                  ? <a href={apiInfo.licenseUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{apiInfo.licenseName}</a>
+                  ? <a href={apiInfo.licenseUrl} target="_blank" rel="noopener noreferrer" className="text-[#982407] hover:underline">{apiInfo.licenseName}</a>
                   : apiInfo.licenseName}
               </span>
             )}
@@ -93,7 +93,7 @@ export function HostApiScreen() {
             <p className="text-sm font-semibold text-gray-700">No host API endpoints configured</p>
             <p className="text-xs text-gray-500 mt-1">
               Set <code>options.OpenApiUrl</code> in <code>MapApiTestSpark()</code> to enable endpoint autodiscovery.
-              See the <a href="/how-to-use" className="text-blue-600 underline">how-to-use guide</a> for setup instructions.
+              See the <a href="/how-to-use" className="text-[#982407] underline">how-to-use guide</a> for setup instructions.
             </p>
           </div>
         </div>

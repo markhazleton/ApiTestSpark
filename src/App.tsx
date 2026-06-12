@@ -114,7 +114,7 @@ function App() {
                 >
                   <Suspense fallback={
                     <div className="flex items-center justify-center min-h-[60vh]">
-                      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-8 h-8 border-4 border-[#982407] border-t-transparent rounded-full animate-spin" />
                     </div>
                   }>
                     <AppRoutes />
@@ -125,10 +125,10 @@ function App() {
                 {!isDebugCollapsed && (
                   <div
                     onMouseDown={handleMouseDown}
-                    className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize flex-shrink-0 group relative"
+                    className="w-1 bg-[#ded8d4] hover:bg-[#982407] cursor-col-resize flex-shrink-0 group relative"
                     style={{ cursor: 'col-resize' }}
                   >
-                    <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-blue-500/20" />
+                    <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-[#982407]/20" />
                   </div>
                 )}
 
