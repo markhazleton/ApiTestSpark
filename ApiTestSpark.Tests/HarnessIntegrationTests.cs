@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
@@ -16,15 +17,7 @@ public class HarnessIntegrationTests
         Action<ApiTestSparkOptions>? configure = null,
         string environment = "Development")
     {
-        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-        {
-            EnvironmentName = environment,
-        });
-        builder.WebHost.UseTestServer();
-        var app = builder.Build();
-        app.MapApiTestSpark(configure);
-        app.StartAsync().GetAwaiter().GetResult();
-        return app;
+        return BuildTestApp(configure, environment, requestUser: null);
     }
 
     // ── Existing: static file + SPA fallback ────────────────────────────────
@@ -157,6 +150,96 @@ public class HarnessIntegrationTests
 
         StringAssert.Contains(body, "X-Tenant-Id");
         StringAssert.Contains(body, "acme");
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_UserNameToken_UsesIdentityName_WhenAuthenticated()
+    {
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim(ClaimTypes.Name, "alice")],
+            authenticationType: "TestAuth"));
+
+        var app = BuildTestApp(o =>
+        {
+            o.DefaultHeaders["X-User-Name"] = "{user-name}";
+            o.RemoteDefaultHeaders["X-Remote-User-Name"] = "prefix-{user-name}-suffix";
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                Name = "Orders",
+                RemoteBaseUrl = "https://orders.example.com",
+                RemoteDefaultHeaders = new Dictionary<string, string>
+                {
+                    ["X-Profile-User"] = "{user-name}",
+                },
+            });
+        },
+        environment: "Development",
+        requestUser: user);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.AreEqual("alice", doc.RootElement.GetProperty("defaultHeaders").GetProperty("X-User-Name").GetString());
+        Assert.AreEqual("prefix-alice-suffix", doc.RootElement.GetProperty("remoteDefaultHeaders").GetProperty("X-Remote-User-Name").GetString());
+
+        var profiles = doc.RootElement.GetProperty("remoteApiProfiles");
+        Assert.AreEqual("alice",
+            profiles[0].GetProperty("remoteDefaultHeaders").GetProperty("X-Profile-User").GetString());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_UserNameToken_UsesNameClaim_WhenIdentityNameMissing()
+    {
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim("name", "claim-name")],
+            authenticationType: "TestAuth"));
+
+        var app = BuildTestApp(
+            o => o.DefaultHeaders["X-User-Name"] = "{user-name}",
+            environment: "Development",
+            requestUser: user);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.AreEqual("claim-name", doc.RootElement.GetProperty("defaultHeaders").GetProperty("X-User-Name").GetString());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_UserNameToken_BecomesEmpty_WhenUnauthenticated()
+    {
+        var app = BuildTestApp(o => o.DefaultHeaders["X-User-Name"] = "prefix-{user-name}");
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.AreEqual("prefix-", doc.RootElement.GetProperty("defaultHeaders").GetProperty("X-User-Name").GetString());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_RequestAndSessionGuidTokens_RemainUnchanged()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.DefaultHeaders["X-Request-Id"] = "{request-guid}";
+            o.DefaultHeaders["X-Session-Id"] = "{session-guid}";
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        var defaultHeaders = doc.RootElement.GetProperty("defaultHeaders");
+        Assert.AreEqual("{request-guid}", defaultHeaders.GetProperty("X-Request-Id").GetString());
+        Assert.AreEqual("{session-guid}", defaultHeaders.GetProperty("X-Session-Id").GetString());
     }
 
     // ── New: config path passes through middleware, not SPA fallback ─────────
@@ -622,6 +705,32 @@ public class HarnessIntegrationTests
         var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=browser-created");
 
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private static WebApplication BuildTestApp(
+        Action<ApiTestSparkOptions>? configure,
+        string environment,
+        ClaimsPrincipal? requestUser)
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = environment,
+        });
+        builder.WebHost.UseTestServer();
+        var app = builder.Build();
+
+        if (requestUser is not null)
+        {
+            app.Use(async (ctx, next) =>
+            {
+                ctx.User = requestUser;
+                await next(ctx);
+            });
+        }
+
+        app.MapApiTestSpark(configure);
+        app.StartAsync().GetAwaiter().GetResult();
+        return app;
     }
 }
 

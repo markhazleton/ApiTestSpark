@@ -20,15 +20,16 @@ export default function VersionMismatchBanner() {
   useEffect(() => {
     const checkVersion = async () => {
       try {
+        const buildInfoUrl = `${import.meta.env.BASE_URL}build-info.json`;
         // Get embedded build info (from app bundle)
-        const embeddedResponse = await fetch('/build-info.json');
+        const embeddedResponse = await fetch(buildInfoUrl);
         if (!embeddedResponse.ok) return;
         
         const embeddedInfo: BuildInfo = await embeddedResponse.json();
         
         // Force fetch latest build info from server (no cache)
         const cacheBuster = new Date().getTime();
-        const latestResponse = await fetch(`/build-info.json?v=${cacheBuster}`, {
+        const latestResponse = await fetch(`${buildInfoUrl}?v=${cacheBuster}`, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',

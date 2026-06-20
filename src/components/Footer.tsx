@@ -13,7 +13,8 @@ export function Footer() {
 
   useEffect(() => {
     const cacheBuster = new Date().getTime();
-    fetch(`/build-info.json?v=${cacheBuster}`)
+      const buildInfoUrl = `${import.meta.env.BASE_URL}build-info.json`;
+      fetch(`${buildInfoUrl}?v=${cacheBuster}`)
       .then((response) => {
         if (!response.ok) return null;
         return response.json();

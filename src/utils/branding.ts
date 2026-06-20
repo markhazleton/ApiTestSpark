@@ -25,7 +25,7 @@ export const BRANDING = {
   familyUrl: "https://makeboldspark.com",
 
   /** Metadata title for browser tabs and window titles */
-  metadataTitle: "API Test Spark | Make Bold Spark",
+  metadataTitle: "API Test Spark | Make Bold Solutions",
 
   /** Short abbreviation shown in the header logo */
   logoAbbreviation: "ATS",

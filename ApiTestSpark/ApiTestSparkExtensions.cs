@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,7 @@ namespace ApiTestSpark;
 /// </summary>
 public static class ApiTestSparkExtensions
 {
+    private const string UserNameToken = "{user-name}";
     private const string MountPath = "/api-test-spark";
     private const string ConfigPath = "/api-test-spark/config";
     private const string RemoteSpecPath = "/api-test-spark/remote-spec";
@@ -157,20 +159,26 @@ public static class ApiTestSparkExtensions
             }
 
             var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
+            var resolvedDefaultHeaders = ResolveHeaderTokens(options.DefaultHeaders, ctx.User);
+            var resolvedRemoteDefaultHeaders = ResolveHeaderTokens(options.RemoteDefaultHeaders, ctx.User);
+            var resolvedRemoteProfiles = remoteProfiles
+                .Select(profile => ResolveHeaderTokens(profile, ctx.User))
+                .ToList();
+
             var response = new
             {
                 baseUrl,
                 openApiUrl = options.OpenApiUrl,
                 authScheme = options.AuthScheme,
-                defaultHeaders = options.DefaultHeaders,
+                defaultHeaders = resolvedDefaultHeaders,
                 enableDemoIntegrations = options.EnableDemoIntegrations,
-                remoteDefaultHeaders = options.RemoteDefaultHeaders,
+                remoteDefaultHeaders = resolvedRemoteDefaultHeaders,
                 remoteBaseUrl = options.RemoteBaseUrl,
                 remoteOpenApiUrl = options.RemoteOpenApiUrl,
                 remoteOpenApiApiKeyHeader = options.RemoteOpenApiApiKeyHeader,
                 remoteOpenApiApiKeyValue = (string?)null,
                 remoteOpenApiBearerToken = (string?)null,
-                remoteApiProfiles = remoteProfiles.Select(ToConfigProfile),
+                remoteApiProfiles = resolvedRemoteProfiles.Select(ToConfigProfile),
                 harnessVersion,
                 harnessBuiltAt,
             };
@@ -317,7 +325,7 @@ public static class ApiTestSparkExtensions
                 .Select(url => $" {url!.TrimEnd('/')}"));
 
             ctx.Response.Headers["Content-Security-Policy"] =
-                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; " +
                 "connect-src 'self' https: http: https://*.applicationinsights.azure.com https://*.monitor.azure.com " +
                 $"https://v2.jokeapi.dev https://jsonplaceholder.typicode.com{remoteConnectSrc}{devConnectSrc}";
 
@@ -406,6 +414,62 @@ public static class ApiTestSparkExtensions
         source = "server",
         proxyMode = "server",
     };
+
+    private static RemoteApiProfile ResolveHeaderTokens(RemoteApiProfile profile, ClaimsPrincipal user)
+    {
+        return new RemoteApiProfile
+        {
+            Id = profile.Id,
+            Name = profile.Name,
+            Description = profile.Description,
+            RemoteBaseUrl = profile.RemoteBaseUrl,
+            RemoteOpenApiUrl = profile.RemoteOpenApiUrl,
+            RemoteOpenApiApiKeyHeader = profile.RemoteOpenApiApiKeyHeader,
+            RemoteOpenApiApiKeyValue = profile.RemoteOpenApiApiKeyValue,
+            RemoteOpenApiBearerToken = profile.RemoteOpenApiBearerToken,
+            RemoteDefaultHeaders = ResolveHeaderTokens(profile.RemoteDefaultHeaders, user),
+        };
+    }
+
+    private static Dictionary<string, string> ResolveHeaderTokens(
+        IReadOnlyDictionary<string, string> headers,
+        ClaimsPrincipal user)
+    {
+        if (headers.Count == 0)
+            return [];
+
+        var resolvedUserName = ResolveUserName(user);
+        return headers.ToDictionary(
+            header => header.Key,
+            header => ReplaceToken(header.Value, UserNameToken, resolvedUserName),
+            StringComparer.Ordinal);
+    }
+
+    private static string ReplaceToken(string value, string token, string replacement)
+    {
+        return value.Contains(token, StringComparison.Ordinal)
+            ? value.Replace(token, replacement, StringComparison.Ordinal)
+            : value;
+    }
+
+    private static string ResolveUserName(ClaimsPrincipal user)
+    {
+        if (user.Identity?.IsAuthenticated != true)
+            return string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(user.Identity.Name))
+            return user.Identity.Name;
+
+        var fromNameClaim = user.FindFirst("name")?.Value;
+        if (!string.IsNullOrWhiteSpace(fromNameClaim))
+            return fromNameClaim;
+
+        var fromPreferredUserNameClaim = user.FindFirst("preferred_username")?.Value;
+        if (!string.IsNullOrWhiteSpace(fromPreferredUserNameClaim))
+            return fromPreferredUserNameClaim;
+
+        return string.Empty;
+    }
 
     private static RemoteApiProfile? ResolveRemoteProfile(IReadOnlyList<RemoteApiProfile> profiles, string? profileId)
     {

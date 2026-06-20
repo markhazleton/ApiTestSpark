@@ -76,6 +76,9 @@ public class ApiTestSparkOptions
     /// Default headers injected into every SPA request to host app endpoints.
     /// MUST NOT contain actual credentials or tokens — values are served publicly
     /// via the config endpoint.
+    /// Supports per-request token expansion for <c>{user-name}</c> when config is requested.
+    /// Resolution order: <c>Identity.Name</c>, then claim <c>name</c>, then
+    /// claim <c>preferred_username</c>. Unresolved values become an empty string.
     /// </summary>
     public Dictionary<string, string> DefaultHeaders { get; set; } = new();
 
@@ -122,6 +125,9 @@ public class ApiTestSparkOptions
     /// to remote calls — they do not affect requests to the local host app.
     /// Values are served via <c>/api-test-spark/config</c>; the harness MUST NOT be
     /// exposed to the public internet.
+    /// Supports per-request token expansion for <c>{user-name}</c> when config is requested.
+    /// Resolution order: <c>Identity.Name</c>, then claim <c>name</c>, then
+    /// claim <c>preferred_username</c>. Unresolved values become an empty string.
     /// </summary>
     public Dictionary<string, string> RemoteDefaultHeaders { get; set; } = new();
 
