@@ -65,6 +65,7 @@ app.MapApiTestSpark(options =>
 | `AuthScheme` | `null` | `"Bearer"`, `"ApiKey"`, or `"Basic"` — metadata only, never a token value. |
 | `DefaultHeaders` | `{}` | Headers injected into every host API SPA request. Must not contain credentials — values are served publicly via the config endpoint. |
 | `Environments` | `[]` (all) | Environment names where the harness is active. Empty = everywhere. Example: `["Development", "Staging"]` keeps it off production. |
+| `EnableUserNameTokenExpansion` | `true` | When `true`, profile and header values support `{userName}` token expansion at request time, enabling personalized headers and body content for multi-user environments. |
 | `CorsOrigins` | `[]` (same-origin) | Extra origins allowed to call the config endpoint. Use when the Vite dev server and .NET API run on different ports. |
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback. Alternatively set `Logging:LogLevel:ApiTestSpark=Debug` in appsettings. |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes. Set to `false` to present a clean harness showing only your host API and API Doc Builder. |

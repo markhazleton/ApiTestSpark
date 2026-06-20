@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.6.0] - 2026-06-20
+
+### Added
+
+- **User-name token expansion** — profiles and request templates now expand `{userName}` tokens at request time, enabling personalized header and body content for multi-user environments.
+- **SampleApi publish package** — added a dedicated SampleApi publish output package for simplified deployment workflows.
+
+### Fixed
+
+- **CSP logo rendering** — resolved Content Security Policy violations preventing inline logo rendering in the harness UI.
+- **Base-path build-info fetches** — fixed fetch requests for build metadata when the app is deployed at a non-root base path (e.g., `/api-test-spark/`).
+
+### Changed
+
+- **Package reference updates** — upgraded Microsoft.AspNetCore.OpenApi and Microsoft.OpenApi to the latest stable versions for improved OpenAPI v3 compatibility and maintenance.
+- **Make Bold branding metadata** — aligned branding icons and metadata across all delivered assets for consistent product identity.
+
+### Breaking Changes
+
+None. This is a fully backwards-compatible patch release.
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.5.0] - 2026-06-12
 
 ### Changed

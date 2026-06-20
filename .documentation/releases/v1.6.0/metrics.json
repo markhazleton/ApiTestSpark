@@ -1,0 +1,24 @@
+{
+  "version": "1.6.0",
+  "releaseDate": "2026-06-20",
+  "releaseType": "patch",
+  "commits": 7,
+  "pullRequests": 1,
+  "contributors": [
+    "Mark Hazleton"
+  ],
+  "completedSpecs": 0,
+  "archivedQuickfixes": 0,
+  "createdAdrs": 0,
+  "qualityGates": {
+    "typescriptCompilation": "PASS",
+    "eslint": "PASS",
+    "markdownlint": "PENDING",
+    "dotnetBuild": "PENDING",
+    "integrationTests": "PENDING",
+    "nugetPack": "PENDING"
+  },
+  "changelog": "Bug fixes, feature enhancements, and package reference updates",
+  "breakingChanges": false,
+  "apiChanges": "None"
+}

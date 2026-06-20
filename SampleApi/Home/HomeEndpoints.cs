@@ -222,15 +222,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.5.0</span>
+                            <span class="pkg-version">v1.6.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 500 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 12, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 500 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 20, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.5.0</div>
+                            <div class="value">1.6.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -631,7 +631,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.5.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.6.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 500 KB</div>
                     </div>
@@ -954,9 +954,17 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.6.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 20, 2026</span>
+                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Bug fixes and enhancements.</strong> User-name token expansion in profiles and headers, CSP logo rendering fixes, base-path build-info fixes, and updated package references for Microsoft.AspNetCore.OpenApi and Microsoft.OpenApi. Backwards-compatible patch release.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
                             <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.5.0</span>
                             <span style="color:#94a3b8;font-size:0.85rem;">June 12, 2026</span>
-                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Make Bold Solutions brand alignment.</strong> API Test Spark now presents as a Make Bold Spark product across the embedded UI, favicon set, package icon, NuGet metadata, package README, and public documentation. No public API changes.</p>
                     </div>

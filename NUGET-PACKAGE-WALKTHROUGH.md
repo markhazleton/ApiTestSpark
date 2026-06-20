@@ -136,8 +136,8 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
       "proxyMode": "server"
     }
   ],
-  "harnessVersion": "1.5.0",
-  "harnessBuiltAt": "2026-06-09T01:24:11Z"
+  "harnessVersion": "1.6.0",
+  "harnessBuiltAt": "2026-06-20T23:25:00Z"
 }
 ```
 
@@ -176,7 +176,7 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 | Property | Value | Rationale |
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
-| `Version` | `1.5.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Version` | `1.6.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
 | `Authors` | `Make Bold Solutions; Mark Hazleton` | NuGet author display |
 | `Company` | `Make Bold Solutions` | Package ownership and assembly metadata |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
@@ -233,11 +233,11 @@ Source Link lets consumers step into the library's source code from within Visua
 
 Two files control this:
 
-- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.5.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
+- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.6.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
 - **`PublicAPI.Unshipped.txt`** — symbols added since the last release. New public members appear here automatically via IDE code fix, then are moved to `Shipped.txt` when the next version is tagged.
 
 ```
-# PublicAPI.Shipped.txt (v1.5.0 baseline)
+# PublicAPI.Shipped.txt (v1.6.0 baseline)
 #nullable enable
 ApiTestSpark.ApiTestSparkExtensions
 ApiTestSpark.ApiTestSparkOptions
@@ -372,10 +372,10 @@ softprops/action-gh-release → GitHub Release with CHANGELOG.md as body
 
 To publish a new version:
 
-1. Update `version` in `package.json` (e.g. `1.5.0`)
-2. Add a `[v1.5.0]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `1.6.0`)
+2. Add a `[v1.6.0]` entry to `CHANGELOG.md`
 3. Commit and push
-4. `git tag -a v1.5.0 -m "Release v1.5.0" && git push origin main --tags`
+4. `git tag -a v1.6.0 -m "Release v1.6.0" && git push origin main --tags`
 
 The publish workflow fires automatically. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full step-by-step release process.
 

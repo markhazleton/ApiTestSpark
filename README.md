@@ -35,7 +35,7 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.5.0 |
+| **Version** | 1.6.0 |
 | **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
@@ -43,7 +43,7 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | **Package Size** | 500 KB |
 | **Symbol Package** | 15.7 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | June 12, 2026 |
+| **Last Updated** | June 20, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Product Family** | [Make Bold Spark](https://makeboldspark.com) |
