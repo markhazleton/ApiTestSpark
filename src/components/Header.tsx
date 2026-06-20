@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BRANDING } from '../utils';
 import makeBoldLogo from '../assets/brand/make-bold-solutions-logo.svg';
+import makeBoldMark from '../assets/brand/make-bold-mark.svg';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home' },
@@ -37,8 +38,8 @@ export function Header() {
           onClick={() => setMenuOpen(false)}
           className="min-w-0 flex items-center gap-3 hover:opacity-80 transition-opacity"
         >
-          <div className="w-9 h-9 bg-[#040605] rounded-md flex items-center justify-center shrink-0 shadow-sm">
-            <span className="text-white font-black text-xs">{BRANDING.logoAbbreviation}</span>
+          <div className="w-9 h-9 rounded-md bg-[#fbfaf8] border border-[#ded8d4] flex items-center justify-center shrink-0 shadow-sm">
+            <img src={makeBoldMark} alt="" aria-hidden="true" className="w-7 h-7 object-contain" />
           </div>
           <div className="min-w-0">
             <h1 className="text-base sm:text-lg font-black text-[#040605] truncate">{BRANDING.productName}</h1>

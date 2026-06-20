@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">API Test Spark by Make Bold Solutions</title>
+  <desc id="desc">A branded Make Bold Solutions social preview image for API Test Spark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fbfaf8"/>
+      <stop offset="100%" stop-color="#f3efe9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <path d="M80 410 L470 120 L555 410 Z" fill="#982407"/>
+  <path d="M280 410 L690 90 L760 410 Z" fill="#040605"/>
+  <text x="80" y="520" fill="#040605" font-family="Inter Tight, Inter, Arial, sans-serif" font-size="74" font-weight="800">
+    API Test Spark
+  </text>
+  <text x="82" y="570" fill="#787878" font-family="Inter Tight, Inter, Arial, sans-serif" font-size="34" letter-spacing="4">
+    MAKE BOLD SOLUTIONS
+  </text>
+</svg>
