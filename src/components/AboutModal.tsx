@@ -11,7 +11,8 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    fetch('/build-info.json')
+    const buildInfoUrl = `${import.meta.env.BASE_URL}build-info.json`;
+    fetch(buildInfoUrl)
       .then(r => r.json())
       .then(setBuildInfo)
       .catch(() => setBuildInfo({ version: 'Unknown', buildDate: 'Unknown', buildTimestamp: 0 }));

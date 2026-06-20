@@ -325,7 +325,7 @@ public static class ApiTestSparkExtensions
                 .Select(url => $" {url!.TrimEnd('/')}"));
 
             ctx.Response.Headers["Content-Security-Policy"] =
-                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; " +
                 "connect-src 'self' https: http: https://*.applicationinsights.azure.com https://*.monitor.azure.com " +
                 $"https://v2.jokeapi.dev https://jsonplaceholder.typicode.com{remoteConnectSrc}{devConnectSrc}";
 
