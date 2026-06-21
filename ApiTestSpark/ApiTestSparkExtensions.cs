@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Claims;
@@ -19,11 +20,16 @@ public static class ApiTestSparkExtensions
     private const string UserNameToken = "{user-name}";
     private const string UserEmailToken = "{user-email}";
     private const string UserIdToken = "{user-id}";
+    private const string SessionGuidToken = "{session-guid}";
+    private const string RequestGuidToken = "{request-guid}";
+    private const string SessionGuidHeader = "X-ApiTestSpark-SessionGuid";
+    private const string RequestGuidHeader = "X-ApiTestSpark-RequestGuid";
     private const string MountPath = "/api-test-spark";
     private const string ConfigPath = "/api-test-spark/config";
     private const string RemoteSpecPath = "/api-test-spark/remote-spec";
     private const string RemoteCallPath = "/api-test-spark/remote-call";
     private const string ResourcePrefix = "ApiTestSpark.build.";
+    private const string BuildDateMetadataKey = "ApiTestSparkBuildDateUtc";
     private const string CorsPolicy = "ApiTestSpark.CorsPolicy";
     private const int MaxRemoteSpecBytes = 2_000_000;
 
@@ -107,6 +113,35 @@ public static class ApiTestSparkExtensions
             }
         }
 
+        // Optional auth gate for all harness routes (assets + API endpoints).
+        // Host app controls whether anonymous access is allowed via options.
+        app.Use(async (ctx, next) =>
+        {
+            if (!options.RequireAuthenticatedUser ||
+                !ctx.Request.Path.StartsWithSegments(MountPath))
+            {
+                await next(ctx);
+                return;
+            }
+
+            if (ctx.User.Identity?.IsAuthenticated == true)
+            {
+                await next(ctx);
+                return;
+            }
+
+            if (ctx.Request.Path.StartsWithSegments(ConfigPath) ||
+                ctx.Request.Path.StartsWithSegments(RemoteSpecPath) ||
+                ctx.Request.Path.StartsWithSegments(RemoteCallPath))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await ctx.Response.WriteAsJsonAsync(new { error = "Authentication required." }).ConfigureAwait(false);
+                return;
+            }
+
+            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        });
+
         // Register embedded static files under /api-test-spark
         var fileProvider = new EmbeddedFileProvider(assembly, "ApiTestSpark.build");
         app.UseStaticFiles(new StaticFileOptions
@@ -134,12 +169,7 @@ public static class ApiTestSparkExtensions
             ?.Split('+')[0]   // strip git hash suffix if present
             ?? assembly.GetName().Version?.ToString()
             ?? "unknown";
-        // TODO: In single-file publish / trimming scenarios assembly.Location is empty,
-        // so the fallback returns wall-clock time instead of the real build date.
-        // Fix: embed build date as <AssemblyMetadata> in the csproj so it survives trimming.
-        var harnessBuiltAt = !string.IsNullOrEmpty(assembly.Location)
-            ? File.GetLastWriteTimeUtc(assembly.Location).ToString("O")
-            : DateTime.UtcNow.ToString("O");
+        var harnessBuiltAt = ResolveHarnessBuildTimestampUtc(assembly);
 
         // Config endpoint — set CORS headers manually (avoids requiring AddCors() from host)
         app.MapGet(ConfigPath, (HttpContext ctx) =>
@@ -158,7 +188,10 @@ public static class ApiTestSparkExtensions
                       originUri.Host == ctx.Request.Host.Host;
 
                 if (allowed)
+                {
                     ctx.Response.Headers["Access-Control-Allow-Origin"] = origin;
+                    ctx.Response.Headers.Append("Vary", "Origin");
+                }
             }
 
             var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
@@ -240,7 +273,7 @@ public static class ApiTestSparkExtensions
             HttpResponseMessage remoteResponse;
             try
             {
-                remoteResponse = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted);
+                remoteResponse = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted).ConfigureAwait(false);
             }
             catch
             {
@@ -248,27 +281,30 @@ public static class ApiTestSparkExtensions
                 return Results.Json(new { error = "Failed to fetch remote OpenAPI document." }, statusCode: 502);
             }
 
-            if (IsRedirect(remoteResponse.StatusCode))
-                return Results.Json(new { error = "Remote OpenAPI redirects are not followed." }, statusCode: 502);
-
-            if (!remoteResponse.IsSuccessStatusCode)
-                return Results.Json(new { error = "Failed to fetch remote OpenAPI document." }, statusCode: 502);
-
-            var contentType = remoteResponse.Content.Headers.ContentType?.MediaType ?? string.Empty;
-            if (!contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) &&
-                !contentType.StartsWith("application/vnd.oai.openapi+json", StringComparison.OrdinalIgnoreCase))
+            using (remoteResponse)
             {
-                return Results.Json(new { error = "Remote server returned non-JSON content." }, statusCode: 502);
+                if (IsRedirect(remoteResponse.StatusCode))
+                    return Results.Json(new { error = "Remote OpenAPI redirects are not followed." }, statusCode: 502);
+
+                if (!remoteResponse.IsSuccessStatusCode)
+                    return Results.Json(new { error = "Failed to fetch remote OpenAPI document." }, statusCode: 502);
+
+                var contentType = remoteResponse.Content.Headers.ContentType?.MediaType ?? string.Empty;
+                if (!contentType.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) &&
+                    !contentType.StartsWith("application/vnd.oai.openapi+json", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Results.Json(new { error = "Remote server returned non-JSON content." }, statusCode: 502);
+                }
+
+                if (remoteResponse.Content.Headers.ContentLength > MaxRemoteSpecBytes)
+                    return Results.Json(new { error = "Remote OpenAPI document is too large." }, statusCode: 502);
+
+                var body = await ReadContentWithLimit(remoteResponse.Content, ctx.RequestAborted);
+                if (body is null)
+                    return Results.Json(new { error = "Remote OpenAPI document is too large." }, statusCode: 502);
+
+                return Results.Content(body, "application/json");
             }
-
-            if (remoteResponse.Content.Headers.ContentLength > MaxRemoteSpecBytes)
-                return Results.Json(new { error = "Remote OpenAPI document is too large." }, statusCode: 502);
-
-            var body = await ReadContentWithLimit(remoteResponse.Content, ctx.RequestAborted);
-            if (body is null)
-                return Results.Json(new { error = "Remote OpenAPI document is too large." }, statusCode: 502);
-
-            return Results.Content(body, "application/json");
         });
 
         // Remote call proxy — server-configured profiles avoid browser CORS restrictions.
@@ -300,7 +336,7 @@ public static class ApiTestSparkExtensions
             }
 
             CopyForwardableRequestHeaders(ctx.Request, request);
-            ApplyRemoteProfileHeaders(request, ResolveHeaderTokens(profile.RemoteDefaultHeaders, ctx.User));
+            ApplyRemoteProfileHeaders(request, ResolveProxyHeaderTokens(profile.RemoteDefaultHeaders, ctx.User, ctx));
 
             if (!string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyHeader) &&
                 !string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyValue))
@@ -319,7 +355,7 @@ public static class ApiTestSparkExtensions
             HttpResponseMessage remoteResponse;
             try
             {
-                remoteResponse = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted);
+                remoteResponse = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted).ConfigureAwait(false);
             }
             catch
             {
@@ -333,7 +369,7 @@ public static class ApiTestSparkExtensions
 
                 ctx.Response.StatusCode = (int)remoteResponse.StatusCode;
                 CopyForwardableResponseHeaders(remoteResponse, ctx.Response);
-                await remoteResponse.Content.CopyToAsync(ctx.Response.Body, ctx.RequestAborted);
+                await remoteResponse.Content.CopyToAsync(ctx.Response.Body, ctx.RequestAborted).ConfigureAwait(false);
             }
 
             return Results.Empty;
@@ -416,7 +452,7 @@ public static class ApiTestSparkExtensions
 
             ctx.Response.ContentType = "text/html; charset=utf-8";
             using var stream = indexFile.CreateReadStream();
-            await stream.CopyToAsync(ctx.Response.Body);
+            await stream.CopyToAsync(ctx.Response.Body).ConfigureAwait(false);
         });
 
         logger.LogInformation(
@@ -540,6 +576,60 @@ public static class ApiTestSparkExtensions
             .Replace(UserNameToken, userName, StringComparison.Ordinal)
             .Replace(UserEmailToken, userEmail, StringComparison.Ordinal)
             .Replace(UserIdToken, userId, StringComparison.Ordinal);
+    }
+
+    private static Dictionary<string, string> ResolveProxyHeaderTokens(
+        IReadOnlyDictionary<string, string> headers,
+        ClaimsPrincipal user,
+        HttpContext ctx)
+    {
+        if (headers.Count == 0)
+            return [];
+
+        var resolvedUserName = ResolveUserName(user);
+        var resolvedUserEmail = ResolveUserEmail(user);
+        var resolvedUserId = ResolveUserId(user);
+        var requestGuid = ResolveRequestGuid(ctx);
+        var sessionGuid = ResolveSessionGuid(ctx, requestGuid);
+
+        return headers.ToDictionary(
+            header => header.Key,
+            header => ReplaceProxyTokens(
+                header.Value,
+                resolvedUserName,
+                resolvedUserEmail,
+                resolvedUserId,
+                sessionGuid,
+                requestGuid),
+            StringComparer.Ordinal);
+    }
+
+    private static string ReplaceProxyTokens(
+        string value,
+        string userName,
+        string userEmail,
+        string userId,
+        string sessionGuid,
+        string requestGuid)
+    {
+        return value
+            .Replace(UserNameToken, userName, StringComparison.Ordinal)
+            .Replace(UserEmailToken, userEmail, StringComparison.Ordinal)
+            .Replace(UserIdToken, userId, StringComparison.Ordinal)
+            .Replace(SessionGuidToken, sessionGuid, StringComparison.Ordinal)
+            .Replace(RequestGuidToken, requestGuid, StringComparison.Ordinal);
+    }
+
+    private static string ResolveRequestGuid(HttpContext ctx)
+    {
+        var fromHeader = ctx.Request.Headers[RequestGuidHeader].ToString();
+        return string.IsNullOrWhiteSpace(fromHeader) ? Guid.NewGuid().ToString() : fromHeader;
+    }
+
+    private static string ResolveSessionGuid(HttpContext ctx, string fallback)
+    {
+        var fromHeader = ctx.Request.Headers[SessionGuidHeader].ToString();
+        return string.IsNullOrWhiteSpace(fromHeader) ? fallback : fromHeader;
     }
 
     private static string ResolveUserName(ClaimsPrincipal user)
@@ -687,22 +777,46 @@ public static class ApiTestSparkExtensions
     private static bool IsRedirect(System.Net.HttpStatusCode statusCode) =>
         (int)statusCode is >= 300 and <= 399;
 
+    private static string ResolveHarnessBuildTimestampUtc(Assembly assembly)
+    {
+        var fromMetadata = assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => string.Equals(attribute.Key, BuildDateMetadataKey, StringComparison.Ordinal))
+            ?.Value;
+
+        if (DateTimeOffset.TryParse(fromMetadata, out var parsedMetadataTime))
+            return parsedMetadataTime.UtcDateTime.ToString("O");
+
+        if (!string.IsNullOrEmpty(assembly.Location))
+            return File.GetLastWriteTimeUtc(assembly.Location).ToString("O");
+
+        return DateTime.UtcNow.ToString("O");
+    }
+
     private static async Task<string?> ReadContentWithLimit(HttpContent content, CancellationToken cancellationToken)
     {
-        await using var stream = await content.ReadAsStreamAsync(cancellationToken);
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         using var buffer = new MemoryStream();
-        var temp = new byte[81920];
-        int read;
-        while ((read = await stream.ReadAsync(temp.AsMemory(0, temp.Length), cancellationToken)) > 0)
+        const int bufferSize = 81920;
+        var temp = ArrayPool<byte>.Shared.Rent(bufferSize);
+        try
         {
-            if (buffer.Length + read > MaxRemoteSpecBytes)
-                return null;
-            buffer.Write(temp, 0, read);
+            int read;
+            while ((read = await stream.ReadAsync(temp.AsMemory(0, bufferSize), cancellationToken).ConfigureAwait(false)) > 0)
+            {
+                if (buffer.Length + read > MaxRemoteSpecBytes)
+                    return null;
+                buffer.Write(temp, 0, read);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(temp);
         }
 
         buffer.Position = 0;
         using var reader = new StreamReader(buffer);
-        return await reader.ReadToEndAsync(cancellationToken);
+        return await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
     }
 }
 
