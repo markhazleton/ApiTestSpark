@@ -185,7 +185,7 @@ export function EndpointList({ endpoints, selected, onSelect }: EndpointListProp
               {/* Namespace header — click to collapse */}
               <button
                 onClick={() => toggleNamespace(ns)}
-                className="w-full flex items-center justify-between px-3 py-2 bg-gray-100 hover:bg-gray-200 transition-colors sticky top-9 z-10"
+                className="w-full flex items-center justify-between px-3 py-2 bg-gray-100 hover:bg-gray-200 transition-colors sticky top-0 z-10"
               >
                 <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
                   {ns}
