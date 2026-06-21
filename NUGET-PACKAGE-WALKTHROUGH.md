@@ -119,6 +119,9 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
   "authScheme": "Bearer",
   "defaultHeaders": { "X-Tenant-Id": "acme" },
   "enableDemoIntegrations": true,
+  "userName": "Ada Lovelace",
+  "userEmail": "ada@example.com",
+  "userId": "00000000-0000-0000-0000-000000000001",
   "remoteApiProfiles": [
     {
       "id": "partner-api",
@@ -131,13 +134,14 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
       "remoteOpenApiBearerToken": null,
       "remoteOpenApiApiKeyConfigured": true,
       "remoteOpenApiBearerTokenConfigured": false,
+      "remoteCallProxyEnabled": true,
       "remoteDefaultHeaders": { "correlationId": "{request-guid}" },
       "source": "server",
       "proxyMode": "server"
     }
   ],
-  "harnessVersion": "1.6.0",
-  "harnessBuiltAt": "2026-06-20T23:25:00Z"
+  "harnessVersion": "1.7.0",
+  "harnessBuiltAt": "2026-06-21T17:52:53Z"
 }
 ```
 
@@ -145,7 +149,7 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
 
 `harnessVersion` and `harnessBuiltAt` are baked in at pack time from the assembly's `AssemblyInformationalVersionAttribute` and the DLL's last-write timestamp. The About page in the SPA reads these from the config response — no separate `build-info.json` fetch required, which was the approach that failed silently in NuGet embedded mode.
 
-Remote API profile credentials configured on the server are redacted from the config response. The browser receives profile metadata, configured flags, and a `profileId`; `GET /api-test-spark/remote-spec?profileId=...` resolves only server-provided profiles and uses the server-held credentials to proxy the OpenAPI document. Browser-created profiles stay local and fetch OpenAPI documents directly from the browser.
+Remote API profile credentials configured on the server are redacted from the config response. The browser receives profile metadata, configured flags, and a `profileId`; `GET /api-test-spark/remote-spec?profileId=...` resolves only server-provided profiles and uses the server-held credentials to proxy the OpenAPI document. When `EnableRemoteCallProxy` is enabled, server-configured profile endpoint calls can also be forwarded through `GET|POST|PUT|PATCH|DELETE /api-test-spark/remote-call?profileId=...&path=...`. Browser-created profiles stay local and fetch OpenAPI documents and endpoint calls directly from the browser.
 
 ---
 
@@ -176,7 +180,7 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 | Property | Value | Rationale |
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
-| `Version` | `1.6.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Version` | `1.7.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
 | `Authors` | `Make Bold Solutions; Mark Hazleton` | NuGet author display |
 | `Company` | `Make Bold Solutions` | Package ownership and assembly metadata |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
@@ -233,11 +237,11 @@ Source Link lets consumers step into the library's source code from within Visua
 
 Two files control this:
 
-- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.6.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
+- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.7.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
 - **`PublicAPI.Unshipped.txt`** — symbols added since the last release. New public members appear here automatically via IDE code fix, then are moved to `Shipped.txt` when the next version is tagged.
 
 ```
-# PublicAPI.Shipped.txt (v1.6.0 baseline)
+# PublicAPI.Shipped.txt (v1.7.0 baseline)
 #nullable enable
 ApiTestSpark.ApiTestSparkExtensions
 ApiTestSpark.ApiTestSparkOptions
@@ -248,18 +252,22 @@ ApiTestSpark.ApiTestSparkOptions.CorsOrigins.get -> string![]!
 ApiTestSpark.ApiTestSparkOptions.CorsOrigins.set -> void
 ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
 ApiTestSpark.ApiTestSparkOptions.DefaultHeaders.set -> void
-ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
-ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.set -> void
 ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.set -> void
+ApiTestSpark.ApiTestSparkOptions.EnableRemoteCallProxy.get -> bool
+ApiTestSpark.ApiTestSparkOptions.EnableRemoteCallProxy.set -> void
 ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableVerboseLogging.set -> void
 ApiTestSpark.ApiTestSparkOptions.Environments.get -> string![]!
 ApiTestSpark.ApiTestSparkOptions.Environments.set -> void
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteApiProfiles.get -> System.Collections.Generic.List<ApiTestSpark.RemoteApiProfile!>!
+ApiTestSpark.ApiTestSparkOptions.RemoteApiProfiles.set -> void
 ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.RemoteBaseUrl.set -> void
+ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.get -> System.Collections.Generic.Dictionary<string!, string!>!
+ApiTestSpark.ApiTestSparkOptions.RemoteDefaultHeaders.set -> void
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiUrl.set -> void
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyHeader.get -> string?
@@ -296,12 +304,12 @@ private static WebApplication BuildTestApp(Action<ApiTestSparkOptions>? configur
 }
 ```
 
-The 33 integration tests cover:
+The 45 integration tests cover:
 
 | Area | What is verified |
 |------|-----------------|
 | **SPA serving** | `GET /api-test-spark/` → 200 `text/html`; extensionless sub-paths → SPA fallback; unknown extensions → 404 |
-| **Config endpoint** | JSON shape: `baseUrl`, `openApiUrl`, `authScheme`, `defaultHeaders`, `enableDemoIntegrations`, redacted `remoteApiProfiles`, `harnessVersion`, `harnessBuiltAt` |
+| **Config endpoint** | JSON shape: `baseUrl`, `openApiUrl`, `authScheme`, `defaultHeaders`, `enableDemoIntegrations`, resolved `userName` / `userEmail` / `userId`, redacted `remoteApiProfiles`, `harnessVersion`, `harnessBuiltAt` |
 | **Remote config fields** | Multiple `RemoteApiProfiles`, legacy single-remote compatibility seeding, per-profile headers, and redacted server credentials |
 | **Remote spec proxy** | Server-provided `profileId` resolution, rejection of unknown/browser-created profile ids, SSRF scheme guard, network failure handling, and correct passthrough for happy path |
 | **Environment gating** | `Environments = ["Production"]` in Development → harness not registered |
@@ -352,7 +360,7 @@ npm run lint
 tsc -b + vite build  (npm run verify)
 dotnet restore
 dotnet build          ← triggers incremental BuildReactSpa
-dotnet test           ← 33 integration tests, TRX + coverage upload
+dotnet test           ← 45 integration tests, TRX + coverage upload
 dotnet list package --vulnerable
 npm audit --audit-level=high
 ```
@@ -372,10 +380,10 @@ softprops/action-gh-release → GitHub Release with CHANGELOG.md as body
 
 To publish a new version:
 
-1. Update `version` in `package.json` (e.g. `1.6.0`)
-2. Add a `[v1.6.0]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `1.7.0`)
+2. Add a `[v1.7.0]` entry to `CHANGELOG.md`
 3. Commit and push
-4. `git tag -a v1.6.0 -m "Release v1.6.0" && git push origin main --tags`
+4. `git tag -a v1.7.0 -m "Release v1.7.0" && git push origin main --tags`
 
 The publish workflow fires automatically. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full step-by-step release process.
 

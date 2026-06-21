@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.7.0] - 2026-06-21
+
+### Added
+
+- **Server-side remote call proxy** — new `EnableRemoteCallProxy` option routes endpoint calls for server-configured remote API profiles through `GET /api-test-spark/remote-call`, avoiding browser CORS requirements while keeping server-held credentials out of the browser.
+- **Expanded identity-aware config payload** — `/api-test-spark/config` now returns resolved `userName`, `userEmail`, and `userId` values, and configured host/remote headers can expand `{user-name}`, `{user-email}`, and `{user-id}` tokens.
+
+### Changed
+
+- **Remote profile management model** — Program.cs server profiles now remain authoritative, while browser customization creates distinct local copies instead of overriding the proxied server entry.
+- **Frontend bootstrap and build hygiene** — host runtime config is separated from remote-profile hydration, and Vite now suppresses the known Application Insights pure-annotation warning so release builds stay actionable.
+
+### Fixed
+
+- **Remote explorer CORS regression** — stale browser profiles can no longer shadow server-configured profiles and force browser-direct OpenAPI fetches that bypass the proxy.
+- **Required path parameter validation** — host and remote endpoint testers now block requests with missing required path parameters and surface inline validation before sending malformed URLs.
+
+### Breaking Changes
+
+None. This release is backwards-compatible and the new remote call proxy is opt-in.
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v1.6.0] - 2026-06-20
 
 ### Added
@@ -228,7 +253,9 @@ None. The new `RemoteApiProfiles` collection and `RemoteApiProfile` model are ad
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.7.0...HEAD
+[v1.7.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.6.0...v1.7.0
+[v1.6.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.4.0...v1.5.0
 [v1.4.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.2.0...v1.3.0

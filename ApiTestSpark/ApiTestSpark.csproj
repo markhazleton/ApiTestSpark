@@ -9,7 +9,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
-    <Version>1.6.0</Version>
+    <Version>1.7.0</Version>
     <Authors>Make Bold Solutions; Mark Hazleton</Authors>
     <Company>Make Bold Solutions</Company>
     <Copyright>Copyright © Make Bold Solutions 2026</Copyright>
@@ -33,10 +33,12 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>1.5.0 — Make Bold Solutions brand alignment. API Test Spark now presents
-      as a Make Bold Spark product across the embedded React UI, favicon set, package icon, NuGet metadata,
-      package README, and public documentation. The package includes local Make Bold Solutions brand assets
-      and Inter Tight typography, with no public API changes. See CHANGELOG.md for full history.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.7.0 — Remote API profiles can now proxy endpoint calls through the host app with
+      the new EnableRemoteCallProxy option, keeping server-held credentials off the browser and avoiding
+      remote CORS requirements for server-configured profiles. The release also adds resolved userName,
+      userEmail, and userId metadata to the config payload for identity-aware header templates, hardens
+      remote profile management so Program.cs profiles remain authoritative, and improves path-parameter
+      validation across the host and remote explorers. See CHANGELOG.md for full history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Build quality -->

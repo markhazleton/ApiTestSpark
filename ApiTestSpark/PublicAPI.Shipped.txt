@@ -16,6 +16,8 @@ ApiTestSpark.ApiTestSparkOptions.Environments.get -> string![]!
 ApiTestSpark.ApiTestSparkOptions.Environments.set -> void
 ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.get -> bool
 ApiTestSpark.ApiTestSparkOptions.EnableDemoIntegrations.set -> void
+ApiTestSpark.ApiTestSparkOptions.EnableRemoteCallProxy.get -> bool
+ApiTestSpark.ApiTestSparkOptions.EnableRemoteCallProxy.set -> void
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.get -> string?
 ApiTestSpark.ApiTestSparkOptions.OpenApiUrl.set -> void
 ApiTestSpark.ApiTestSparkOptions.RemoteApiProfiles.get -> System.Collections.Generic.List<ApiTestSpark.RemoteApiProfile!>!

@@ -1,3 +1,1 @@
 #nullable enable
-ApiTestSpark.ApiTestSparkOptions.EnableRemoteCallProxy.get -> bool
-ApiTestSpark.ApiTestSparkOptions.EnableRemoteCallProxy.set -> void

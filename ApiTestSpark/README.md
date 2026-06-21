@@ -139,7 +139,7 @@ app.MapApiTestSpark(options =>
 });
 ```
 
-Server profile credentials are redacted from `/api-test-spark/config` and used only by `/api-test-spark/remote-spec?profileId=...`. Browser-created profiles on the Config page are stored locally and fetch OpenAPI documents directly from the browser.
+Server profile credentials are redacted from `/api-test-spark/config` and used only by `/api-test-spark/remote-spec?profileId=...`. When `EnableRemoteCallProxy = true`, server-configured profiles can also send endpoint calls through `/api-test-spark/remote-call` to avoid browser CORS requirements. Browser-created profiles on the Config page are stored locally, fetch OpenAPI documents directly from the browser, and keep endpoint calls browser-direct.
 
 ---
 
@@ -148,12 +148,14 @@ Server profile credentials are redacted from `/api-test-spark/config` and used o
 - **Make Bold Spark branded UI** — Make Bold Solutions colors, package icon, favicon, logo assets, and Inter Tight typography are embedded with the harness.
 - **OpenAPI autodiscovery** — endpoints grouped by tag in a collapsible accordion; real-time search filter
 - **Remote API Explorer** — browse and test one or more named remote REST APIs from their OpenAPI documents; server-configured credentials stay server-side, browser-created profiles stay local, and duplicate visible names are blocked before save
+- **Server-side remote call proxy** — enable `EnableRemoteCallProxy` to route endpoint calls for server-configured profiles through the host app instead of requiring the remote API to allow browser CORS
+- **Identity-aware header templates** — configured host and remote headers can expand `{user-name}`, `{user-email}`, and `{user-id}` from the authenticated user when the config payload is generated
 - **Full metadata surface** — descriptions rendered as markdown, response codes as coloured badges with expandable inline schemas, `operationId` as a copyable chip, schema constraint tables
 - **JSON scaffold** — request body pre-filled from `example → default → enum[0] → type placeholder`; nested objects and arrays scaffolded recursively
 - **Response rendering** — arrays as sortable tables, objects as editable forms, primitives in pre blocks
 - **API Doc Builder** (`/api-docs`) — select endpoints, capture live curl + responses, annotate sections, export markdown
 - **Remote API Doc Builder** (`/remote-docs/{profileId}`) — same documentation capture for remote API endpoints
-- **Header token expansion** — `{session-guid}` and `{request-guid}` tokens in header values are replaced at request time with real UUIDs
+- **Header token expansion** — `{session-guid}`, `{request-guid}`, `{user-name}`, `{user-email}`, and `{user-id}` tokens in header values are replaced with request/session/user-specific values
 - **Debug panel** — drag-resizable, captures every request/response/error/metric; cURL snippet per request; FIFO buffered
 - **Environment gating** — one option keeps the harness off production
 - **Demo integration toggle** — set `EnableDemoIntegrations = false` to hide the built-in JokeAPI and JSONPlaceholder screens; show only your host API and the API Doc Builder

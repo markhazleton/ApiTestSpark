@@ -15,17 +15,17 @@ The package is **not manually deployed** — it is published automatically by th
 
 ### Publish a new version
 
-1. Update `version` in `package.json` (e.g. `1.5.0`)
-2. Add a `[v1.5.0]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `1.7.0`)
+2. Add a `[v1.7.0]` entry to `CHANGELOG.md`
 3. Commit and push
 4. Tag and push:
 
 ```powershell
-git tag -a v1.5.0 -m "Release v1.5.0"
+git tag -a v1.7.0 -m "Release v1.7.0"
 git push origin main --tags
 ```
 
-The `publish-nuget.yml` workflow fires, runs the full quality gate (lint, TypeScript, .NET build, 33 integration tests, vulnerability audit), packs the library, and pushes `ApiTestSpark.1.5.0.nupkg` + `ApiTestSpark.1.5.0.snupkg` to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
+The `publish-nuget.yml` workflow fires, runs the full quality gate (lint, TypeScript, .NET build, 45 integration tests, vulnerability audit), packs the library, and pushes `ApiTestSpark.1.7.0.nupkg` + `ApiTestSpark.1.7.0.snupkg` to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
 
 ### Build the package locally
 
@@ -97,6 +97,7 @@ app.UseForwardedHeaders();
 app.MapApiTestSpark(options =>
 {
     options.OpenApiUrl = "/openapi/v1.json";
+  options.EnableRemoteCallProxy = true;
     options.RemoteApiProfiles.Add(new RemoteApiProfile
     {
         Id = "partner-api",
@@ -117,7 +118,7 @@ app.MapApiTestSpark(options =>
 
 ### Security note
 
-The `ApiTestSpark` harness is designed for **local and trusted development environments only**. The config endpoint (`/api-test-spark/config`) exposes harness metadata and browser-callable header values, while the remote spec proxy (`/api-test-spark/remote-spec`) uses server-held profile credentials for configured profiles. Restrict the harness to non-production environments if the VM is internet-facing:
+The `ApiTestSpark` harness is designed for **local and trusted development environments only**. The config endpoint (`/api-test-spark/config`) exposes harness metadata and browser-callable header values, while the remote spec proxy (`/api-test-spark/remote-spec`) and optional remote call proxy (`/api-test-spark/remote-call`) use server-held profile credentials for configured profiles. Restrict the harness to non-production environments if the VM is internet-facing:
 
 ```csharp
 app.MapApiTestSpark(options =>

@@ -1,0 +1,43 @@
+{
+  "version": "1.7.0",
+  "releaseDate": "2026-06-21",
+  "releaseType": "minor",
+  "release": {
+    "from": "2026-06-20",
+    "to": "2026-06-21"
+  },
+  "commitRange": {
+    "baseRef": "v1.6.0",
+    "baseSha": "dbaa28e0f5dba86dfa153bc30c2a1effdc2eb0a8",
+    "headRef": "HEAD",
+    "headSha": "af3f8cb3f24b6a3a9d13e854f854f10b2fdccee9",
+    "rangeSpec": "v1.6.0..HEAD"
+  },
+  "previousVersion": "v1.6.0",
+  "features": {
+    "completed": 0,
+    "deferred": 0
+  },
+  "quickfixes": 0,
+  "pullRequests": {
+    "merged": 0,
+    "numbers": [],
+    "filesChanged": 62,
+    "testsAdded": 12,
+    "breakingChanges": 0,
+    "resolvedHighFindings": 0
+  },
+  "adrs": 0,
+  "commits": 3,
+  "contributors": 1,
+  "specs": [],
+  "qualityGates": {
+    "typescriptCompilation": "PASS",
+    "eslint": "PASS",
+    "markdownlint": "PASS",
+    "dotnetBuild": "PASS",
+    "integrationTests": "PASS",
+    "nugetPack": "PASS"
+  },
+  "timestamp": "2026-06-21T17:52:53Z"
+}

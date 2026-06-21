@@ -222,15 +222,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.6.0</span>
+                            <span class="pkg-version">v1.7.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 500 KB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 20, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.49 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 21, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.6.0</div>
+                            <div class="value">1.7.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -242,7 +242,7 @@ public static class HomeEndpoints
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Package Size</div>
-                            <div class="value">500 KB</div>
+                            <div class="value">0.49 MB</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Dependencies</div>
@@ -276,10 +276,12 @@ public static class HomeEndpoints
                         <span class="pkg-tag">developer-tools</span>
                         <span class="pkg-tag">api-testing</span>
                         <span class="pkg-tag">remote-api</span>
+                        <span class="pkg-tag">remote-call-proxy</span>
                         <span class="pkg-tag">embedded-ui</span>
                         <span class="pkg-tag">curl</span>
                         <span class="pkg-tag">swagger-ui-alternative</span>
                         <span class="pkg-tag">api-documentation</span>
+                        <span class="pkg-tag">identity-headers</span>
                         <span class="pkg-tag">local-development</span>
                         <span class="pkg-tag">make-bold-spark</span>
                         <span class="pkg-tag">make-bold-solutions</span>
@@ -363,12 +365,12 @@ public static class HomeEndpoints
                     <div class="feature-card">
                         <div class="feature-icon">🔑</div>
                         <h3>Credential-Safe Proxy</h3>
-                        <p>A server-side proxy endpoint (<code class="inline">GET /api-test-spark/remote-spec?profileId=...</code>) resolves server profiles by id and injects API keys or Bearer tokens without serializing secrets to the browser.</p>
+                        <p>Server-side proxy endpoints (<code class="inline">GET /api-test-spark/remote-spec?profileId=...</code> and optional <code class="inline">/api-test-spark/remote-call</code>) resolve server profiles by id and inject API keys or Bearer tokens without serializing secrets to the browser.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🪪</div>
                         <h3>Header Token Expansion</h3>
-                        <p>Header values support <code class="inline">{session-guid}</code> (one UUID per page load) and <code class="inline">{request-guid}</code> (fresh UUID per call), expanded at request-send time. Ideal for correlation IDs in distributed tracing.</p>
+                        <p>Header values support <code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>, <code class="inline">{user-name}</code>, <code class="inline">{user-email}</code>, and <code class="inline">{user-id}</code>, expanded from request/session/user context at runtime.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">📑</div>
@@ -504,6 +506,11 @@ app.<span class="cm">Run</span>();</pre>
                             <td>List of named remote API defaults. Each profile includes an id, name, description, base URL, OpenAPI URL, credentials, and default headers.</td>
                         </tr>
                         <tr>
+                            <td>EnableRemoteCallProxy</td>
+                            <td>false</td>
+                            <td>When <code class="inline">true</code>, endpoint calls for server-configured remote profiles are routed through <code class="inline">/api-test-spark/remote-call</code> so the remote API does not need to allow browser CORS for those requests.</td>
+                        </tr>
+                        <tr>
                             <td>RemoteBaseUrl</td>
                             <td>null</td>
                             <td>Legacy single-remote base URL. Used as one compatibility profile when <code class="inline">RemoteApiProfiles</code> is empty.</td>
@@ -531,7 +538,7 @@ app.<span class="cm">Run</span>();</pre>
                         <tr>
                             <td>RemoteDefaultHeaders</td>
                             <td>{}</td>
-                            <td>Legacy headers injected into every browser-side request to the compatibility remote API. Supports <code class="inline">{session-guid}</code> and <code class="inline">{request-guid}</code> tokens.</td>
+                            <td>Legacy headers injected into every browser-side request to the compatibility remote API. Supports <code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>, <code class="inline">{user-name}</code>, <code class="inline">{user-email}</code>, and <code class="inline">{user-id}</code> tokens.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -553,6 +560,7 @@ app.<span class="cm">Run</span>();</pre>
 <pre><span class="kw">app</span>.<span class="cm">MapApiTestSpark</span>(options =>
 {
     options.OpenApiUrl                   = <span class="st">"/openapi/v1.json"</span>;
+    options.EnableRemoteCallProxy        = <span class="kw">true</span>;
     options.RemoteApiProfiles.Add(new RemoteApiProfile
     {
         Id = <span class="st">"partner-api"</span>,
@@ -631,9 +639,9 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.6.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.7.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
-                        <div class="badge">⚖️ <strong>No dependencies</strong> — 500 KB</div>
+                        <div class="badge">⚖️ <strong>No dependencies</strong> — 0.49 MB</div>
                     </div>
                 </div>
             </section>
@@ -643,7 +651,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                 <h2>How it works</h2>
                 <p class="section-intro">
                     API Test Spark compiles the React SPA into embedded resources inside the NuGet package.
-                    When you call <code class="inline">MapApiTestSpark()</code>, the library registers four things into your ASP.NET Core pipeline:
+                    When you call <code class="inline">MapApiTestSpark()</code>, the library registers five things into your ASP.NET Core pipeline:
                 </p>
                 <div class="steps">
                     <div class="step">
@@ -664,6 +672,9 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
   "authScheme": "Bearer",
   "defaultHeaders": { "X-Tenant-Id": "acme" },
   "enableDemoIntegrations": true,
+    "userName": "Ada Lovelace",
+    "userEmail": "ada@example.com",
+    "userId": "00000000-0000-0000-0000-000000000001",
   "remoteApiProfiles": [
     {
       "id": "partner-api",
@@ -673,12 +684,13 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
       "remoteOpenApiUrl": "https://api.partner.com/openapi.json",
       "remoteOpenApiApiKeyValue": null,
       "remoteOpenApiApiKeyConfigured": true,
+            "remoteCallProxyEnabled": true,
       "source": "server",
       "proxyMode": "server"
     }
   ],
-  "harnessVersion": "1.5.0",
-  "harnessBuiltAt": "2026-06-09T01:24:11Z"
+    "harnessVersion": "1.7.0",
+    "harnessBuiltAt": "2026-06-21T17:52:53Z"
 }</pre>
                         </div>
                     </div>
@@ -691,6 +703,13 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     </div>
                     <div class="step">
                         <div class="step-num">④</div>
+                        <div class="step-body">
+                            <h3>Remote call proxy</h3>
+                            <p>When <code class="inline">EnableRemoteCallProxy</code> is enabled, endpoint calls for server-configured remote profiles are forwarded through <code class="inline">/api-test-spark/remote-call</code>. This avoids browser CORS requirements and keeps server-held credentials off the client.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">⑤</div>
                         <div class="step-body">
                             <h3>SPA fallback middleware</h3>
                             <p>Extensionless paths under <code class="inline">/api-test-spark/</code> fall back to <code class="inline">index.html</code> so client-side routing works. Requests for unknown file extensions return HTTP 404 — the SPA never silently swallows asset 404s.</p>
@@ -900,7 +919,7 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                 <h2>Remote API Profiles</h2>
                 <p class="section-intro">
                     Browse and test named remote REST APIs from their OpenAPI documents without leaving the harness.
-                    Server-configured profile specs use a credential-safe proxy; browser-created profiles are stored locally and fetch specs directly.
+                    Server-configured profile specs use a credential-safe proxy, and server-configured endpoint calls can optionally use the new remote call proxy. Browser-created profiles are stored locally and fetch specs directly.
                 </p>
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2rem;">
@@ -909,12 +928,12 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                         <p style="color:#475569;font-size:0.88rem;">For server profiles, the browser calls <code class="inline">GET /api-test-spark/remote-spec?profileId=...</code> → .NET resolves the server profile → adds credentials → fetches remote OpenAPI JSON. Credential values are redacted from config.</p>
                     </div>
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #10b981;border-radius:8px;padding:1.25rem 1.5rem;">
-                        <h3 style="margin-bottom:0.4rem;">Path 2 — Endpoint Calls (browser-direct)</h3>
-                        <p style="color:#475569;font-size:0.88rem;">When you click Send, the request goes from your browser to the selected profile's remote server. Default headers, browser-local credentials, and token placeholders such as <code class="inline">{request-guid}</code> are injected by the SPA.</p>
+                        <h3 style="margin-bottom:0.4rem;">Path 2 — Endpoint Calls (server proxy or browser-direct)</h3>
+                        <p style="color:#475569;font-size:0.88rem;">When you click Send, server-configured profiles can route through <code class="inline">/api-test-spark/remote-call</code> if <code class="inline">EnableRemoteCallProxy</code> is enabled; otherwise the browser calls the selected remote server directly. Default headers and token placeholders such as <code class="inline">{request-guid}</code> are injected automatically.</p>
                     </div>
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #f59e0b;border-radius:8px;padding:1.25rem 1.5rem;">
                         <h3 style="margin-bottom:0.4rem;">Configuration Management</h3>
-                        <p style="color:#475569;font-size:0.88rem;">Server profiles appear first and can be hidden locally. Browser profiles are added, edited, and deleted from the <strong>Config page</strong>, with all browser-managed values persisted in <code class="inline">localStorage</code>.</p>
+                        <p style="color:#475569;font-size:0.88rem;">Server profiles appear first and can be hidden locally. Copying one to the browser creates a separate browser-only profile instead of overriding the Program.cs entry. Browser profiles are added, edited, and deleted from the <strong>Config page</strong>, with all browser-managed values persisted in <code class="inline">localStorage</code>.</p>
                     </div>
                 </div>
 
@@ -924,7 +943,8 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                 </p>
 <pre><span class="kw">app</span>.<span class="cm">MapApiTestSpark</span>(options =>
 {
-    options.OpenApiUrl    = <span class="st">"/openapi/v1.json"</span>;
+    options.OpenApiUrl              = <span class="st">"/openapi/v1.json"</span>;
+    options.EnableRemoteCallProxy   = <span class="kw">true</span>;
     options.RemoteApiProfiles.Add(new RemoteApiProfile
     {
         Id = <span class="st">"jsonplaceholder-demo"</span>,
@@ -954,9 +974,17 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.7.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 21, 2026</span>
+                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote call proxy and identity-aware headers.</strong> Server-configured remote profiles can now proxy endpoint calls through the host app with <code class="inline">EnableRemoteCallProxy</code>, avoiding browser CORS issues while keeping server-held credentials off the client. The config payload now exposes resolved <code class="inline">userName</code>, <code class="inline">userEmail</code>, and <code class="inline">userId</code> values for header templates, and browser customization now creates distinct local copies instead of overriding Program.cs profiles.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
                             <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.6.0</span>
                             <span style="color:#94a3b8;font-size:0.85rem;">June 20, 2026</span>
-                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Bug fixes and enhancements.</strong> User-name token expansion in profiles and headers, CSP logo rendering fixes, base-path build-info fixes, and updated package references for Microsoft.AspNetCore.OpenApi and Microsoft.OpenApi. Backwards-compatible patch release.</p>
                     </div>
@@ -1070,19 +1098,19 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                     </div>
                     <div>
                         <h3>How does the Remote API Explorer keep credentials safe?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">For server-configured profiles, the SPA calls <code class="inline">GET /api-test-spark/remote-spec?profileId=...</code> — a .NET endpoint in the same process as your app. That endpoint resolves only server-provided profile ids, reads that profile's API key or Bearer token from <code class="inline">ApiTestSparkOptions</code> (server-side memory, never the browser), and injects them into the outbound spec request. Browser-created profiles do not use the proxy; they fetch OpenAPI documents directly from the browser.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">For server-configured profiles, the SPA calls <code class="inline">GET /api-test-spark/remote-spec?profileId=...</code> to load the OpenAPI document. If <code class="inline">EnableRemoteCallProxy</code> is enabled, endpoint calls can also flow through <code class="inline">/api-test-spark/remote-call</code>. Both endpoints resolve only server-provided profile ids, read that profile's API key or Bearer token from <code class="inline">ApiTestSparkOptions</code> (server-side memory, never the browser), and inject them into the outbound request. Browser-created profiles do not use the server proxies; they fetch specs and send endpoint calls directly from the browser.</p>
                     </div>
                     <div>
                         <h3>What are {session-guid} and {request-guid}?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">These are token placeholders you can embed in any header value in <code class="inline">RemoteDefaultHeaders</code>. <code class="inline">{session-guid}</code> is replaced with one UUID that stays constant for the entire page session — useful for tracking a user's full session in a distributed trace. <code class="inline">{request-guid}</code> is replaced with a fresh UUID on every individual API call — useful as a per-request correlation ID. Expansion happens at request-send time, not at configuration time.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">These are token placeholders you can embed in configured header values. <code class="inline">{session-guid}</code> stays constant for the page session, <code class="inline">{request-guid}</code> is regenerated per API call, and <code class="inline">{user-name}</code>, <code class="inline">{user-email}</code>, and <code class="inline">{user-id}</code> resolve from the authenticated user when the config payload is generated. Expansion happens at request-send time for request/session tokens, and during config resolution for user identity tokens.</p>
                     </div>
                     <div>
                         <h3>Can I use the Remote API Explorer to test an API that requires CORS?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">Yes, if the remote server allows browser calls. Server-configured profiles add their <code class="inline">RemoteBaseUrl</code> to the page's <code class="inline">Content-Security-Policy connect-src</code> directive, and browser-created profiles are allowed by the harness CSP as well. The remote server still needs permissive CORS headers for browser-direct endpoint calls and browser-created OpenAPI spec fetches.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">Yes. If the profile is server-configured and <code class="inline">EnableRemoteCallProxy</code> is enabled, endpoint calls can go through the host app so the remote API does not need to allow browser CORS for those requests. Browser-created profiles, and any direct browser calls, still require the remote server to allow the harness origin with CORS headers.</p>
                     </div>
                     <div>
                         <h3>Why don't browser-created profiles use the server proxy?</h3>
-                        <p style="color:#475569;margin-top:0.25rem;">The proxy accepts server-provided profile ids only. Browser-created profile credentials are persisted in <code class="inline">localStorage</code> and applied to browser-direct spec fetches and endpoint calls, but they are never submitted to <code class="inline">/api-test-spark/remote-spec</code>. This keeps the proxy from becoming an arbitrary server-side URL fetcher and keeps browser-local secrets out of the proxy request.</p>
+                        <p style="color:#475569;margin-top:0.25rem;">The proxies accept server-provided profile ids only. Browser-created profile credentials are persisted in <code class="inline">localStorage</code> and applied to browser-direct spec fetches and endpoint calls, but they are never submitted to <code class="inline">/api-test-spark/remote-spec</code> or <code class="inline">/api-test-spark/remote-call</code>. This keeps the proxies from becoming arbitrary server-side URL fetchers and keeps browser-local secrets out of proxy requests.</p>
                     </div>
                 </div>
             </section>

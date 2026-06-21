@@ -35,15 +35,15 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.6.0 |
+| **Version** | 1.7.0 |
 | **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
-| **Package Size** | 500 KB |
+| **Package Size** | 0.49 MB |
 | **Symbol Package** | 15.7 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | June 20, 2026 |
+| **Last Updated** | June 21, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Product Family** | [Make Bold Spark](https://makeboldspark.com) |
@@ -108,6 +108,8 @@ Navigate to `https://localhost:{port}/api-test-spark/` — API Test Spark autodi
 | **Table Truncation** | Large array responses show 2 rows by default with a "Show all N items" expand/collapse control |
 | **API Doc Builder** | Select endpoints, capture live curl + responses, annotate, and export markdown at `/api-docs` |
 | **Remote API Profiles** | Configure multiple named remote APIs in `Program.cs` or the browser, each with its own explorer and doc builder route |
+| **Server-side Remote Call Proxy** | Opt-in `EnableRemoteCallProxy` routes server-configured remote endpoint calls through your host app to avoid browser CORS requirements |
+| **Identity-Aware Header Templates** | Expand `{user-name}`, `{user-email}`, and `{user-id}` in configured host and remote headers using the authenticated user context |
 | **Live Debug Panel** | Every request, response, error, and performance metric — drag-resizable, FIFO buffered |
 | **Environment Gating** | Restrict the harness to Development or Staging; keep it off production with one option |
 | **Demo Integration Toggle** | Hide the built-in JokeAPI and JSONPlaceholder demo screens with one option — show only your host API |
@@ -142,7 +144,22 @@ app.MapApiTestSpark(options =>
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens and disables their routes. Set to `false` for a clean harness showing only your host API. |
 | `RemoteApiProfiles` | `[]` | Named remote API defaults. Each profile has an id, name, description, base URL, OpenAPI URL, credentials, and headers. |
+| `EnableRemoteCallProxy` | `false` | Routes endpoint calls for server-configured remote profiles through `/api-test-spark/remote-call`, avoiding browser CORS requirements while keeping server-held credentials off the client. |
 | `RemoteBaseUrl` / `RemoteOpenApiUrl` | `null` | Legacy single-remote options. When `RemoteApiProfiles` is empty, these seed one compatibility profile. |
+
+### Identity header tokens
+
+Use these tokens only in explicitly configured request headers. They are resolved when
+`/api-test-spark/config` is requested and unresolved values become an empty string.
+
+| Token | Resolution order |
+|---|---|
+| `{user-name}` | `Identity.Name` -> `name` -> `preferred_username` |
+| `{user-email}` | `ClaimTypes.Email` -> `email` -> `preferred_username` |
+| `{user-id}` | `ClaimTypes.NameIdentifier` -> `sub` -> `oid` |
+
+`preferred_username` is used as an email fallback only when the identity provider
+guarantees that it contains an email address or UPN.
 
 ### Remote API profiles
 
@@ -162,13 +179,13 @@ app.MapApiTestSpark(options =>
 });
 ```
 
-Server profile secrets are redacted from `GET /api-test-spark/config`. The server proxy fetches specs by profile id at `GET /api-test-spark/remote-spec?profileId=orders-api`, so browser-created profiles cannot submit arbitrary URLs to the server proxy. Browser-created profiles are stored in `localStorage` and fetch their OpenAPI documents directly from the browser.
+Server profile secrets are redacted from `GET /api-test-spark/config`. The server proxy fetches specs by profile id at `GET /api-test-spark/remote-spec?profileId=orders-api`, so browser-created profiles cannot submit arbitrary URLs to the server proxy. When `EnableRemoteCallProxy = true`, endpoint calls for server-configured profiles are also routed through `GET|POST|PUT|PATCH|DELETE /api-test-spark/remote-call?profileId=...&path=...`. Browser-created profiles are stored in `localStorage`, fetch OpenAPI documents directly from the browser, and keep their endpoint calls browser-direct.
 
 ---
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.5.0 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.7.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -182,16 +199,21 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 
 ## How It Works
 
-`MapApiTestSpark()` registers four things into your ASP.NET Core pipeline:
+`MapApiTestSpark()` registers five things into your ASP.NET Core pipeline:
 
 1. **Static file middleware** — serves the embedded SPA assets (HTML, JS, CSS) from `EmbeddedFileProvider` at `/api-test-spark/`. No files are copied to your project.
-2. **Config endpoint** — `GET /api-test-spark/config` returns your `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, redacted remote API profile metadata, and harness version at runtime. The SPA fetches this on startup — no values are hardcoded in the bundle.
+2. **Config endpoint** — `GET /api-test-spark/config` returns your `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, resolved `userName` / `userEmail` / `userId`, redacted remote API profile metadata, and harness version at runtime. The SPA fetches this on startup — no values are hardcoded in the bundle.
 3. **Remote spec proxy** — `GET /api-test-spark/remote-spec?profileId=...` fetches the configured server remote profile OpenAPI document and returns the JSON to the SPA. API key and Bearer token are injected at the server; credential values are not serialized to the browser config payload.
-4. **SPA fallback** — extensionless paths under `/api-test-spark/` serve `index.html` so client-side routing works. Unknown file extensions return HTTP 404.
+4. **Remote call proxy** — when `EnableRemoteCallProxy` is enabled, endpoint calls for server-configured remote profiles are forwarded through `GET|POST|PUT|PATCH|DELETE /api-test-spark/remote-call?profileId=...&path=...`, avoiding browser CORS requirements and keeping server-held credentials out of the browser.
+5. **SPA fallback** — extensionless paths under `/api-test-spark/` serve `index.html` so client-side routing works. Unknown file extensions return HTTP 404.
 
 ---
 
 ## Release Notes
+
+### v1.7.0 — June 21, 2026
+
+Remote call proxy + identity-aware headers: server-configured remote API profiles can now route endpoint calls through the host app with `EnableRemoteCallProxy`, avoiding browser CORS issues while keeping server-held credentials off the client. The config payload now exposes resolved `userName`, `userEmail`, and `userId` values for `{user-name}`, `{user-email}`, and `{user-id}` header templates. Browser customization no longer overrides Program.cs profiles; it creates separate browser-local copies so proxied server profiles remain authoritative.
 
 ### v1.5.0 — June 12, 2026
 
