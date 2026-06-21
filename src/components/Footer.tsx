@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BRANDING } from '../utils';
+import { useHarnessConfigStore } from '../store/harnessConfigStore';
 
 interface BuildInfo {
   version: string;
@@ -10,6 +11,14 @@ interface BuildInfo {
 
 export function Footer() {
   const [buildInfo, setBuildInfo] = useState<BuildInfo | null>(null);
+  const config = useHarnessConfigStore((state) => state.config);
+  const userVariables = ([
+    ['User', config?.userName],
+    ['Email', config?.userEmail],
+    ['ID', config?.userId],
+  ] as Array<[string, string | undefined]>).filter(
+    (entry): entry is [string, string] => !!entry[1]?.trim()
+  );
 
   useEffect(() => {
     const cacheBuster = new Date().getTime();
@@ -68,6 +77,16 @@ export function Footer() {
         <a href={BRANDING.companyUrl} className="text-[#982407] hover:text-[#741b05] hover:underline">
           {BRANDING.companyName}
         </a>
+        {userVariables.length > 0 && (
+          <>
+            <span className="text-stone-300">|</span>
+            {userVariables.map(([label, value]) => (
+              <span key={label} className="font-mono" title={`${label}: ${value}`}>
+                {label}: {value}
+              </span>
+            ))}
+          </>
+        )}
         {buildInfo && (
           <>
             <span className="text-stone-300">|</span>

@@ -126,15 +126,18 @@ export const AboutScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Direct calls */}
+          {/* Endpoint calls */}
           <div className="rounded-lg border border-gray-200 overflow-hidden mb-4">
             <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-              <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Path 2 — Endpoint Calls (direct from browser)</p>
+              <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Path 2 — Endpoint Calls</p>
             </div>
             <div className="p-4 space-y-2 text-xs text-gray-700 leading-relaxed">
               <p>
-                When you click <strong>Send</strong> in the Remote API Explorer, the request goes
-                directly from your browser to the remote server. The harness injects:
+                Requests are direct from the browser by default and require the remote API to allow CORS.
+                A server-configured profile can opt into the server-side
+                <code className="bg-gray-100 px-1 rounded font-mono"> /api-test-spark/remote-call</code> proxy,
+                which avoids browser CORS restrictions. The configured request headers and credentials are applied
+                server-side:
               </p>
               <ul className="list-disc list-inside space-y-1 pl-2">
                 <li>All <strong>Default Request Headers</strong> (e.g. correlation IDs, session tokens).</li>
@@ -142,9 +145,9 @@ export const AboutScreen: React.FC = () => {
                 <li>An <code className="bg-gray-100 px-1 rounded font-mono">Authorization: Bearer …</code> header (if a Bearer token is configured).</li>
               </ul>
               <p className="text-gray-500 italic">
-                The .NET CSP header is automatically extended to include the remote base URL, so
-                the browser permits these cross-origin calls without requiring a CORS preflight
-                change on the remote server.
+                Enable this only for trusted, server-configured targets: the host can make requests on the
+                user&apos;s behalf. The proxy accepts only a configured profile and its configured origin; browser-created
+                profiles always remain direct.
               </p>
             </div>
           </div>
@@ -193,13 +196,6 @@ export const AboutScreen: React.FC = () => {
             </div>
           )}
 
-          {/* Server defaults */}
-          {harnessConfig?.remoteBaseUrl && (
-            <div className="mt-4 rounded-md bg-[#fff7f5] border border-[#d9aaa0] p-3 text-xs text-[#741b05]">
-              <p className="font-semibold mb-1">Server defaults (from Program.cs)</p>
-              <p className="font-mono break-all">{harnessConfig.remoteBaseUrl}</p>
-            </div>
-          )}
         </Card>
 
         {/* ── Storage ── */}

@@ -10,11 +10,11 @@
 import { useQuery } from '@tanstack/react-query';
 import useDebugStore from '../store/debugStore';
 import { useHarnessConfigStore } from '../store/harnessConfigStore';
-import { getVisibleRemoteProfiles, normalizeRemoteProfile, useRemoteConfigStore } from '../store/remoteConfigStore';
+import { normalizeRemoteProfile, useRemoteConfigStore } from '../store/remoteConfigStore';
 import { HostApiClient } from '../api/hostApiClient';
 import { buildDebugCallbacks } from './hookUtils';
 import { parseOpenApiV3, parseApiInfo } from '../utils/openApiParser';
-import type { OpenApiV3Doc } from '../types';
+import type { HarnessBootstrapConfig, HarnessConfig, OpenApiV3Doc } from '../types';
 
 const HARNESS_CONFIG_QUERY_KEY = ['harness-config'] as const;
 const FETCH_TIMEOUT_MS = 5000;
@@ -24,6 +24,21 @@ function fetchWithTimeout(url: string, signal: AbortSignal): Promise<Response> {
     // AbortController.abort() already handled by caller's timeout logic
   }, FETCH_TIMEOUT_MS);
   return fetch(url, { signal }).finally(() => clearTimeout(timeoutId));
+}
+
+function toHostConfig(config: HarnessBootstrapConfig): HarnessConfig {
+  return {
+    baseUrl: config.baseUrl,
+    openApiUrl: config.openApiUrl,
+    authScheme: config.authScheme,
+    defaultHeaders: config.defaultHeaders,
+    enableDemoIntegrations: config.enableDemoIntegrations,
+    userName: config.userName,
+    userEmail: config.userEmail,
+    userId: config.userId,
+    harnessVersion: config.harnessVersion,
+    harnessBuiltAt: config.harnessBuiltAt,
+  };
 }
 
 export function useHarnessConfig() {
@@ -84,6 +99,7 @@ export function useHarnessConfig() {
                 remoteOpenApiBearerToken: '',
                 remoteOpenApiApiKeyConfigured: false,
                 remoteOpenApiBearerTokenConfigured: false,
+                remoteCallProxyEnabled: false,
                 remoteDefaultHeaders: config.remoteDefaultHeaders ?? {},
                 source: 'server' as const,
                 proxyMode: 'server' as const,
@@ -92,19 +108,7 @@ export function useHarnessConfig() {
         ).map(normalizeRemoteProfile);
 
         remote.setServerProfiles(serverProfiles);
-        const r = useRemoteConfigStore.getState();
-        const visibleProfiles = getVisibleRemoteProfiles(r);
-        const first = visibleProfiles[0];
-        setConfig({
-          ...config,
-          remoteApiProfiles: visibleProfiles,
-          remoteBaseUrl: first?.remoteBaseUrl || config.remoteBaseUrl,
-          remoteOpenApiUrl: first?.remoteOpenApiUrl || config.remoteOpenApiUrl,
-          remoteOpenApiApiKeyHeader: first?.remoteOpenApiApiKeyHeader || config.remoteOpenApiApiKeyHeader,
-          remoteOpenApiApiKeyValue: first?.remoteOpenApiApiKeyValue || undefined,
-          remoteOpenApiBearerToken: first?.remoteOpenApiBearerToken || undefined,
-          remoteDefaultHeaders: first?.remoteDefaultHeaders ?? config.remoteDefaultHeaders ?? {},
-        });
+        setConfig(toHostConfig(config));
       }
 
       // Skip OpenAPI fetch if no URL configured

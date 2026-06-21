@@ -3,6 +3,7 @@
  */
 
 export * from './errorMessages';
+export * from './endpointParameters';
 export { BRANDING } from './branding';
 export * from './storage';
 export * from './session';

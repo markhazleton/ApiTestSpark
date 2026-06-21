@@ -1,32 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useHarnessConfigStore } from '../../store/harnessConfigStore';
 import { getRemoteProfileLabel, getVisibleRemoteProfiles, useRemoteConfigStore } from '../../store/remoteConfigStore';
 import { useRemoteOpenApi } from '../../hooks/useRemoteOpenApi';
 import { EndpointList } from '../host-api/EndpointList';
 import { EndpointTester } from '../host-api/EndpointTester';
-import type { DiscoveredEndpoint, RemoteApiProfile } from '../../types';
-
-function fallbackProfile(config: ReturnType<typeof useHarnessConfigStore.getState>['config']): RemoteApiProfile | null {
-  if (!config?.remoteBaseUrl && !config?.remoteOpenApiUrl) return null;
-  return {
-    id: 'legacy-remote-api',
-    name: 'Remote API',
-    description: 'Configured from Program.cs.',
-    remoteBaseUrl: config.remoteBaseUrl ?? '',
-    remoteOpenApiUrl: config.remoteOpenApiUrl ?? '',
-    remoteOpenApiApiKeyHeader: config.remoteOpenApiApiKeyHeader ?? '',
-    remoteOpenApiApiKeyValue: config.remoteOpenApiApiKeyValue ?? '',
-    remoteOpenApiBearerToken: config.remoteOpenApiBearerToken ?? '',
-    remoteDefaultHeaders: config.remoteDefaultHeaders ?? {},
-    source: 'server',
-    proxyMode: 'server',
-  };
-}
+import type { DiscoveredEndpoint } from '../../types';
 
 export function RemoteApiScreen() {
   const { profileId } = useParams();
-  const { config } = useHarnessConfigStore();
   const remoteStore = useRemoteConfigStore();
   const { mutateAsync: fetchRemoteSpec, isPending, isError, error } = useRemoteOpenApi();
 
@@ -36,9 +17,9 @@ export function RemoteApiScreen() {
 
   const visibleProfiles = getVisibleRemoteProfiles(remoteStore);
   const decodedProfileId = profileId ? decodeURIComponent(profileId) : '';
-  const profile = visibleProfiles.find((item) => item.id === decodedProfileId)
-    ?? visibleProfiles[0]
-    ?? fallbackProfile(config);
+  const profile = decodedProfileId
+    ? visibleProfiles.find((item) => item.id === decodedProfileId)
+    : visibleProfiles[0];
   const remoteBaseUrl = profile?.remoteBaseUrl;
   const remoteOpenApiUrl = profile?.remoteOpenApiUrl;
   const profileLabel = profile ? getRemoteProfileLabel(profile) : 'Remote API';
@@ -53,13 +34,13 @@ export function RemoteApiScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id, remoteOpenApiUrl]);
 
-  if (!remoteBaseUrl && !remoteOpenApiUrl) {
+  if (!profile || !remoteBaseUrl || !remoteOpenApiUrl) {
     return (
       <div className="p-6">
         <div className="bg-gray-50 border border-gray-200 rounded p-4 max-w-lg">
-          <p className="text-sm font-semibold text-gray-700">Remote API not configured</p>
+          <p className="text-sm font-semibold text-gray-700">Remote API profile is incomplete</p>
           <p className="text-xs text-gray-500 mt-1">
-            Add <code>options.RemoteApiProfiles</code> in <code>MapApiTestSpark()</code> or create a browser profile on the Config page.
+            A remote profile needs both a remote base URL and an OpenAPI spec URL. Configure it in <code>MapApiTestSpark()</code> or on the Config page.
           </p>
         </div>
       </div>

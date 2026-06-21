@@ -49,7 +49,9 @@ public class RemoteApiProfile
     public string? RemoteOpenApiBearerToken { get; set; }
 
     /// <summary>
-    /// Headers injected into endpoint calls for this remote API.
+    /// Headers injected into endpoint calls for this remote API. Values support per-request
+    /// expansion of <c>{user-name}</c>, <c>{user-email}</c>, and <c>{user-id}</c> when the
+    /// config endpoint is requested; unresolved values become an empty string.
     /// </summary>
     public Dictionary<string, string> RemoteDefaultHeaders { get; set; } = new();
 }
@@ -76,9 +78,9 @@ public class ApiTestSparkOptions
     /// Default headers injected into every SPA request to host app endpoints.
     /// MUST NOT contain actual credentials or tokens — values are served publicly
     /// via the config endpoint.
-    /// Supports per-request token expansion for <c>{user-name}</c> when config is requested.
-    /// Resolution order: <c>Identity.Name</c>, then claim <c>name</c>, then
-    /// claim <c>preferred_username</c>. Unresolved values become an empty string.
+    /// Supports per-request expansion of <c>{user-name}</c>, <c>{user-email}</c>, and
+    /// <c>{user-id}</c> when config is requested. Values are resolved from the authenticated
+    /// user claims; unresolved values become an empty string.
     /// </summary>
     public Dictionary<string, string> DefaultHeaders { get; set; } = new();
 
@@ -114,9 +116,18 @@ public class ApiTestSparkOptions
     /// <summary>
     /// Remote APIs shown in the remote explorer and documentation builder.
     /// Values configured here are served as metadata only; credential values are redacted
-    /// from <c>/api-test-spark/config</c> and used only by the server-side spec proxy.
+    /// from <c>/api-test-spark/config</c> and used only by the server-side proxies.
     /// </summary>
     public List<RemoteApiProfile> RemoteApiProfiles { get; set; } = new();
+
+    /// <summary>
+    /// When true, endpoint calls for server-configured remote API profiles are sent through
+    /// <c>/api-test-spark/remote-call</c> instead of directly from the browser. This avoids
+    /// remote-server CORS requirements and keeps server-held credentials out of the browser.
+    /// Only enable this for trusted profiles: the host application becomes a proxy to each
+    /// configured remote API and forwards user-initiated requests to it. Default: false.
+    /// </summary>
+    public bool EnableRemoteCallProxy { get; set; }
 
     /// <summary>
     /// Headers injected into every SPA request when calling a remote API
@@ -125,9 +136,9 @@ public class ApiTestSparkOptions
     /// to remote calls — they do not affect requests to the local host app.
     /// Values are served via <c>/api-test-spark/config</c>; the harness MUST NOT be
     /// exposed to the public internet.
-    /// Supports per-request token expansion for <c>{user-name}</c> when config is requested.
-    /// Resolution order: <c>Identity.Name</c>, then claim <c>name</c>, then
-    /// claim <c>preferred_username</c>. Unresolved values become an empty string.
+    /// Supports per-request expansion of <c>{user-name}</c>, <c>{user-email}</c>, and
+    /// <c>{user-id}</c> when config is requested. Values are resolved from the authenticated
+    /// user claims; unresolved values become an empty string.
     /// </summary>
     public Dictionary<string, string> RemoteDefaultHeaders { get; set; } = new();
 
@@ -174,7 +185,7 @@ public class ApiTestSparkOptions
     public string? RemoteOpenApiBearerToken { get; set; }
 
     /// <summary>
-    /// Optional <see cref="System.Net.Http.HttpClient"/> override for the remote spec proxy.
+    /// Optional <see cref="System.Net.Http.HttpClient"/> override for the remote spec and call proxies.
     /// Intended for integration testing only — allows injecting a test <c>HttpClient</c>
     /// without replacing the shared static instance.
     /// Leave <c>null</c> in production; the harness uses its own shared client by default.

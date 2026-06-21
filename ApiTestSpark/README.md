@@ -63,19 +63,61 @@ app.MapApiTestSpark(options =>
 |---|---|---|
 | `OpenApiUrl` | `"/openapi.json"` | URL of your OpenAPI v3 JSON document. `null` disables autodiscovery. |
 | `AuthScheme` | `null` | `"Bearer"`, `"ApiKey"`, or `"Basic"` — metadata only, never a token value. |
-| `DefaultHeaders` | `{}` | Headers injected into every host API SPA request. Must not contain credentials — values are served publicly via the config endpoint. |
+| `DefaultHeaders` | `{}` | Headers injected into every host API SPA request. Must not contain credentials — values are served publicly via the config endpoint. Supports identity tokens below. |
 | `Environments` | `[]` (all) | Environment names where the harness is active. Empty = everywhere. Example: `["Development", "Staging"]` keeps it off production. |
-| `EnableUserNameTokenExpansion` | `true` | When `true`, profile and header values support `{userName}` token expansion at request time, enabling personalized headers and body content for multi-user environments. |
 | `CorsOrigins` | `[]` (same-origin) | Extra origins allowed to call the config endpoint. Use when the Vite dev server and .NET API run on different ports. |
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback. Alternatively set `Logging:LogLevel:ApiTestSpark=Debug` in appsettings. |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes. Set to `false` to present a clean harness showing only your host API and API Doc Builder. |
 | `RemoteApiProfiles` | `[]` | List of named remote APIs. Each profile has `Id`, `Name`, `Description`, `RemoteBaseUrl`, `RemoteOpenApiUrl`, credentials, and default headers. |
+| `EnableRemoteCallProxy` | `false` | Routes endpoint calls for server-configured remote profiles through the host API, avoiding browser CORS requirements. See the security note below. |
 | `RemoteBaseUrl` | `null` | Legacy single-remote base URL. Used as one compatibility profile when `RemoteApiProfiles` is empty. |
 | `RemoteOpenApiUrl` | `null` | Legacy single-remote OpenAPI URL. Used as one compatibility profile when `RemoteApiProfiles` is empty. |
 | `RemoteOpenApiApiKeyHeader` | `null` | Legacy header name for the remote API key. |
 | `RemoteOpenApiApiKeyValue` | `null` | Legacy API key value. Used server-side only and redacted from config. |
 | `RemoteOpenApiBearerToken` | `null` | Legacy bearer token. Used server-side only and redacted from config. |
-| `RemoteDefaultHeaders` | `{}` | Legacy headers injected into browser-side requests to the remote API. Supports `{session-guid}` and `{request-guid}` tokens. |
+| `RemoteDefaultHeaders` | `{}` | Legacy headers injected into browser-side requests to the remote API. Supports identity tokens below plus `{session-guid}` and `{request-guid}`. |
+
+### Identity header tokens
+
+Use these tokens only in explicitly configured request headers. They are resolved when
+`/api-test-spark/config` is requested and may expose identity data to downstream APIs.
+Unauthenticated or unresolved values become an empty string.
+
+| Token | Resolution order |
+|---|---|
+| `{user-name}` | `Identity.Name` → `name` → `preferred_username` |
+| `{user-email}` | `ClaimTypes.Email` → `email` → `preferred_username` |
+| `{user-id}` | `ClaimTypes.NameIdentifier` → `sub` → `oid` |
+
+`preferred_username` is used as an email fallback only when the identity provider
+guarantees that it contains an email address or UPN.
+
+### Server-side remote call proxy
+
+By default, remote endpoint calls run directly from the browser and the remote API
+must allow the harness origin with CORS. Set `EnableRemoteCallProxy = true` to route
+calls for server-configured `RemoteApiProfiles` through
+`/api-test-spark/remote-call`; browser-created profiles always remain browser-direct.
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.EnableRemoteCallProxy = true;
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "make-bold-spark",
+        RemoteBaseUrl = "https://makeboldspark.com",
+        RemoteOpenApiUrl = "https://makeboldspark.com/openapi/v1.json",
+    });
+});
+```
+
+Security: enabling this makes the host application an HTTP proxy for each configured
+profile. The proxy accepts only configured profile IDs and only forwards to that
+profile's base origin; it does not accept arbitrary remote URLs. Review every enabled
+profile, protect the harness route with your normal application authentication, and do
+not enable it for untrusted remote targets. Server-held API credentials are applied by
+the host and remain redacted from browser configuration.
 
 ### Multiple remote APIs
 

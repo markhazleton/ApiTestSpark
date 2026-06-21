@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useHarnessConfigStore } from '../../store/harnessConfigStore';
 import { getRemoteProfileLabel, getVisibleRemoteProfiles, useRemoteConfigStore } from '../../store/remoteConfigStore';
 import { useRemoteOpenApi } from '../../hooks/useRemoteOpenApi';
 import { EndpointList } from '../host-api/EndpointList';
@@ -8,7 +7,9 @@ import { buildCurlCommand, generateMarkdown } from '../../utils/generateMarkdown
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { resolveHeaderTokens } from '../../utils/session';
-import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc, HarnessConfig, RemoteApiProfile } from '../../types';
+import { getMissingRequiredPathParameters, resolvePathParameters } from '../../utils/endpointParameters';
+import { buildRemoteCallProxyUrl, usesServerRemoteCallProxy } from '../../api/remoteCallProxy';
+import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc } from '../../types';
 
 const METHOD_COLORS: Record<string, string> = {
   GET:    'bg-[#f7e6e1] text-[#741b05]',
@@ -18,23 +19,6 @@ const METHOD_COLORS: Record<string, string> = {
   DELETE: 'bg-red-100 text-red-800',
 };
 
-function fallbackProfile(config: HarnessConfig | null): RemoteApiProfile | null {
-  if (!config?.remoteBaseUrl && !config?.remoteOpenApiUrl) return null;
-  return {
-    id: 'legacy-remote-api',
-    name: 'Remote API',
-    description: 'Configured from Program.cs.',
-    remoteBaseUrl: config.remoteBaseUrl ?? '',
-    remoteOpenApiUrl: config.remoteOpenApiUrl ?? '',
-    remoteOpenApiApiKeyHeader: config.remoteOpenApiApiKeyHeader ?? '',
-    remoteOpenApiApiKeyValue: config.remoteOpenApiApiKeyValue ?? '',
-    remoteOpenApiBearerToken: config.remoteOpenApiBearerToken ?? '',
-    remoteDefaultHeaders: config.remoteDefaultHeaders ?? {},
-    source: 'server',
-    proxyMode: 'server',
-  };
-}
-
 // ── Capture form ──────────────────────────────────────────────────────────────
 
 function CaptureForm({
@@ -43,7 +27,7 @@ function CaptureForm({
   onCapture,
 }: {
   entry: DocEntry;
-  captureConfig: { baseUrl: string; headers: Record<string, string> } | null;
+  captureConfig: { baseUrl: string; headers: Record<string, string>; proxyProfileId?: string } | null;
   onCapture: (id: string, capture: CapturedCall, params: DocEntry['captureParams']) => void;
 }) {
   const ep = entry.endpoint;
@@ -59,25 +43,36 @@ function CaptureForm({
   const queryParams_ = ep.parameters.filter((p) => p.in === 'query');
 
   async function fire() {
+    if (!captureConfig) {
+      setError('Remote API base URL is not configured.');
+      return;
+    }
+
+    const missingPathParameters = getMissingRequiredPathParameters(pathParams_, pathParams);
+    if (missingPathParameters.length > 0) {
+      setError(`Required path parameter${missingPathParameters.length === 1 ? '' : 's'}: ${missingPathParameters.join(', ')}`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      let resolvedPath = ep.path;
-      for (const [k, v] of Object.entries(pathParams)) {
-        resolvedPath = resolvedPath.replace(`{${k}}`, encodeURIComponent(v));
-      }
+      const resolvedPath = resolvePathParameters(ep.path, pathParams_, pathParams);
 
       const qs = Object.entries(queryParams)
         .filter(([, v]) => v !== '')
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&');
 
-      const baseUrl = captureConfig?.baseUrl ?? window.location.origin;
+      const baseUrl = captureConfig.baseUrl;
       const url = `${baseUrl}${resolvedPath}${qs ? `?${qs}` : ''}`;
+      const fetchUrl = captureConfig.proxyProfileId
+        ? buildRemoteCallProxyUrl(captureConfig.proxyProfileId, url)
+        : url;
 
       const headers = resolveHeaderTokens({
         'Content-Type': 'application/json',
-        ...(captureConfig?.headers ?? {}),
+        ...captureConfig.headers,
       });
 
       const parsedBody = needsBody && body.trim()
@@ -86,12 +81,14 @@ function CaptureForm({
 
       const curlCommand = buildCurlCommand(ep.method, url, headers, parsedBody);
 
+      // eslint-disable-next-line react-hooks/purity -- invoked only by the capture button.
       const startMs = performance.now();
-      const resp = await fetch(url, {
+      const resp = await fetch(fetchUrl, {
         method: ep.method,
         headers,
         body: parsedBody !== undefined ? JSON.stringify(parsedBody) : undefined,
       });
+      // eslint-disable-next-line react-hooks/purity -- invoked only by the capture button.
       const durationMs = performance.now() - startMs;
 
       const rawText = await resp.text();
@@ -189,10 +186,10 @@ function CaptureForm({
         <button
           type="button"
           onClick={fire}
-          disabled={loading}
+          disabled={loading || !captureConfig}
           className="px-3 py-1 bg-[#982407] text-white rounded hover:bg-[#741b05] disabled:opacity-50 transition-colors font-semibold"
         >
-          {loading ? 'Capturing…' : 'Capture Live Response'}
+          {loading ? 'Capturing…' : captureConfig ? 'Capture Live Response' : 'Remote Base URL Required'}
         </button>
         {entry.capture && (
           <span className={`font-mono ${entry.capture.status < 400 ? 'text-green-600' : 'text-red-600'}`}>
@@ -220,7 +217,7 @@ function EntryCard({
   entry: DocEntry;
   index: number;
   total: number;
-  captureConfig: { baseUrl: string; headers: Record<string, string> } | null;
+  captureConfig: { baseUrl: string; headers: Record<string, string>; proxyProfileId?: string } | null;
   onMove: (id: string, dir: -1 | 1) => void;
   onRemove: (id: string) => void;
   onNoteChange: (id: string, note: string) => void;
@@ -308,7 +305,6 @@ function EntryCard({
 
 export function RemoteApiDocScreen() {
   const { profileId } = useParams();
-  const { config } = useHarnessConfigStore();
   const remoteStore = useRemoteConfigStore();
   const { mutateAsync: fetchRemoteSpec, isPending, isError, error } = useRemoteOpenApi();
 
@@ -317,9 +313,9 @@ export function RemoteApiDocScreen() {
 
   const visibleProfiles = getVisibleRemoteProfiles(remoteStore);
   const decodedProfileId = profileId ? decodeURIComponent(profileId) : '';
-  const profile = visibleProfiles.find((item) => item.id === decodedProfileId)
-    ?? visibleProfiles[0]
-    ?? fallbackProfile(config);
+  const profile = decodedProfileId
+    ? visibleProfiles.find((item) => item.id === decodedProfileId)
+    : visibleProfiles[0];
   const remoteBaseUrl = profile?.remoteBaseUrl;
   const remoteOpenApiUrl = profile?.remoteOpenApiUrl;
   const profileLabel = profile ? getRemoteProfileLabel(profile) : 'Remote API';
@@ -337,6 +333,7 @@ export function RemoteApiDocScreen() {
   // but direct browser calls use the headers from config)
   const captureConfig = remoteBaseUrl ? {
     baseUrl: remoteBaseUrl,
+    proxyProfileId: profile && usesServerRemoteCallProxy(profile) ? profile.id : undefined,
     headers: {
       ...(profile?.remoteDefaultHeaders ?? {}),
       ...(profile?.source !== 'server' && profile?.remoteOpenApiApiKeyHeader && profile?.remoteOpenApiApiKeyValue

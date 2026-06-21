@@ -27,6 +27,7 @@ app.MapGroup("/orders").WithTags("Orders: Lifecycle").MapOrders();
 app.MapApiTestSpark(options =>
 {
     options.OpenApiUrl = "/openapi/v1.json";
+    options.EnableRemoteCallProxy = true;
     options.RemoteApiProfiles.Add(new RemoteApiProfile
     {
         Id = "jsonplaceholder-demo",
@@ -42,11 +43,11 @@ app.MapApiTestSpark(options =>
     });
     options.RemoteApiProfiles.Add(new RemoteApiProfile
     {
-        Id = "apitest-spark-demo",
-        Name = "API Test Spark Demo",
-        Description = "Hosted sample API used to demonstrate a second remote profile.",
-        RemoteBaseUrl = "https://apitest.makeboldspark.com",
-        RemoteOpenApiUrl = "https://apitest.makeboldspark.com/openapi/v1.json",
+        Id = "make-bold-spark",
+        Name = "API Make Bold Spark",
+        Description = "Make Bold Spark - API.",
+        RemoteBaseUrl = "https://makeboldspark.com",
+        RemoteOpenApiUrl = "https://makeboldspark.com/openapi/v1.json",
     });
 });
 

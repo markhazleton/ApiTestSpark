@@ -12,6 +12,8 @@ export interface RemoteApiProfile {
   remoteOpenApiBearerToken?: string;
   remoteOpenApiApiKeyConfigured?: boolean;
   remoteOpenApiBearerTokenConfigured?: boolean;
+  /** Server-configured profiles use the same-origin remote call proxy when true. */
+  remoteCallProxyEnabled?: boolean;
   remoteDefaultHeaders: Record<string, string>;
   source: RemoteApiProfileSource;
   proxyMode: RemoteProxyMode;
@@ -22,18 +24,33 @@ export interface HarnessConfig {
   openApiUrl: string | null;
   authScheme: 'Bearer' | 'ApiKey' | 'Basic' | null;
   defaultHeaders: Record<string, string>;
-  remoteDefaultHeaders?: Record<string, string>;
   enableDemoIntegrations: boolean;
+  /** Authenticated user's resolved display name, if available. */
+  userName?: string;
+  /** Authenticated user's resolved email or UPN, if available. */
+  userEmail?: string;
+  /** Authenticated user's stable identifier, if available. */
+  userId?: string;
+  /** NuGet package version of the embedded harness, e.g. "1.2.0". */
+  harnessVersion?: string;
+  /** ISO-8601 build timestamp baked into the assembly at pack time. */
+  harnessBuiltAt?: string;
+}
+
+/**
+ * Wire format returned by /api-test-spark/config.
+ *
+ * Remote fields are used only to hydrate the independent remote-profile store;
+ * they are deliberately excluded from the host API runtime configuration.
+ */
+export interface HarnessBootstrapConfig extends HarnessConfig {
+  remoteDefaultHeaders?: Record<string, string>;
   remoteBaseUrl?: string;
   remoteOpenApiUrl?: string;
   remoteOpenApiApiKeyHeader?: string;
   remoteOpenApiApiKeyValue?: string;
   remoteOpenApiBearerToken?: string;
   remoteApiProfiles?: RemoteApiProfile[];
-  /** NuGet package version of the embedded harness, e.g. "1.2.0". */
-  harnessVersion?: string;
-  /** ISO-8601 build timestamp baked into the assembly at pack time. */
-  harnessBuiltAt?: string;
 }
 
 /** Metadata from the OpenAPI info block, surfaced in the UI header. */

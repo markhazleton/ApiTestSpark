@@ -17,9 +17,12 @@ namespace ApiTestSpark;
 public static class ApiTestSparkExtensions
 {
     private const string UserNameToken = "{user-name}";
+    private const string UserEmailToken = "{user-email}";
+    private const string UserIdToken = "{user-id}";
     private const string MountPath = "/api-test-spark";
     private const string ConfigPath = "/api-test-spark/config";
     private const string RemoteSpecPath = "/api-test-spark/remote-spec";
+    private const string RemoteCallPath = "/api-test-spark/remote-call";
     private const string ResourcePrefix = "ApiTestSpark.build.";
     private const string CorsPolicy = "ApiTestSpark.CorsPolicy";
     private const int MaxRemoteSpecBytes = 2_000_000;
@@ -159,6 +162,9 @@ public static class ApiTestSparkExtensions
             }
 
             var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
+            var userName = ResolveUserName(ctx.User);
+            var userEmail = ResolveUserEmail(ctx.User);
+            var userId = ResolveUserId(ctx.User);
             var resolvedDefaultHeaders = ResolveHeaderTokens(options.DefaultHeaders, ctx.User);
             var resolvedRemoteDefaultHeaders = ResolveHeaderTokens(options.RemoteDefaultHeaders, ctx.User);
             var resolvedRemoteProfiles = remoteProfiles
@@ -172,13 +178,16 @@ public static class ApiTestSparkExtensions
                 authScheme = options.AuthScheme,
                 defaultHeaders = resolvedDefaultHeaders,
                 enableDemoIntegrations = options.EnableDemoIntegrations,
+                userName,
+                userEmail,
+                userId,
                 remoteDefaultHeaders = resolvedRemoteDefaultHeaders,
                 remoteBaseUrl = options.RemoteBaseUrl,
                 remoteOpenApiUrl = options.RemoteOpenApiUrl,
                 remoteOpenApiApiKeyHeader = options.RemoteOpenApiApiKeyHeader,
                 remoteOpenApiApiKeyValue = (string?)null,
                 remoteOpenApiBearerToken = (string?)null,
-                remoteApiProfiles = resolvedRemoteProfiles.Select(ToConfigProfile),
+                remoteApiProfiles = resolvedRemoteProfiles.Select(profile => ToConfigProfile(profile, options.EnableRemoteCallProxy)),
                 harnessVersion,
                 harnessBuiltAt,
             };
@@ -262,6 +271,74 @@ public static class ApiTestSparkExtensions
             return Results.Content(body, "application/json");
         });
 
+        // Remote call proxy — server-configured profiles avoid browser CORS restrictions.
+        app.MapMethods(RemoteCallPath, ["GET", "POST", "PUT", "PATCH", "DELETE"], async (HttpContext ctx) =>
+        {
+            if (!options.EnableRemoteCallProxy)
+                return Results.Json(new { error = "Remote call proxy is not enabled." }, statusCode: 403);
+
+            var profileId = ctx.Request.Query["profileId"].ToString();
+            var profile = ResolveRemoteProfile(remoteProfiles, profileId);
+            if (profile is null)
+            {
+                var message = remoteProfiles.Count == 0
+                    ? "No server remote API profiles are configured."
+                    : "Unknown remote API profile.";
+                return Results.Json(new { error = message }, statusCode: remoteProfiles.Count == 0 ? 400 : 404);
+            }
+
+            var path = ctx.Request.Query["path"].ToString();
+            if (!TryResolveRemoteCallUri(profile, path, out var targetUri))
+                return Results.Json(new { error = "Remote call path is invalid." }, statusCode: 400);
+
+            using var request = new HttpRequestMessage(new HttpMethod(ctx.Request.Method), targetUri);
+            if (ctx.Request.ContentLength is > 0)
+            {
+                request.Content = new StreamContent(ctx.Request.Body);
+                if (!string.IsNullOrWhiteSpace(ctx.Request.ContentType))
+                    request.Content.Headers.TryAddWithoutValidation("Content-Type", ctx.Request.ContentType);
+            }
+
+            CopyForwardableRequestHeaders(ctx.Request, request);
+            ApplyRemoteProfileHeaders(request, ResolveHeaderTokens(profile.RemoteDefaultHeaders, ctx.User));
+
+            if (!string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyHeader) &&
+                !string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyValue))
+            {
+                request.Headers.Remove(profile.RemoteOpenApiApiKeyHeader);
+                request.Headers.TryAddWithoutValidation(profile.RemoteOpenApiApiKeyHeader, profile.RemoteOpenApiApiKeyValue);
+            }
+
+            if (!string.IsNullOrWhiteSpace(profile.RemoteOpenApiBearerToken))
+            {
+                request.Headers.Remove("Authorization");
+                request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {profile.RemoteOpenApiBearerToken}");
+            }
+
+            var httpClient = options.TestHttpClient ?? SharedHttpClient;
+            HttpResponseMessage remoteResponse;
+            try
+            {
+                remoteResponse = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ctx.RequestAborted);
+            }
+            catch
+            {
+                return Results.Json(new { error = "Failed to call remote API." }, statusCode: 502);
+            }
+
+            using (remoteResponse)
+            {
+                if (IsRedirect(remoteResponse.StatusCode))
+                    return Results.Json(new { error = "Remote API redirects are not followed." }, statusCode: 502);
+
+                ctx.Response.StatusCode = (int)remoteResponse.StatusCode;
+                CopyForwardableResponseHeaders(remoteResponse, ctx.Response);
+                await remoteResponse.Content.CopyToAsync(ctx.Response.Body, ctx.RequestAborted);
+            }
+
+            return Results.Empty;
+        });
+
         // SPA middleware — serve index.html fallback and set security headers
         app.Use(async (ctx, next) =>
         {
@@ -292,7 +369,8 @@ public static class ApiTestSparkExtensions
 
             // Pass through to MapGet routes before SPA fallback
             if (ctx.Request.Path.StartsWithSegments(ConfigPath) ||
-                ctx.Request.Path.StartsWithSegments(RemoteSpecPath))
+                ctx.Request.Path.StartsWithSegments(RemoteSpecPath) ||
+                ctx.Request.Path.StartsWithSegments(RemoteCallPath))
             {
                 await next(ctx);
                 return;
@@ -398,7 +476,7 @@ public static class ApiTestSparkExtensions
         return profile;
     }
 
-    private static object ToConfigProfile(RemoteApiProfile profile) => new
+    private static object ToConfigProfile(RemoteApiProfile profile, bool enableRemoteCallProxy) => new
     {
         id = profile.Id,
         name = profile.Name,
@@ -411,6 +489,7 @@ public static class ApiTestSparkExtensions
         remoteOpenApiApiKeyConfigured = !string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyValue),
         remoteOpenApiBearerTokenConfigured = !string.IsNullOrWhiteSpace(profile.RemoteOpenApiBearerToken),
         remoteDefaultHeaders = profile.RemoteDefaultHeaders,
+        remoteCallProxyEnabled = enableRemoteCallProxy,
         source = "server",
         proxyMode = "server",
     };
@@ -439,17 +518,28 @@ public static class ApiTestSparkExtensions
             return [];
 
         var resolvedUserName = ResolveUserName(user);
+        var resolvedUserEmail = ResolveUserEmail(user);
+        var resolvedUserId = ResolveUserId(user);
         return headers.ToDictionary(
             header => header.Key,
-            header => ReplaceToken(header.Value, UserNameToken, resolvedUserName),
+            header => ReplaceUserTokens(
+                header.Value,
+                resolvedUserName,
+                resolvedUserEmail,
+                resolvedUserId),
             StringComparer.Ordinal);
     }
 
-    private static string ReplaceToken(string value, string token, string replacement)
+    private static string ReplaceUserTokens(
+        string value,
+        string userName,
+        string userEmail,
+        string userId)
     {
-        return value.Contains(token, StringComparison.Ordinal)
-            ? value.Replace(token, replacement, StringComparison.Ordinal)
-            : value;
+        return value
+            .Replace(UserNameToken, userName, StringComparison.Ordinal)
+            .Replace(UserEmailToken, userEmail, StringComparison.Ordinal)
+            .Replace(UserIdToken, userId, StringComparison.Ordinal);
     }
 
     private static string ResolveUserName(ClaimsPrincipal user)
@@ -470,6 +560,121 @@ public static class ApiTestSparkExtensions
 
         return string.Empty;
     }
+
+    private static string ResolveUserEmail(ClaimsPrincipal user)
+    {
+        if (user.Identity?.IsAuthenticated != true)
+            return string.Empty;
+
+        return FirstNonEmptyClaim(user, ClaimTypes.Email, "email", "preferred_username");
+    }
+
+    private static string ResolveUserId(ClaimsPrincipal user)
+    {
+        if (user.Identity?.IsAuthenticated != true)
+            return string.Empty;
+
+        return FirstNonEmptyClaim(user, ClaimTypes.NameIdentifier, "sub", "oid");
+    }
+
+    private static string FirstNonEmptyClaim(ClaimsPrincipal user, params string[] claimTypes)
+    {
+        foreach (var claimType in claimTypes)
+        {
+            var value = user.FindFirst(claimType)?.Value;
+            if (!string.IsNullOrWhiteSpace(value))
+                return value;
+        }
+
+        return string.Empty;
+    }
+
+    private static bool TryResolveRemoteCallUri(RemoteApiProfile profile, string path, out Uri targetUri)
+    {
+        targetUri = null!;
+        if (!Uri.TryCreate(profile.RemoteBaseUrl, UriKind.Absolute, out var baseUri) ||
+            (baseUri.Scheme != Uri.UriSchemeHttp && baseUri.Scheme != Uri.UriSchemeHttps) ||
+            string.IsNullOrWhiteSpace(path) ||
+            !path.StartsWith("/", StringComparison.Ordinal) ||
+            path.StartsWith("//", StringComparison.Ordinal) ||
+            !Uri.TryCreate(path, UriKind.Relative, out _))
+        {
+            return false;
+        }
+
+        var candidate = new Uri(baseUri, path);
+        if (!string.Equals(candidate.Scheme, baseUri.Scheme, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(candidate.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase) ||
+            candidate.Port != baseUri.Port)
+        {
+            return false;
+        }
+
+        targetUri = candidate;
+        return true;
+    }
+
+    private static void CopyForwardableRequestHeaders(HttpRequest request, HttpRequestMessage remoteRequest)
+    {
+        foreach (var header in request.Headers)
+        {
+            if (IsBlockedRequestHeader(header.Key))
+                continue;
+
+            if (!remoteRequest.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray()))
+                remoteRequest.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+        }
+    }
+
+    private static void ApplyRemoteProfileHeaders(HttpRequestMessage request, IReadOnlyDictionary<string, string> headers)
+    {
+        foreach (var (key, value) in headers)
+        {
+            request.Headers.Remove(key);
+            request.Content?.Headers.Remove(key);
+            if (!request.Headers.TryAddWithoutValidation(key, value))
+                request.Content?.Headers.TryAddWithoutValidation(key, value);
+        }
+    }
+
+    private static void CopyForwardableResponseHeaders(HttpResponseMessage remoteResponse, HttpResponse response)
+    {
+        foreach (var header in remoteResponse.Headers.Concat(remoteResponse.Content.Headers))
+        {
+            if (IsBlockedResponseHeader(header.Key))
+            {
+                continue;
+            }
+
+            response.Headers[header.Key] = header.Value.ToArray();
+        }
+    }
+
+    private static bool IsBlockedRequestHeader(string headerName) =>
+        IsHopByHopHeader(headerName) ||
+        string.Equals(headerName, "Host", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Cookie", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Authorization", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Origin", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Referer", StringComparison.OrdinalIgnoreCase) ||
+        headerName.StartsWith("Sec-", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsBlockedResponseHeader(string headerName) =>
+        IsHopByHopHeader(headerName) ||
+        string.Equals(headerName, "Content-Length", StringComparison.OrdinalIgnoreCase) ||
+        // A remote response must never be able to set a cookie for the harness origin.
+        string.Equals(headerName, "Set-Cookie", StringComparison.OrdinalIgnoreCase) ||
+        headerName.StartsWith("Access-Control-", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsHopByHopHeader(string headerName) =>
+        string.Equals(headerName, "Connection", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Keep-Alive", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Proxy-Authenticate", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Proxy-Authorization", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "TE", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Trailer", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Transfer-Encoding", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(headerName, "Upgrade", StringComparison.OrdinalIgnoreCase);
 
     private static RemoteApiProfile? ResolveRemoteProfile(IReadOnlyList<RemoteApiProfile> profiles, string? profileId)
     {

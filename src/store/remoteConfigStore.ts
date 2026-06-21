@@ -65,6 +65,7 @@ export function normalizeRemoteProfile(profile: Partial<RemoteApiProfile>): Remo
     remoteOpenApiBearerToken: source === 'server' ? '' : (profile.remoteOpenApiBearerToken ?? ''),
     remoteOpenApiApiKeyConfigured: !!profile.remoteOpenApiApiKeyConfigured,
     remoteOpenApiBearerTokenConfigured: !!profile.remoteOpenApiBearerTokenConfigured,
+    remoteCallProxyEnabled: source === 'server' && !!profile.remoteCallProxyEnabled,
     remoteDefaultHeaders: profile.remoteDefaultHeaders ?? EMPTY_HEADERS,
     source,
     proxyMode: source === 'server' ? 'server' : 'browser',

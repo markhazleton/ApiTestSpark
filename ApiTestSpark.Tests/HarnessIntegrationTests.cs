@@ -95,6 +95,9 @@ public class HarnessIntegrationTests
         StringAssert.Contains(body, "\"authScheme\"");
         StringAssert.Contains(body, "\"defaultHeaders\"");
         StringAssert.Contains(body, "\"enableDemoIntegrations\"");
+        StringAssert.Contains(body, "\"userName\"");
+        StringAssert.Contains(body, "\"userEmail\"");
+        StringAssert.Contains(body, "\"userId\"");
         StringAssert.Contains(body, "\"Bearer\"");
     }
 
@@ -153,6 +156,44 @@ public class HarnessIntegrationTests
     }
 
     [TestMethod]
+    public async Task ConfigEndpoint_HostAndRemoteConfiguration_AreReturnedInSeparateScopes()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.DefaultHeaders["X-Target"] = "host";
+            o.RemoteBaseUrl = "https://legacy-remote.example.test";
+            o.RemoteDefaultHeaders["X-Target"] = "legacy-remote";
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                Name = "Orders",
+                RemoteBaseUrl = "https://orders.example.test",
+                RemoteOpenApiUrl = "https://orders.example.test/openapi.json",
+                RemoteDefaultHeaders = new Dictionary<string, string>
+                {
+                    ["X-Target"] = "orders-remote",
+                },
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var config = doc.RootElement;
+
+        Assert.IsFalse((config.GetProperty("baseUrl").GetString() ?? string.Empty).Contains("remote.example.test", StringComparison.Ordinal));
+        Assert.AreEqual("host", config.GetProperty("defaultHeaders").GetProperty("X-Target").GetString());
+        Assert.AreEqual("legacy-remote", config.GetProperty("remoteDefaultHeaders").GetProperty("X-Target").GetString());
+        Assert.AreEqual("https://legacy-remote.example.test", config.GetProperty("remoteBaseUrl").GetString());
+
+        var profile = config.GetProperty("remoteApiProfiles")[0];
+        Assert.AreEqual("https://orders.example.test", profile.GetProperty("remoteBaseUrl").GetString());
+        Assert.AreEqual("orders-remote", profile.GetProperty("remoteDefaultHeaders").GetProperty("X-Target").GetString());
+        Assert.IsFalse(config.GetProperty("defaultHeaders").TryGetProperty("remoteBaseUrl", out _));
+        Assert.IsFalse(profile.GetProperty("remoteDefaultHeaders").TryGetProperty("baseUrl", out _));
+    }
+
+    [TestMethod]
     public async Task ConfigEndpoint_UserNameToken_UsesIdentityName_WhenAuthenticated()
     {
         var user = new ClaimsPrincipal(new ClaimsIdentity(
@@ -182,6 +223,7 @@ public class HarnessIntegrationTests
         var body = await response.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(body);
 
+        Assert.AreEqual("alice", doc.RootElement.GetProperty("userName").GetString());
         Assert.AreEqual("alice", doc.RootElement.GetProperty("defaultHeaders").GetProperty("X-User-Name").GetString());
         Assert.AreEqual("prefix-alice-suffix", doc.RootElement.GetProperty("remoteDefaultHeaders").GetProperty("X-Remote-User-Name").GetString());
 
@@ -211,16 +253,125 @@ public class HarnessIntegrationTests
     }
 
     [TestMethod]
-    public async Task ConfigEndpoint_UserNameToken_BecomesEmpty_WhenUnauthenticated()
+    public async Task ConfigEndpoint_UserEmailAndIdTokens_UseStandardClaims_AcrossHeaderScopes()
     {
-        var app = BuildTestApp(o => o.DefaultHeaders["X-User-Name"] = "prefix-{user-name}");
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.Email, "alice@example.com"),
+                new Claim(ClaimTypes.NameIdentifier, "user-123"),
+            ],
+            authenticationType: "TestAuth"));
+
+        var app = BuildTestApp(o =>
+        {
+            o.DefaultHeaders["X-User-Email"] = "prefix-{user-email}-suffix";
+            o.DefaultHeaders["X-User-Id"] = "{user-id}";
+            o.RemoteDefaultHeaders["X-Remote-User-Email"] = "{user-email}";
+            o.RemoteDefaultHeaders["X-Remote-User-Id"] = "id:{user-id}";
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                Name = "Orders",
+                RemoteDefaultHeaders = new Dictionary<string, string>
+                {
+                    ["X-Profile-User-Email"] = "{user-email}",
+                    ["X-Profile-User-Id"] = "{user-id}",
+                },
+            });
+        },
+        environment: "Development",
+        requestUser: user);
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api-test-spark/config");
         var body = await response.Content.ReadAsStringAsync();
         var doc = JsonDocument.Parse(body);
 
+        var defaultHeaders = doc.RootElement.GetProperty("defaultHeaders");
+        Assert.AreEqual("alice@example.com", doc.RootElement.GetProperty("userEmail").GetString());
+        Assert.AreEqual("user-123", doc.RootElement.GetProperty("userId").GetString());
+        Assert.AreEqual("prefix-alice@example.com-suffix", defaultHeaders.GetProperty("X-User-Email").GetString());
+        Assert.AreEqual("user-123", defaultHeaders.GetProperty("X-User-Id").GetString());
+
+        var remoteHeaders = doc.RootElement.GetProperty("remoteDefaultHeaders");
+        Assert.AreEqual("alice@example.com", remoteHeaders.GetProperty("X-Remote-User-Email").GetString());
+        Assert.AreEqual("id:user-123", remoteHeaders.GetProperty("X-Remote-User-Id").GetString());
+
+        var profileHeaders = doc.RootElement.GetProperty("remoteApiProfiles")[0]
+            .GetProperty("remoteDefaultHeaders");
+        Assert.AreEqual("alice@example.com", profileHeaders.GetProperty("X-Profile-User-Email").GetString());
+        Assert.AreEqual("user-123", profileHeaders.GetProperty("X-Profile-User-Id").GetString());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_UserEmailAndIdTokens_UseEmailAndSubClaims_WhenStandardClaimsMissing()
+    {
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim("email", "alice@example.com"), new Claim("sub", "subject-123")],
+            authenticationType: "TestAuth"));
+
+        var app = BuildTestApp(o =>
+        {
+            o.DefaultHeaders["X-User-Email"] = "{user-email}";
+            o.DefaultHeaders["X-User-Id"] = "{user-id}";
+        },
+        environment: "Development",
+        requestUser: user);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var defaultHeaders = doc.RootElement.GetProperty("defaultHeaders");
+
+        Assert.AreEqual("alice@example.com", defaultHeaders.GetProperty("X-User-Email").GetString());
+        Assert.AreEqual("subject-123", defaultHeaders.GetProperty("X-User-Id").GetString());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_UserEmailAndIdTokens_UsePreferredUsernameAndOidClaims_WhenEarlierClaimsMissing()
+    {
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim("preferred_username", "alice@example.com"), new Claim("oid", "object-123")],
+            authenticationType: "TestAuth"));
+
+        var app = BuildTestApp(o =>
+        {
+            o.DefaultHeaders["X-User-Email"] = "{user-email}";
+            o.DefaultHeaders["X-User-Id"] = "{user-id}";
+        },
+        environment: "Development",
+        requestUser: user);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var defaultHeaders = doc.RootElement.GetProperty("defaultHeaders");
+
+        Assert.AreEqual("alice@example.com", defaultHeaders.GetProperty("X-User-Email").GetString());
+        Assert.AreEqual("object-123", defaultHeaders.GetProperty("X-User-Id").GetString());
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_UserNameToken_BecomesEmpty_WhenUnauthenticated()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.DefaultHeaders["X-User-Name"] = "prefix-{user-name}";
+            o.DefaultHeaders["X-User-Email"] = "prefix-{user-email}";
+            o.DefaultHeaders["X-User-Id"] = "prefix-{user-id}";
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        Assert.AreEqual(string.Empty, doc.RootElement.GetProperty("userName").GetString());
+        Assert.AreEqual(string.Empty, doc.RootElement.GetProperty("userEmail").GetString());
+        Assert.AreEqual(string.Empty, doc.RootElement.GetProperty("userId").GetString());
         Assert.AreEqual("prefix-", doc.RootElement.GetProperty("defaultHeaders").GetProperty("X-User-Name").GetString());
+        Assert.AreEqual("prefix-", doc.RootElement.GetProperty("defaultHeaders").GetProperty("X-User-Email").GetString());
+        Assert.AreEqual("prefix-", doc.RootElement.GetProperty("defaultHeaders").GetProperty("X-User-Id").GetString());
     }
 
     [TestMethod]
@@ -707,6 +858,108 @@ public class HarnessIntegrationTests
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [TestMethod]
+    public async Task RemoteCall_Returns403_WhenProxyIsNotEnabled()
+    {
+        var app = BuildTestApp(o => o.RemoteApiProfiles.Add(new RemoteApiProfile
+        {
+            Id = "orders",
+            RemoteBaseUrl = "https://orders.example.test",
+        }));
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-call?profileId=orders&path=%2Fauthors");
+
+        Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_ReportsWhetherRemoteCallProxyIsEnabled()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.EnableRemoteCallProxy = true;
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                RemoteBaseUrl = "https://orders.example.test",
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var config = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+
+        Assert.IsTrue(config.GetProperty("remoteApiProfiles")[0]
+            .GetProperty("remoteCallProxyEnabled").GetBoolean());
+    }
+
+    [TestMethod]
+    public async Task RemoteCall_ProxiesConfiguredProfile_WithServerCredentials()
+    {
+        var remoteResponse = new HttpResponseMessage(HttpStatusCode.Created)
+        {
+            Content = new StringContent("{\"created\":true}", System.Text.Encoding.UTF8, "application/json"),
+        };
+        remoteResponse.Headers.TryAddWithoutValidation("Set-Cookie", "remote-session=secret");
+        var handler = new RecordingHttpMessageHandler(remoteResponse);
+        var testClient = new HttpClient(handler);
+
+        var app = BuildTestApp(o =>
+        {
+            o.EnableRemoteCallProxy = true;
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                RemoteBaseUrl = "https://orders.example.test",
+                RemoteOpenApiApiKeyHeader = "X-Api-Key",
+                RemoteOpenApiApiKeyValue = "server-secret",
+                RemoteOpenApiBearerToken = "server-token",
+                RemoteDefaultHeaders = new Dictionary<string, string>
+                {
+                    ["X-Tenant"] = "contoso",
+                },
+            });
+            o.TestHttpClient = testClient;
+        });
+        var client = app.GetTestClient();
+
+        var request = new StringContent("{\"name\":\"Ada\"}", System.Text.Encoding.UTF8, "application/json");
+        var response = await client.PostAsync(
+            "/api-test-spark/remote-call?profileId=orders&path=%2Fapi%2Fauthors%3Flimit%3D5",
+            request);
+
+        Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+        Assert.AreEqual("{\"created\":true}", await response.Content.ReadAsStringAsync());
+        Assert.AreEqual(HttpMethod.Post, handler.LastMethod);
+        Assert.AreEqual("https://orders.example.test/api/authors?limit=5", handler.LastUri?.ToString());
+        Assert.AreEqual("{\"name\":\"Ada\"}", handler.LastBody);
+        Assert.AreEqual("contoso", handler.GetHeader("X-Tenant"));
+        Assert.AreEqual("server-secret", handler.GetHeader("X-Api-Key"));
+        Assert.AreEqual("Bearer server-token", handler.GetHeader("Authorization"));
+        Assert.IsFalse(response.Headers.Contains("Set-Cookie"));
+    }
+
+    [TestMethod]
+    public async Task RemoteCall_RejectsExternalTarget()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.EnableRemoteCallProxy = true;
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "orders",
+                RemoteBaseUrl = "https://orders.example.test",
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync(
+            "/api-test-spark/remote-call?profileId=orders&path=https%3A%2F%2Fevil.example.test%2Fsteal");
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private static WebApplication BuildTestApp(
         Action<ApiTestSparkOptions>? configure,
         string environment,
@@ -752,6 +1005,32 @@ internal sealed class CapturingHttpMessageHandler(HttpResponseMessage response) 
     {
         LastRequest = request;
         return Task.FromResult(response);
+    }
+}
+
+internal sealed class RecordingHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
+{
+    public HttpMethod? LastMethod { get; private set; }
+    public Uri? LastUri { get; private set; }
+    public string? LastBody { get; private set; }
+    private Dictionary<string, string> Headers { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    public string? GetHeader(string name) => Headers.GetValueOrDefault(name);
+
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        LastMethod = request.Method;
+        LastUri = request.RequestUri;
+        LastBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+
+        foreach (var header in request.Headers)
+            Headers[header.Key] = string.Join(",", header.Value);
+        if (request.Content is not null)
+            foreach (var header in request.Content.Headers)
+                Headers[header.Key] = string.Join(",", header.Value);
+
+        return response;
     }
 }
 

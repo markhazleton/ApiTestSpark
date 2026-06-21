@@ -6,6 +6,7 @@ import { buildCurlCommand, generateMarkdown } from '../../utils/generateMarkdown
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { resolveHeaderTokens } from '../../utils/session';
+import { getMissingRequiredPathParameters, resolvePathParameters } from '../../utils/endpointParameters';
 import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc } from '../../types';
 
 const METHOD_COLORS: Record<string, string> = {
@@ -41,14 +42,17 @@ function CaptureForm({
   const queryParams_ = ep.parameters.filter((p) => p.in === 'query');
 
   async function fire() {
+    const missingPathParameters = getMissingRequiredPathParameters(pathParams_, pathParams);
+    if (missingPathParameters.length > 0) {
+      setError(`Required path parameter${missingPathParameters.length === 1 ? '' : 's'}: ${missingPathParameters.join(', ')}`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       // Build resolved path
-      let resolvedPath = ep.path;
-      for (const [k, v] of Object.entries(pathParams)) {
-        resolvedPath = resolvedPath.replace(`{${k}}`, encodeURIComponent(v));
-      }
+      const resolvedPath = resolvePathParameters(ep.path, pathParams_, pathParams);
 
       // Build query string
       const qs = Object.entries(queryParams)
@@ -75,12 +79,14 @@ function CaptureForm({
 
       const curlCommand = buildCurlCommand(ep.method, url, headers, parsedBody);
 
+      // eslint-disable-next-line react-hooks/purity -- invoked only by the capture button.
       const startMs = performance.now();
       const resp = await fetch(url, {
         method: ep.method,
         headers,
         body: parsedBody !== undefined ? JSON.stringify(parsedBody) : undefined,
       });
+      // eslint-disable-next-line react-hooks/purity -- invoked only by the capture button.
       const durationMs = performance.now() - startMs;
 
       const rawText = await resp.text();

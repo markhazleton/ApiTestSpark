@@ -4,7 +4,7 @@ import { useHostApi } from '../../hooks';
 import { useHarnessConfigStore, useDebugStore } from '../../store';
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
-import { buildCurl } from '../../utils';
+import { buildCurl, getMissingRequiredPathParameters, getParameterValue, resolvePathParameters } from '../../utils';
 import type { CurlArgs } from '../../utils';
 
 const METHOD_COLORS: Record<string, string> = {
@@ -53,10 +53,12 @@ function ParamField({
   param,
   value,
   onChange,
+  hasError = false,
 }: {
   param: EndpointParameter;
   value: string;
   onChange: (v: string) => void;
+  hasError?: boolean;
 }) {
   const labelId = `param-${param.in}-${param.name}`;
   const placeholder = param.example
@@ -94,7 +96,7 @@ function ParamField({
           id={labelId}
           value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] bg-white"
+          className={`w-full text-xs font-mono border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] bg-white ${hasError ? 'border-red-400' : 'border-gray-200'}`}
         >
           {!param.required && <option value="">— optional —</option>}
           {param.schema.enum.map((v) => (
@@ -106,7 +108,7 @@ function ParamField({
           id={labelId}
           value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] bg-white"
+          className={`w-full text-xs font-mono border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] bg-white ${hasError ? 'border-red-400' : 'border-gray-200'}`}
         >
           {!param.required && <option value="">— optional —</option>}
           <option value="true">true</option>
@@ -119,7 +121,7 @@ function ParamField({
           value={effectiveValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full text-xs font-mono border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407]"
+          className={`w-full text-xs font-mono border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#982407] ${hasError ? 'border-red-400' : 'border-gray-200'}`}
         />
       )}
     </div>
@@ -689,6 +691,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
   const [pathParams, setPathParams]   = useState<Record<string, string>>({});
   const [queryParams, setQueryParams] = useState<Record<string, string>>({});
   const [authToken, setAuthToken]     = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [bodyText, setBodyText]       = useState(() =>
     needsBody ? buildJsonScaffold(endpoint.requestBodySchema) : ''
   );
@@ -696,12 +699,8 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
   const pathParamList  = endpoint.parameters.filter((p) => p.in === 'path');
   const queryParamList = endpoint.parameters.filter((p) => p.in === 'query');
 
-  function buildResolvedUrl(): string {
-    const baseUrl = remoteProfile?.remoteBaseUrl || config?.baseUrl || window.location.origin;
-    let resolved = endpoint.path;
-    for (const [key, value] of Object.entries(pathParams)) {
-      resolved = resolved.replace(`{${key}}`, encodeURIComponent(value));
-    }
+  function buildResolvedUrl(baseUrl: string): string {
+    const resolved = resolvePathParameters(endpoint.path, pathParamList, pathParams);
     const url = new URL(resolved, baseUrl);
     for (const [key, value] of Object.entries(queryParams)) {
       if (value) url.searchParams.set(key, value);
@@ -710,8 +709,29 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
   }
 
   function handleFire() {
+    const missingPathParameters = getMissingRequiredPathParameters(pathParamList, pathParams);
+    if (missingPathParameters.length > 0) {
+      setValidationError(`Required path parameter${missingPathParameters.length === 1 ? '' : 's'}: ${missingPathParameters.join(', ')}`);
+      return;
+    }
+    setValidationError(null);
+
+    const baseUrl = remoteProfile
+      ? remoteProfile.remoteBaseUrl?.trim()
+      : (config?.baseUrl ?? window.location.origin);
+    if (!baseUrl) {
+      addError({
+        id: crypto.randomUUID(),
+        category: 'Unknown',
+        message: 'Remote API base URL is not configured.',
+        timestamp: new Date(),
+        context: {},
+      });
+      return;
+    }
+
     const extraHeaders: Record<string, string> = {};
-    if (authToken && config?.authScheme) {
+    if (!remoteProfile && authToken && config?.authScheme) {
       extraHeaders['Authorization'] = `${config.authScheme} ${authToken}`;
     }
     let body: unknown;
@@ -735,7 +755,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
       ...extraHeaders,
       ...(needsBody && body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     };
-    const resolvedUrl = buildResolvedUrl();
+    const resolvedUrl = buildResolvedUrl(baseUrl);
     const pendingRequest: LastRequest = {
       method: endpoint.method,
       url: resolvedUrl,
@@ -743,8 +763,12 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
       body: needsBody ? body : undefined,
     };
 
+    const resolvedPathParams = Object.fromEntries(
+      pathParamList.map((parameter) => [parameter.name, getParameterValue(parameter, pathParams)])
+    );
+
     mutate(
-      { method: endpoint.method, path: endpoint.path, pathParams, queryParams, body, extraHeaders, remoteProfile },
+      { method: endpoint.method, path: endpoint.path, pathParams: resolvedPathParams, queryParams, body, extraHeaders, remoteProfile },
       {
         onSuccess: () => {
           // Capture at success time so cURL always matches the displayed response.
@@ -857,7 +881,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
       })()}
 
       {/* ── Auth token ── */}
-      {config?.authScheme && (
+      {!remoteProfile && config?.authScheme && (
         <div>
           <label className="text-xs font-semibold text-gray-600 block mb-1">
             {config.authScheme} token
@@ -881,7 +905,11 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
               key={p.name}
               param={p}
               value={pathParams[p.name] ?? ''}
-              onChange={(v) => setPathParams((prev) => ({ ...prev, [p.name]: v }))}
+              hasError={validationError !== null && p.required && !getParameterValue(p, pathParams)}
+              onChange={(v) => {
+                setPathParams((prev) => ({ ...prev, [p.name]: v }));
+                setValidationError(null);
+              }}
             />
           ))}
         </div>
@@ -979,6 +1007,11 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
       </button>
 
       {/* ── Error ── */}
+      {validationError && (
+        <div className="text-xs text-red-600 bg-red-50 rounded p-2 font-mono">
+          {validationError}
+        </div>
+      )}
       {error && (
         <div className="text-xs text-red-600 bg-red-50 rounded p-2 font-mono">
           {error instanceof Error ? error.message : 'Request failed'}

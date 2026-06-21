@@ -68,27 +68,6 @@ function buildRemoteSections(profiles: RemoteApiProfile[]): NavSection[] {
   });
 }
 
-function buildLegacyRemoteSection(remoteBaseUrl: string): NavSection {
-  return {
-    label: "Remote API",
-    defaultOpen: true,
-    items: [
-      {
-        icon: "🌐",
-        title: "Remote API Explorer",
-        description: `Test endpoints from ${remoteBaseUrl} using the configured remote OpenAPI spec.`,
-        path: "/remote-api",
-      },
-      {
-        icon: "📄",
-        title: "Remote API Doc Builder",
-        description: `Select endpoints from ${remoteBaseUrl}, capture live responses, and generate markdown documentation.`,
-        path: "/remote-docs",
-      },
-    ],
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Demo section — shown only when enableDemoIntegrations is true
 // ---------------------------------------------------------------------------
@@ -156,8 +135,6 @@ export default function HomeScreen() {
   const sections: NavSection[] = [YOUR_API_SECTION];
   if (remoteProfiles.length > 0) {
     sections.unshift(...buildRemoteSections(remoteProfiles));
-  } else if (config?.remoteBaseUrl) {
-    sections.unshift(buildLegacyRemoteSection(config.remoteBaseUrl));
   }
   if (showDemos) sections.push(DEMO_SECTION);
 

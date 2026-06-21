@@ -2,8 +2,8 @@ import { useMutation } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 import useDebugStore from '../store/debugStore';
 import { useHarnessConfigStore } from '../store/harnessConfigStore';
-import { getVisibleRemoteProfiles, useRemoteConfigStore } from '../store/remoteConfigStore';
 import { HostApiClient } from '../api/hostApiClient';
+import { buildRemoteCallProxyUrl, usesServerRemoteCallProxy } from '../api/remoteCallProxy';
 import { buildDebugCallbacks, withMetric } from './hookUtils';
 import { resolveHeaderTokens } from '../utils/session';
 import type { HttpMethod } from '../api/client';
@@ -38,22 +38,28 @@ function buildUrl(baseUrl: string, path: string, pathParams?: Record<string, str
 export function useHostApi() {
   const { addRequest, addResponse, addError, addMetric } = useDebugStore();
   const { config } = useHarnessConfigStore();
-  const remoteStore = useRemoteConfigStore();
 
   return useMutation({
     mutationFn: async (req: HostApiRequest) => {
-      const visibleProfiles = getVisibleRemoteProfiles(remoteStore);
-      const remoteProfile = req.remoteProfile
-        ?? visibleProfiles.find((profile) => profile.id === remoteStore.selectedProfileId)
-        ?? visibleProfiles[0];
-      const isRemote = !!remoteProfile?.remoteBaseUrl || !!config?.remoteBaseUrl;
-      const baseUrl = isRemote
-        ? (remoteProfile?.remoteBaseUrl || config!.remoteBaseUrl!)
+      // The caller chooses the target. Host API requests do not carry a profile and
+      // must always use the harness base URL, regardless of configured remotes.
+      const remoteProfile = req.remoteProfile;
+      const isRemote = remoteProfile !== undefined;
+      const directBaseUrl = isRemote
+        ? remoteProfile.remoteBaseUrl?.trim()
         : (config?.baseUrl ?? window.location.origin);
+      if (!directBaseUrl) {
+        throw new Error('Remote API base URL is not configured.');
+      }
+      const directUrl = buildUrl(directBaseUrl, req.path, req.pathParams, req.queryParams);
+      const requestUrl = isRemote && usesServerRemoteCallProxy(remoteProfile)
+        ? buildRemoteCallProxyUrl(remoteProfile.id, directUrl)
+        : directUrl;
+      const targetUrl = new URL(requestUrl);
       const callbacks = buildDebugCallbacks(addRequest, addResponse, addError);
 
-      // When targeting remote: read headers/auth from remoteStore (always current).
-      // When targeting local: use defaultHeaders from the startup config snapshot.
+      // Remote requests use only the profile passed by the remote explorer.
+      // Host requests use only defaultHeaders from the harness config snapshot.
       const baseConfigHeaders = isRemote
         ? (remoteProfile?.remoteDefaultHeaders ?? {})
         : (config?.defaultHeaders ?? {});
@@ -74,9 +80,8 @@ export function useHostApi() {
         ...(req.extraHeaders ?? {}),
       });
 
-      const client = new HostApiClient(baseUrl, { callbacks, extraHeaders: mergedHeaders });
-      const url = buildUrl(baseUrl, req.path, req.pathParams, req.queryParams);
-      const relPath = url.replace(baseUrl, '');
+      const client = new HostApiClient(targetUrl.origin, { callbacks, extraHeaders: mergedHeaders });
+      const relPath = `${targetUrl.pathname}${targetUrl.search}`;
 
       return withMetric(`${req.method} ${req.path}`, addMetric, () => {
         switch (req.method) {
