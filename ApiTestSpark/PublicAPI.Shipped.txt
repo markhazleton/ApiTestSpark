@@ -32,6 +32,8 @@ ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyValue.get -> string?
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiApiKeyValue.set -> void
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.get -> string?
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.set -> void
+ApiTestSpark.ApiTestSparkOptions.RequireAuthenticatedUser.get -> bool
+ApiTestSpark.ApiTestSparkOptions.RequireAuthenticatedUser.set -> void
 ApiTestSpark.ApiTestSparkOptions.TestHttpClient.get -> System.Net.Http.HttpClient?
 ApiTestSpark.ApiTestSparkOptions.TestHttpClient.set -> void
 ApiTestSpark.RemoteApiProfile

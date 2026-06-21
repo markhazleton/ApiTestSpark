@@ -140,7 +140,7 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
       "proxyMode": "server"
     }
   ],
-  "harnessVersion": "1.7.0",
+  "harnessVersion": "1.8.0",
   "harnessBuiltAt": "2026-06-21T17:52:53Z"
 }
 ```
@@ -180,7 +180,7 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 | Property | Value | Rationale |
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
-| `Version` | `1.7.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Version` | `1.8.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
 | `Authors` | `Make Bold Solutions; Mark Hazleton` | NuGet author display |
 | `Company` | `Make Bold Solutions` | Package ownership and assembly metadata |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
@@ -237,11 +237,11 @@ Source Link lets consumers step into the library's source code from within Visua
 
 Two files control this:
 
-- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.7.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
+- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.8.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
 - **`PublicAPI.Unshipped.txt`** — symbols added since the last release. New public members appear here automatically via IDE code fix, then are moved to `Shipped.txt` when the next version is tagged.
 
 ```
-# PublicAPI.Shipped.txt (v1.7.0 baseline)
+# PublicAPI.Shipped.txt (v1.8.0 baseline)
 #nullable enable
 ApiTestSpark.ApiTestSparkExtensions
 ApiTestSpark.ApiTestSparkOptions
@@ -304,7 +304,7 @@ private static WebApplication BuildTestApp(Action<ApiTestSparkOptions>? configur
 }
 ```
 
-The 45 integration tests cover:
+The 49 integration tests cover:
 
 | Area | What is verified |
 |------|-----------------|
@@ -360,7 +360,7 @@ npm run lint
 tsc -b + vite build  (npm run verify)
 dotnet restore
 dotnet build          ← triggers incremental BuildReactSpa
-dotnet test           ← 45 integration tests, TRX + coverage upload
+dotnet test           ← 49 integration tests, TRX + coverage upload
 dotnet list package --vulnerable
 npm audit --audit-level=high
 ```
@@ -380,10 +380,10 @@ softprops/action-gh-release → GitHub Release with CHANGELOG.md as body
 
 To publish a new version:
 
-1. Update `version` in `package.json` (e.g. `1.7.0`)
-2. Add a `[v1.7.0]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `1.8.0`)
+2. Add a `[v1.8.0]` entry to `CHANGELOG.md`
 3. Commit and push
-4. `git tag -a v1.7.0 -m "Release v1.7.0" && git push origin main --tags`
+4. `git tag -a v1.8.0 -m "Release v1.8.0" && git push origin main --tags`
 
 The publish workflow fires automatically. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full step-by-step release process.
 

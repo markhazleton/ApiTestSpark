@@ -9,7 +9,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <Authors>Make Bold Solutions; Mark Hazleton</Authors>
     <Company>Make Bold Solutions</Company>
     <Copyright>Copyright © Make Bold Solutions 2026</Copyright>
@@ -33,12 +33,13 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>1.7.0 — Remote API profiles can now proxy endpoint calls through the host app with
-      the new EnableRemoteCallProxy option, keeping server-held credentials off the browser and avoiding
-      remote CORS requirements for server-configured profiles. The release also adds resolved userName,
-      userEmail, and userId metadata to the config payload for identity-aware header templates, hardens
-      remote profile management so Program.cs profiles remain authoritative, and improves path-parameter
-      validation across the host and remote explorers. See CHANGELOG.md for full history.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.8.0 — Adds RequireAuthenticatedUser option to gate all harness routes under
+      /api-test-spark behind authentication (SPA assets, config, remote-spec, and remote-call endpoints).
+      Hardens the remote-spec proxy with proper HttpResponseMessage disposal, ConfigureAwait(false), and
+      ArrayPool buffer management. Config endpoint now emits Vary: Origin alongside Access-Control-Allow-Origin
+      for correct CORS cache safety. CI workflows now run npm run verify (lint + typecheck + build) first for
+      fail-fast frontend validation. Fixes sticky namespace header overlap bug in the endpoint list. See
+      CHANGELOG.md for full history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Build quality -->

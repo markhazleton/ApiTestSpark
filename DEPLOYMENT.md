@@ -15,17 +15,17 @@ The package is **not manually deployed** — it is published automatically by th
 
 ### Publish a new version
 
-1. Update `version` in `package.json` (e.g. `1.7.0`)
-2. Add a `[v1.7.0]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `1.8.0`)
+2. Add a `[v1.8.0]` entry to `CHANGELOG.md`
 3. Commit and push
 4. Tag and push:
 
 ```powershell
-git tag -a v1.7.0 -m "Release v1.7.0"
+git tag -a v1.8.0 -m "Release v1.8.0"
 git push origin main --tags
 ```
 
-The `publish-nuget.yml` workflow fires, runs the full quality gate (lint, TypeScript, .NET build, 45 integration tests, vulnerability audit), packs the library, and pushes `ApiTestSpark.1.7.0.nupkg` + `ApiTestSpark.1.7.0.snupkg` to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
+The `publish-nuget.yml` workflow fires, runs the full quality gate (lint, TypeScript, .NET build, 49 integration tests, vulnerability audit), packs the library, and pushes `ApiTestSpark.1.8.0.nupkg` + `ApiTestSpark.1.8.0.snupkg` to [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) using the `NUGET_API_KEY` repository secret. A GitHub Release is also created with `CHANGELOG.md` as the body.
 
 ### Build the package locally
 

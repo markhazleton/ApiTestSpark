@@ -222,7 +222,7 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.7.0</span>
+                            <span class="pkg-version">v1.8.0</span>
                             <h2>ApiTestSpark</h2>
                             <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.49 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 21, 2026</p>
                         </div>
@@ -230,7 +230,7 @@ public static class HomeEndpoints
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.7.0</div>
+                            <div class="value">1.8.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -311,6 +311,11 @@ public static class HomeEndpoints
                         <div class="feature-icon">🔐</div>
                         <h3>Auth &amp; Header Injection</h3>
                         <p>Pre-populate Bearer tokens, API keys, or custom headers for every request. Supports Bearer, ApiKey, and Basic schemes.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🚪</div>
+                        <h3>Harness Auth Gate</h3>
+                        <p>Set <code class="inline">RequireAuthenticatedUser = true</code> to restrict all harness routes — SPA assets, config, remote-spec, and remote-call — to authenticated users only. One option, zero middleware changes.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🐛</div>
@@ -501,6 +506,11 @@ app.<span class="cm">Run</span>();</pre>
                             <td>When <code class="inline">false</code>, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes (<code class="inline">/joke-api</code>, <code class="inline">/json-placeholder</code>). The home page shows only <strong>Host API Explorer</strong> and <strong>API Doc Builder</strong>. Default <code class="inline">true</code> — existing installs are unaffected.</td>
                         </tr>
                         <tr>
+                            <td>RequireAuthenticatedUser</td>
+                            <td>false</td>
+                            <td>When <code class="inline">true</code>, all harness routes under <code class="inline">/api-test-spark</code> require an authenticated user. This includes the embedded SPA assets and the config, remote-spec, and remote-call endpoints.</td>
+                        </tr>
+                        <tr>
                             <td>RemoteApiProfiles</td>
                             <td>[]</td>
                             <td>List of named remote API defaults. Each profile includes an id, name, description, base URL, OpenAPI URL, credentials, and default headers.</td>
@@ -639,7 +649,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.7.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.8.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 0.49 MB</div>
                     </div>
@@ -689,7 +699,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
       "proxyMode": "server"
     }
   ],
-    "harnessVersion": "1.7.0",
+    "harnessVersion": "1.8.0",
     "harnessBuiltAt": "2026-06-21T17:52:53Z"
 }</pre>
                         </div>
@@ -974,9 +984,17 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
-                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.7.0</span>
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.8.0</span>
                             <span style="color:#94a3b8;font-size:0.85rem;">June 21, 2026</span>
                             <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Auth gate and proxy hardening.</strong> New <code class="inline">RequireAuthenticatedUser</code> option enforces authentication on all harness routes (SPA assets, config, remote-spec, and remote-call endpoints). Remote spec proxy now properly disposes <code class="inline">HttpResponseMessage</code>, uses <code class="inline">ConfigureAwait(false)</code>, and buffers via <code class="inline">ArrayPool</code>. Config endpoint CORS responses include <code class="inline">Vary: Origin</code>. CI gains a fail-fast <code class="inline">npm run verify</code> frontend gate. Fixed sticky namespace header overlap bug in the endpoint list.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.7.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">June 21, 2026</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Remote call proxy and identity-aware headers.</strong> Server-configured remote profiles can now proxy endpoint calls through the host app with <code class="inline">EnableRemoteCallProxy</code>, avoiding browser CORS issues while keeping server-held credentials off the client. The config payload now exposes resolved <code class="inline">userName</code>, <code class="inline">userEmail</code>, and <code class="inline">userId</code> values for header templates, and browser customization now creates distinct local copies instead of overriding Program.cs profiles.</p>
                     </div>

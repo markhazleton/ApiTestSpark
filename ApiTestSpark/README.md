@@ -42,12 +42,14 @@ Navigate to `https://localhost:{port}/api-test-spark/` — the harness autodisco
 
 ---
 
-## Latest Updates (Unreleased)
+## Latest Updates (v1.8.0)
 
 - Added `RequireAuthenticatedUser` so teams can require authentication for all harness routes under `/api-test-spark`.
 - Added server-side expansion of `{request-guid}` and `{session-guid}` in proxied remote-call headers.
 - Hardened config endpoint CORS behavior by emitting `Vary: Origin` when `Access-Control-Allow-Origin` is set.
 - Updated CI and publish workflows to run `npm run verify` (lint + typecheck + build) for fail-fast frontend validation.
+- Fixed remote spec proxy resource management (disposal, `ConfigureAwait(false)`, `ArrayPool` buffering).
+- Fixed sticky namespace header overlapping first endpoint in the endpoint list.
 
 See [../CHANGELOG.md](../CHANGELOG.md) for full details.
 

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v1.8.0] - 2026-06-21
+
 ### Added
 
 - **Optional harness auth gate** — new `RequireAuthenticatedUser` option on `ApiTestSparkOptions`. When enabled, all routes under `/api-test-spark` require an authenticated user, including SPA assets, `/api-test-spark/config`, `/api-test-spark/remote-spec`, and `/api-test-spark/remote-call`.
@@ -17,10 +19,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fail-fast CI frontend gate** — GitHub workflows now run `npm run verify` (lint + typecheck + build) before .NET build/test and publish steps.
 - **Config endpoint CORS cache safety** — responses that emit `Access-Control-Allow-Origin` now also emit `Vary: Origin`.
 
+### Fixed
+
+- **Remote spec proxy resource management** — `HttpResponseMessage` is now properly disposed after proxy reads; `ConfigureAwait(false)` added throughout; response body is buffered via `ArrayPool` for efficient memory use.
+- **Endpoint list sticky header overlap** — the first namespace group header no longer visually overlaps the first endpoint item in the list (`sticky top-9` corrected to `sticky top-0`).
+- **Rendering cleanup** — minor UI rendering fixes across the host API explorer.
+
 ### Migration Notes
 
 - To enforce auth on the embedded harness in any environment, set `options.RequireAuthenticatedUser = true` in your `MapApiTestSpark(...)` configuration.
 - If your server-proxied remote profiles use correlation headers, you can now safely use `{request-guid}` and `{session-guid}` in `RemoteDefaultHeaders` and expect per-request server-side expansion.
+
+### Contributors
+
+- Mark Hazleton
 
 ## [v1.7.0] - 2026-06-21
 
@@ -268,7 +280,8 @@ None. The new `RemoteApiProfiles` collection and `RemoteApiProfile` model are ad
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.8.0...HEAD
+[v1.8.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.4.0...v1.5.0

@@ -30,12 +30,14 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 
 ---
 
-## Latest Updates (Unreleased)
+## Latest Updates (v1.8.0)
 
 - Added `RequireAuthenticatedUser` so teams can require authentication for all harness routes under `/api-test-spark`.
 - Added server-side expansion of `{request-guid}` and `{session-guid}` in proxied remote-call headers.
 - Hardened config endpoint CORS behavior by emitting `Vary: Origin` when `Access-Control-Allow-Origin` is set.
 - Updated CI and publish workflows to run `npm run verify` (lint + typecheck + build) for fail-fast frontend validation.
+- Fixed remote spec proxy resource management (disposal, `ConfigureAwait(false)`, `ArrayPool` buffering).
+- Fixed sticky namespace header overlapping first endpoint in the endpoint list.
 
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 
@@ -46,7 +48,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.7.0 |
+| **Version** | 1.8.0 |
 | **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
@@ -201,7 +203,7 @@ Server profile secrets are redacted from `GET /api-test-spark/config`. The serve
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.7.0 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.8.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -226,6 +228,10 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 ---
 
 ## Release Notes
+
+### v1.8.0 — June 21, 2026
+
+Auth gate + proxy hardening: new `RequireAuthenticatedUser` option enforces authentication on all harness routes (`/api-test-spark/` SPA assets, config, remote-spec, and remote-call). The remote spec proxy now properly disposes `HttpResponseMessage`, uses `ConfigureAwait(false)` throughout, and buffers responses via `ArrayPool`. Config endpoint CORS responses now include `Vary: Origin` for correct cache behavior. CI workflows gain a fail-fast `npm run verify` frontend gate before .NET steps. Fixed: sticky namespace header overlapping the first endpoint item in the left panel.
 
 ### v1.7.0 — June 21, 2026
 
