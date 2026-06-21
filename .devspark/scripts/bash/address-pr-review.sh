@@ -120,7 +120,7 @@ if [[ ! -f "$REVIEW_FILE" ]]; then
     exit 1
 fi
 
-# Parse open findings — lines matching: - [ ] **{C|H|M|L|CON}-NN**
+# Parse open findings â€” lines matching: - [ ] **{C|H|M|L|CON}-NN**
 findings_json="["
 first=true
 line_num=0
