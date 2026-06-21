@@ -237,10 +237,10 @@ export const HowToUseScreen: React.FC = () => {
               header is automatically updated to allow these cross-origin calls.
             </Callout>
 
-            <Callout color="green" title="Priority: browser overrides server">
-              Server profiles appear first and browser profiles extend the list. Hiding a server
-              profile stores only that hidden id in the browser. Use <strong>Reset browser remote config</strong>
-              on the Config page to clear browser profiles and hidden server ids.
+            <Callout color="green" title="Server profiles stay authoritative">
+              Program.cs profiles keep their server-side proxy behavior. If you use <strong>Copy to browser</strong>
+              on the Config page, the app creates a separate browser-only profile instead of overriding
+              the Program.cs entry. Hiding a server profile stores only that hidden id in the browser.
             </Callout>
           </div>
         </Card>

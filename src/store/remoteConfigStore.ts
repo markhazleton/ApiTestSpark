@@ -31,6 +31,10 @@ interface RemoteConfigStore {
 
 const EMPTY_HEADERS: Record<string, string> = {};
 
+function normalizeLabel(value: string): string {
+  return value.trim().toLowerCase();
+}
+
 function newId(): string {
   return crypto?.randomUUID?.() ?? `remote-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -76,6 +80,55 @@ export function getRemoteProfileLabel(profile: RemoteApiProfile): string {
   return profile.name?.trim() || profile.remoteBaseUrl || profile.remoteOpenApiUrl || 'Remote API';
 }
 
+function nextBrowserCopyName(baseName: string, usedLabels: Set<string>): string {
+  const copyBase = `${baseName.trim() || 'Remote API'} (Browser)`;
+  let candidate = copyBase;
+  let index = 2;
+  while (usedLabels.has(normalizeLabel(candidate))) {
+    candidate = `${copyBase} ${index}`;
+    index += 1;
+  }
+
+  usedLabels.add(normalizeLabel(candidate));
+  return candidate;
+}
+
+function reassignCollidingBrowserProfiles(
+  browserProfiles: RemoteApiProfile[],
+  serverProfiles: RemoteApiProfile[]
+): RemoteApiProfile[] {
+  if (browserProfiles.length === 0 || serverProfiles.length === 0) {
+    return browserProfiles;
+  }
+
+  const serverIds = new Set(serverProfiles.map((profile) => profile.id));
+  const usedIds = new Set(serverProfiles.map((profile) => profile.id));
+  const usedLabels = new Set(serverProfiles.map((profile) => normalizeLabel(getRemoteProfileLabel(profile))));
+
+  return browserProfiles.map((rawProfile) => {
+    const profile = normalizeRemoteProfile(rawProfile);
+    if (!serverIds.has(profile.id)) {
+      usedIds.add(profile.id);
+      usedLabels.add(normalizeLabel(getRemoteProfileLabel(profile)));
+      return profile;
+    }
+
+    let nextId = newId();
+    while (usedIds.has(nextId)) {
+      nextId = newId();
+    }
+
+    usedIds.add(nextId);
+    return normalizeRemoteProfile({
+      ...profile,
+      id: nextId,
+      name: nextBrowserCopyName(getRemoteProfileLabel(profile), usedLabels),
+      source: 'browser',
+      proxyMode: 'browser',
+    });
+  });
+}
+
 export function validateRemoteProfile(profile: RemoteApiProfile): string[] {
   const errors: string[] = [];
   for (const [label, value] of [
@@ -105,7 +158,8 @@ export function getVisibleRemoteProfiles(store: Pick<RemoteConfigStore, 'profile
   }
 
   for (const profile of browserProfiles) {
-    if (!byId.has(profile.id)) order.push(profile.id);
+    if (byId.has(profile.id)) continue;
+    order.push(profile.id);
     byId.set(profile.id, profile);
   }
 
@@ -150,7 +204,13 @@ export const useRemoteConfigStore = create<RemoteConfigStore>()(
       hiddenServerProfileIds: [],
       selectedProfileId: null,
 
-      setServerProfiles: (profiles) => set({ serverProfiles: profiles.map(normalizeRemoteProfile) }),
+      setServerProfiles: (profiles) => set((state) => {
+        const serverProfiles = profiles.map(normalizeRemoteProfile);
+        return {
+          serverProfiles,
+          profiles: reassignCollidingBrowserProfiles(state.profiles.map(normalizeRemoteProfile), serverProfiles),
+        };
+      }),
 
       addProfile: (profile = {}) => {
         const next = createEmptyRemoteProfile(profile);

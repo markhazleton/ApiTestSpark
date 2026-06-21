@@ -127,20 +127,28 @@ function nextBrowserProfileName(visibleProfiles: RemoteApiProfile[]): string {
   return `${baseName} ${index}`;
 }
 
+function nextBrowserCopyName(baseLabel: string, visibleProfiles: RemoteApiProfile[]): string {
+  const existingNames = new Set(visibleProfiles.map(normalizedProfileLabel));
+  const copyBase = `${baseLabel.trim() || 'Remote API'} (Browser)`;
+  if (!existingNames.has(copyBase.toLowerCase())) return copyBase;
+
+  let index = 2;
+  while (existingNames.has(`${copyBase} ${index}`.toLowerCase())) {
+    index += 1;
+  }
+  return `${copyBase} ${index}`;
+}
+
 function ServerProfileRow({
   profile,
   hidden,
-  customized,
   onToggle,
-  onCustomize,
-  onResetOverride,
+  onCopyToBrowser,
 }: {
   profile: RemoteApiProfile;
   hidden: boolean;
-  customized: boolean;
   onToggle: (hidden: boolean) => void;
-  onCustomize: () => void;
-  onResetOverride: () => void;
+  onCopyToBrowser: () => void;
 }) {
   return (
     <div className="border border-gray-200 rounded bg-white p-4 flex items-start justify-between gap-4">
@@ -150,11 +158,6 @@ function ServerProfileRow({
           <span className="text-[10px] uppercase tracking-wide bg-[#fff7f5] text-[#982407] border border-[#f0c8bf] px-2 py-0.5 rounded">
             Program.cs
           </span>
-          {customized && (
-            <span className="text-[10px] uppercase tracking-wide bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded">
-              customized
-            </span>
-          )}
           {hidden && <span className="text-[10px] uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded">hidden</span>}
         </div>
         {profile.description && <p className="text-xs text-gray-500 mt-1">{profile.description}</p>}
@@ -174,20 +177,11 @@ function ServerProfileRow({
       <div className="flex items-center gap-3 shrink-0">
         <button
           type="button"
-          onClick={onCustomize}
+          onClick={onCopyToBrowser}
           className="text-xs font-semibold text-[#982407] hover:text-[#741b05]"
         >
-          {customized ? 'Edit override' : 'Customize'}
+          Copy to browser
         </button>
-        {customized && (
-          <button
-            type="button"
-            onClick={onResetOverride}
-            className="text-xs font-semibold text-red-600 hover:text-red-800"
-          >
-            Reset override
-          </button>
-        )}
         <button
           type="button"
           onClick={() => onToggle(!hidden)}
@@ -348,19 +342,19 @@ export function ConfigScreen() {
     remote.updateProfile(profile.id, patch);
   }
 
-  function customizeServerProfile(profile: RemoteApiProfile) {
-    if (!remote.profiles.some((item) => item.id === profile.id)) {
-      remote.upsertProfile({
-        ...profile,
-        remoteOpenApiApiKeyConfigured: false,
-        remoteOpenApiBearerTokenConfigured: false,
-        source: 'browser',
-        proxyMode: 'browser',
-      });
-      markSaved();
-    }
+  function copyServerProfileToBrowser(profile: RemoteApiProfile) {
+    const browserCopy = remote.addProfile({
+      ...profile,
+      id: undefined,
+      name: nextBrowserCopyName(getRemoteProfileLabel(profile), visibleProfiles),
+      remoteOpenApiApiKeyConfigured: false,
+      remoteOpenApiBearerTokenConfigured: false,
+      source: 'browser',
+      proxyMode: 'browser',
+    });
+    markSaved();
     setTimeout(() => {
-      document.getElementById(`browser-profile-${profile.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById(`browser-profile-${browserCopy.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 0);
   }
 
@@ -408,10 +402,8 @@ export function ConfigScreen() {
                 key={profile.id}
                 profile={profile}
                 hidden={remote.hiddenServerProfileIds.includes(profile.id)}
-                customized={remote.profiles.some((item) => item.id === profile.id)}
                 onToggle={(hidden) => remote.hideServerProfile(profile.id, hidden)}
-                onCustomize={() => customizeServerProfile(profile)}
-                onResetOverride={() => remote.deleteProfile(profile.id)}
+                onCopyToBrowser={() => copyServerProfileToBrowser(profile)}
               />
             ))
           )}
@@ -426,10 +418,8 @@ export function ConfigScreen() {
                     key={profile.id}
                     profile={profile}
                     hidden
-                    customized={remote.profiles.some((item) => item.id === profile.id)}
                     onToggle={(hidden) => remote.hideServerProfile(profile.id, hidden)}
-                    onCustomize={() => customizeServerProfile(profile)}
-                    onResetOverride={() => remote.deleteProfile(profile.id)}
+                    onCopyToBrowser={() => copyServerProfileToBrowser(profile)}
                   />
                 ))}
               </div>
