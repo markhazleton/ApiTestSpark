@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SampleApi.Orders;
 
@@ -84,6 +85,7 @@ public record OrderLineRequest(
 );
 
 /// <summary>Lifecycle states an order can occupy.</summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum OrderStatus
 {
     /// <summary>Order received, awaiting confirmation.</summary>

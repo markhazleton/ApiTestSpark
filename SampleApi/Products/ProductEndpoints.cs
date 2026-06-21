@@ -29,6 +29,11 @@ public static class ProductEndpoints
                  "Returns a single product by its integer ID. " +
                  "Seeded IDs are **1–10**. Try IDs 1 (Widget), 2 (Gadget), or 6 (Gizmo Pro). " +
                  "Returns 404 if no product exists with the given ID.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the product. Seeded IDs: 1–10.";
+                 return op;
+             })
              .Produces<Product>(StatusCodes.Status200OK)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -47,6 +52,11 @@ public static class ProductEndpoints
                  "Returns all products whose **Category** matches the given string (case-insensitive). " +
                  "Valid seeded values: `Electronics`, `Office`, `Tools`. " +
                  "Returns an empty array if no products belong to the category.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "Category name to filter by (case-insensitive). Seeded values: Electronics, Office, Tools.";
+                 return op;
+             })
              .Produces<IReadOnlyList<Product>>(StatusCodes.Status200OK);
 
         // ── Mutations ───────────────────────────────────────────────────────
@@ -60,7 +70,7 @@ public static class ProductEndpoints
                  "**Category**, **Description**, and **StockQuantity** are optional.\n\n" +
                  "**Try it:** Create a product, copy its Id, then create an order referencing it via `POST /orders`.")
              .Produces<Product>(StatusCodes.Status201Created)
-             .Produces<string>(StatusCodes.Status400BadRequest);
+             .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id}", Update)
              .WithName("UpdateProduct")
@@ -69,8 +79,13 @@ public static class ProductEndpoints
                  "Replaces the product at the given ID with the supplied values. " +
                  "The **Id** in the URL is authoritative — the Id in the body is ignored. " +
                  "Returns 404 if no product exists with the given ID.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the product to update. Seeded IDs: 1–10.";
+                 return op;
+             })
              .Produces<Product>(StatusCodes.Status200OK)
-             .Produces<string>(StatusCodes.Status400BadRequest)
+             .ProducesProblem(StatusCodes.Status400BadRequest)
              .Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{id}", Delete)
@@ -81,6 +96,11 @@ public static class ProductEndpoints
                  "Returns 204 No Content on success. Returns 404 if the product does not exist. " +
                  "**Note:** existing order line items snapshot product name and price at order time, " +
                  "so deleting a product does not affect historical orders.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the product to delete. Seeded IDs: 1–10.";
+                 return op;
+             })
              .Produces(StatusCodes.Status204NoContent)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -101,18 +121,18 @@ public static class ProductEndpoints
     private static Ok<IReadOnlyList<Product>> GetByCategory(string category, [FromServices] ProductCache cache) =>
         TypedResults.Ok(cache.GetByCategory(category));
 
-    private static Results<Created<Product>, BadRequest<string>> Create(
+    private static Results<Created<Product>, ProblemHttpResult> Create(
         Product? product, [FromServices] ProductCache cache)
     {
-        if (product is null) return TypedResults.BadRequest("Product body is required.");
+        if (product is null) return TypedResults.Problem("Product body is required.", statusCode: 400);
         var created = cache.Add(product);
         return TypedResults.Created($"/products/{created.Id}", created);
     }
 
-    private static Results<Ok<Product>, BadRequest<string>, NotFound> Update(
+    private static Results<Ok<Product>, ProblemHttpResult, NotFound> Update(
         int id, Product? product, [FromServices] ProductCache cache)
     {
-        if (product is null) return TypedResults.BadRequest("Product body is required.");
+        if (product is null) return TypedResults.Problem("Product body is required.", statusCode: 400);
         return cache.Update(id, product) is { } u ? TypedResults.Ok(u) : TypedResults.NotFound();
     }
 

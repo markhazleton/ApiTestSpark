@@ -31,6 +31,11 @@ public static class CustomerEndpoints
              .WithDescription(
                  "Returns a single customer by integer ID, including their Address and Company fields. " +
                  "Seeded IDs are 1–5. Returns 404 if not found.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the customer. Seeded IDs: 1–5.";
+                 return op;
+             })
              .Produces<Customer>(StatusCodes.Status200OK)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -48,7 +53,7 @@ public static class CustomerEndpoints
                  "  \"address\": {\n    \"street\": \"890 Birch Way\",\n    \"city\": \"New York\",\n" +
                  "    \"state\": \"NY\",\n    \"postalCode\": \"10001\",\n    \"country\": \"US\"\n  }\n}\n```")
              .Produces<Customer>(StatusCodes.Status201Created)
-             .Produces<string>(StatusCodes.Status400BadRequest);
+             .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPut("/{id}", Update)
              .WithName("UpdateCustomer")
@@ -56,8 +61,13 @@ public static class CustomerEndpoints
              .WithDescription(
                  "Replaces the customer record at the given ID. The **Id** in the URL is authoritative. " +
                  "Returns 404 if no customer exists with the given ID.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the customer to update. Seeded IDs: 1–5.";
+                 return op;
+             })
              .Produces<Customer>(StatusCodes.Status200OK)
-             .Produces<string>(StatusCodes.Status400BadRequest)
+             .ProducesProblem(StatusCodes.Status400BadRequest)
              .Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{id}", Delete)
@@ -67,6 +77,11 @@ public static class CustomerEndpoints
                  "Permanently removes the customer with the given ID. " +
                  "Returns 204 No Content on success. Returns 404 if the customer does not exist. " +
                  "**Note:** existing orders for this customer are retained.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the customer to delete. Seeded IDs: 1–5.";
+                 return op;
+             })
              .Produces(StatusCodes.Status204NoContent)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -81,18 +96,18 @@ public static class CustomerEndpoints
     private static Results<Ok<Customer>, NotFound> GetById(int id, [FromServices] CustomerCache cache) =>
         cache.GetById(id) is { } c ? TypedResults.Ok(c) : TypedResults.NotFound();
 
-    private static Results<Created<Customer>, BadRequest<string>> Create(
+    private static Results<Created<Customer>, ProblemHttpResult> Create(
         Customer? customer, [FromServices] CustomerCache cache)
     {
-        if (customer is null) return TypedResults.BadRequest("Customer body is required.");
+        if (customer is null) return TypedResults.Problem("Customer body is required.", statusCode: 400);
         var created = cache.Add(customer);
         return TypedResults.Created($"/customers/{created.Id}", created);
     }
 
-    private static Results<Ok<Customer>, BadRequest<string>, NotFound> Update(
+    private static Results<Ok<Customer>, ProblemHttpResult, NotFound> Update(
         int id, Customer? customer, [FromServices] CustomerCache cache)
     {
-        if (customer is null) return TypedResults.BadRequest("Customer body is required.");
+        if (customer is null) return TypedResults.Problem("Customer body is required.", statusCode: 400);
         return cache.Update(id, customer) is { } u ? TypedResults.Ok(u) : TypedResults.NotFound();
     }
 

@@ -31,6 +31,11 @@ public static class OrderEndpoints
              .WithDescription(
                  "Returns a single order by integer ID. Seeded IDs are **1–7**. " +
                  "Returns 404 if no order exists with the given ID.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the order. Seeded IDs: 1–7.";
+                 return op;
+             })
              .Produces<Order>(StatusCodes.Status200OK)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -42,6 +47,11 @@ public static class OrderEndpoints
                  "Returns an empty array (not 404) when the customer has placed no orders.\n\n" +
                  "Seeded order counts: customer 1 → 2 orders, customer 2 → 1, customer 3 → 2, " +
                  "customer 4 → 1, customer 5 → 1.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The integer ID of the customer whose orders to retrieve. Seeded IDs: 1–5.";
+                 return op;
+             })
              .Produces<IReadOnlyList<Order>>(StatusCodes.Status200OK);
 
         group.MapGet("/status/{status}", GetByStatus)
@@ -52,6 +62,11 @@ public static class OrderEndpoints
                  "Valid values: `Pending`, `Confirmed`, `Shipped`, `Delivered`, `Cancelled`. " +
                  "Returns an empty array if no orders are in that status.\n\n" +
                  "**Seeded distribution:** Delivered (2), Pending (2), Shipped (1), Confirmed (1), Cancelled (1).")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The order status to filter by. Valid values: Pending, Confirmed, Shipped, Delivered, Cancelled.";
+                 return op;
+             })
              .Produces<IReadOnlyList<Order>>(StatusCodes.Status200OK);
 
         // ── Commands ────────────────────────────────────────────────────────
@@ -78,7 +93,7 @@ public static class OrderEndpoints
                  "    { \"productId\": 1, \"quantity\": 2 },\n" +
                  "    { \"productId\": 3, \"quantity\": 5 }\n  ]\n}\n```")
              .Produces<Order>(StatusCodes.Status201Created)
-             .Produces<string>(StatusCodes.Status400BadRequest);
+             .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPatch("/{id}/status", UpdateStatus)
              .WithName("UpdateOrderStatus")
@@ -88,6 +103,12 @@ public static class OrderEndpoints
                  "`Pending` → `Confirmed` → `Shipped` → `Delivered` (or `Cancelled` at any point). " +
                  "Pass the target status as the `status` query parameter.\n\n" +
                  "Returns the updated order on success, 404 if the order does not exist.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the order to update. Seeded IDs: 1–7.";
+                 op.Parameters[1].Description = "Target lifecycle status. Valid values: Pending, Confirmed, Shipped, Delivered, Cancelled.";
+                 return op;
+             })
              .Produces<Order>(StatusCodes.Status200OK)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -98,6 +119,11 @@ public static class OrderEndpoints
                  "Soft-cancels the order by setting its status to **Cancelled**. " +
                  "The order record is retained for history. " +
                  "Returns 204 No Content on success, 404 if the order does not exist.")
+             .WithOpenApi(op =>
+             {
+                 op.Parameters[0].Description = "The unique integer ID of the order to cancel. Seeded IDs: 1–7.";
+                 return op;
+             })
              .Produces(StatusCodes.Status204NoContent)
              .Produces(StatusCodes.Status404NotFound);
 
@@ -118,26 +144,26 @@ public static class OrderEndpoints
     private static Ok<IReadOnlyList<Order>> GetByStatus(OrderStatus status, [FromServices] OrderCache cache) =>
         TypedResults.Ok(cache.GetByStatus(status));
 
-    private static Results<Created<Order>, BadRequest<string>> Create(
+    private static Results<Created<Order>, ProblemHttpResult> Create(
         CreateOrderRequest? request,
         [FromServices] OrderCache orders,
         [FromServices] CustomerCache customers,
         [FromServices] ProductCache products)
     {
-        if (request is null) return TypedResults.BadRequest("Order request body is required.");
+        if (request is null) return TypedResults.Problem("Order request body is required.", statusCode: 400);
         if (customers.GetById(request.CustomerId) is null)
-            return TypedResults.BadRequest($"Customer {request.CustomerId} not found.");
+            return TypedResults.Problem($"Customer {request.CustomerId} not found.", statusCode: 400);
         if (request.Lines is not { Count: > 0 })
-            return TypedResults.BadRequest("Order must contain at least one line item.");
+            return TypedResults.Problem("Order must contain at least one line item.", statusCode: 400);
 
         var lines = new List<OrderLine>();
         foreach (var line in request.Lines)
         {
             var product = products.GetById(line.ProductId);
             if (product is null)
-                return TypedResults.BadRequest($"Product {line.ProductId} not found.");
+                return TypedResults.Problem($"Product {line.ProductId} not found.", statusCode: 400);
             if (line.Quantity <= 0)
-                return TypedResults.BadRequest($"Quantity for product {line.ProductId} must be greater than zero.");
+                return TypedResults.Problem($"Quantity for product {line.ProductId} must be greater than zero.", statusCode: 400);
             lines.Add(new OrderLine(product.Id, product.Name, line.Quantity, product.Price));
         }
 
