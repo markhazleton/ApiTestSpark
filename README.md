@@ -30,6 +30,17 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 
 ---
 
+## Latest Updates (Unreleased)
+
+- Added `RequireAuthenticatedUser` so teams can require authentication for all harness routes under `/api-test-spark`.
+- Added server-side expansion of `{request-guid}` and `{session-guid}` in proxied remote-call headers.
+- Hardened config endpoint CORS behavior by emitting `Vary: Origin` when `Access-Control-Allow-Origin` is set.
+- Updated CI and publish workflows to run `npm run verify` (lint + typecheck + build) for fail-fast frontend validation.
+
+See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+---
+
 ## Package Details
 
 | Property | Value |
@@ -143,6 +154,7 @@ app.MapApiTestSpark(options =>
 | `CorsOrigins` | `[]` | Extra origins allowed to call the config endpoint |
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens and disables their routes. Set to `false` for a clean harness showing only your host API. |
+| `RequireAuthenticatedUser` | `false` | When `true`, all harness routes under `/api-test-spark` require an authenticated user (SPA assets + config + remote proxy endpoints). |
 | `RemoteApiProfiles` | `[]` | Named remote API defaults. Each profile has an id, name, description, base URL, OpenAPI URL, credentials, and headers. |
 | `EnableRemoteCallProxy` | `false` | Routes endpoint calls for server-configured remote profiles through `/api-test-spark/remote-call`, avoiding browser CORS requirements while keeping server-held credentials off the client. |
 | `RemoteBaseUrl` / `RemoteOpenApiUrl` | `null` | Legacy single-remote options. When `RemoteApiProfiles` is empty, these seed one compatibility profile. |
@@ -157,6 +169,10 @@ Use these tokens only in explicitly configured request headers. They are resolve
 | `{user-name}` | `Identity.Name` -> `name` -> `preferred_username` |
 | `{user-email}` | `ClaimTypes.Email` -> `email` -> `preferred_username` |
 | `{user-id}` | `ClaimTypes.NameIdentifier` -> `sub` -> `oid` |
+
+For server-proxied remote calls (`EnableRemoteCallProxy = true`), `RemoteDefaultHeaders`
+also supports `{request-guid}` and `{session-guid}`. The server resolves these values
+per request before forwarding to the remote API.
 
 `preferred_username` is used as an email fallback only when the identity provider
 guarantees that it contains an email address or UPN.

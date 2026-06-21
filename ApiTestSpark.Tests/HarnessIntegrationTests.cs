@@ -101,6 +101,52 @@ public class HarnessIntegrationTests
         StringAssert.Contains(body, "\"Bearer\"");
     }
 
+    [TestMethod]
+    public async Task ConfigEndpoint_Returns401_WhenAuthenticationIsRequired_AndRequestIsAnonymous()
+    {
+        var app = BuildTestApp(o => o.RequireAuthenticatedUser = true);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+
+        Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_Returns200_WhenAuthenticationIsRequired_AndRequestIsAuthenticated()
+    {
+        var user = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim(ClaimTypes.Name, "alice")],
+            authenticationType: "TestAuth"));
+
+        var app = BuildTestApp(
+            o => o.RequireAuthenticatedUser = true,
+            environment: "Development",
+            requestUser: user);
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_SetsVaryOrigin_WhenCorsOriginIsAllowed()
+    {
+        var app = BuildTestApp(o => o.CorsOrigins = ["https://portal.example.com"]);
+        var client = app.GetTestClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/api-test-spark/config");
+        request.Headers.TryAddWithoutValidation("Origin", "https://portal.example.com");
+        var response = await client.SendAsync(request);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual("https://portal.example.com",
+            response.Headers.GetValues("Access-Control-Allow-Origin").Single());
+        Assert.IsTrue(response.Headers.TryGetValues("Vary", out var varyValues));
+        Assert.IsTrue(varyValues.Any(value => value.Contains("Origin", StringComparison.OrdinalIgnoreCase)));
+    }
+
     // ── New: config values round-trip correctly ───────────────────────────────
 
     [TestMethod]
@@ -153,6 +199,29 @@ public class HarnessIntegrationTests
 
         StringAssert.Contains(body, "X-Tenant-Id");
         StringAssert.Contains(body, "acme");
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_UsesAssemblyMetadataForHarnessBuiltAt()
+    {
+        var app = BuildTestApp();
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body);
+
+        var harnessBuiltAt = doc.RootElement.GetProperty("harnessBuiltAt").GetString();
+        Assert.IsFalse(string.IsNullOrWhiteSpace(harnessBuiltAt));
+        Assert.IsTrue(DateTimeOffset.TryParse(harnessBuiltAt, out _));
+
+        var expectedMetadataValue = typeof(ApiTestSparkExtensions).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => string.Equals(attribute.Key, "ApiTestSparkBuildDateUtc", StringComparison.Ordinal))
+            ?.Value;
+
+        Assert.IsFalse(string.IsNullOrWhiteSpace(expectedMetadataValue));
+        Assert.AreEqual(expectedMetadataValue, harnessBuiltAt);
     }
 
     [TestMethod]
@@ -918,6 +987,8 @@ public class HarnessIntegrationTests
                 RemoteDefaultHeaders = new Dictionary<string, string>
                 {
                     ["X-Tenant"] = "contoso",
+                    ["X-Correlation-Id"] = "{request-guid}",
+                    ["X-Session-Id"] = "{session-guid}",
                 },
             });
             o.TestHttpClient = testClient;
@@ -937,6 +1008,14 @@ public class HarnessIntegrationTests
         Assert.AreEqual("contoso", handler.GetHeader("X-Tenant"));
         Assert.AreEqual("server-secret", handler.GetHeader("X-Api-Key"));
         Assert.AreEqual("Bearer server-token", handler.GetHeader("Authorization"));
+        var correlationId = handler.GetHeader("X-Correlation-Id");
+        var sessionId = handler.GetHeader("X-Session-Id");
+        Assert.IsNotNull(correlationId);
+        Assert.IsNotNull(sessionId);
+        Assert.IsTrue(Guid.TryParse(correlationId, out _));
+        Assert.IsTrue(Guid.TryParse(sessionId, out _));
+        Assert.AreNotEqual("{request-guid}", correlationId);
+        Assert.AreNotEqual("{session-guid}", sessionId);
         Assert.IsFalse(response.Headers.Contains("Set-Cookie"));
     }
 

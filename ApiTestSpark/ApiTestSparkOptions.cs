@@ -114,6 +114,14 @@ public class ApiTestSparkOptions
     public bool EnableDemoIntegrations { get; set; } = true;
 
     /// <summary>
+    /// When true, all API Test Spark routes require an authenticated user.
+    /// This includes the embedded SPA assets and the <c>/api-test-spark/config</c>,
+    /// <c>/api-test-spark/remote-spec</c>, and <c>/api-test-spark/remote-call</c> endpoints.
+    /// Default: false.
+    /// </summary>
+    public bool RequireAuthenticatedUser { get; set; }
+
+    /// <summary>
     /// Remote APIs shown in the remote explorer and documentation builder.
     /// Values configured here are served as metadata only; credential values are redacted
     /// from <c>/api-test-spark/config</c> and used only by the server-side proxies.
@@ -139,6 +147,10 @@ public class ApiTestSparkOptions
     /// Supports per-request expansion of <c>{user-name}</c>, <c>{user-email}</c>, and
     /// <c>{user-id}</c> when config is requested. Values are resolved from the authenticated
     /// user claims; unresolved values become an empty string.
+    ///
+    /// For server-proxied remote calls (<see cref="EnableRemoteCallProxy"/>), values may also
+    /// contain <c>{request-guid}</c> and <c>{session-guid}</c>. These are resolved per request
+    /// by the server before forwarding to the remote API.
     /// </summary>
     public Dictionary<string, string> RemoteDefaultHeaders { get; set; } = new();
 
@@ -168,18 +180,16 @@ public class ApiTestSparkOptions
 
     /// <summary>
     /// API key value sent in the <see cref="RemoteOpenApiApiKeyHeader"/> header when fetching
-    /// the remote OpenAPI document. This value is returned in the <c>/api-test-spark/config</c>
-    /// response — the harness endpoint is trusted for local/development use only and
-    /// MUST NOT be exposed to the public internet.
+    /// the remote OpenAPI document. This value is held on the server and redacted from
+    /// the <c>/api-test-spark/config</c> response.
     /// Default: null.
     /// </summary>
     public string? RemoteOpenApiApiKeyValue { get; set; }
 
     /// <summary>
     /// Bearer token sent as <c>Authorization: Bearer {token}</c> when fetching the remote
-    /// OpenAPI document. This value is returned in the <c>/api-test-spark/config</c>
-    /// response — the harness endpoint is trusted for local/development use only and
-    /// MUST NOT be exposed to the public internet.
+    /// OpenAPI document. This value is held on the server and redacted from
+    /// the <c>/api-test-spark/config</c> response.
     /// Default: null.
     /// </summary>
     public string? RemoteOpenApiBearerToken { get; set; }

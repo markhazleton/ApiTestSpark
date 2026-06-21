@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Optional harness auth gate** — new `RequireAuthenticatedUser` option on `ApiTestSparkOptions`. When enabled, all routes under `/api-test-spark` require an authenticated user, including SPA assets, `/api-test-spark/config`, `/api-test-spark/remote-spec`, and `/api-test-spark/remote-call`.
+- **Server-side proxy correlation tokens** — proxied remote calls now resolve `{request-guid}` and `{session-guid}` tokens in `RemoteDefaultHeaders` on the server before forwarding requests.
+
+### Changed
+
+- **Fail-fast CI frontend gate** — GitHub workflows now run `npm run verify` (lint + typecheck + build) before .NET build/test and publish steps.
+- **Config endpoint CORS cache safety** — responses that emit `Access-Control-Allow-Origin` now also emit `Vary: Origin`.
+
+### Migration Notes
+
+- To enforce auth on the embedded harness in any environment, set `options.RequireAuthenticatedUser = true` in your `MapApiTestSpark(...)` configuration.
+- If your server-proxied remote profiles use correlation headers, you can now safely use `{request-guid}` and `{session-guid}` in `RemoteDefaultHeaders` and expect per-request server-side expansion.
+
 ## [v1.7.0] - 2026-06-21
 
 ### Added

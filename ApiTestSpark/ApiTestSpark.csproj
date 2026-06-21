@@ -62,6 +62,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AssemblyMetadata Include="ApiTestSparkBuildDateUtc" Value="$([System.DateTime]::UtcNow.ToString('O'))" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Source Link: enables step-through debugging into this package's source -->
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
     <!-- PublicApiAnalyzers: enforces public API surface tracking via PublicAPI.Shipped.txt -->

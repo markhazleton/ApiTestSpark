@@ -42,6 +42,17 @@ Navigate to `https://localhost:{port}/api-test-spark/` — the harness autodisco
 
 ---
 
+## Latest Updates (Unreleased)
+
+- Added `RequireAuthenticatedUser` so teams can require authentication for all harness routes under `/api-test-spark`.
+- Added server-side expansion of `{request-guid}` and `{session-guid}` in proxied remote-call headers.
+- Hardened config endpoint CORS behavior by emitting `Vary: Origin` when `Access-Control-Allow-Origin` is set.
+- Updated CI and publish workflows to run `npm run verify` (lint + typecheck + build) for fail-fast frontend validation.
+
+See [../CHANGELOG.md](../CHANGELOG.md) for full details.
+
+---
+
 ## Configuration
 
 All options are optional. Pass an `Action<ApiTestSparkOptions>` to configure:
@@ -68,6 +79,7 @@ app.MapApiTestSpark(options =>
 | `CorsOrigins` | `[]` (same-origin) | Extra origins allowed to call the config endpoint. Use when the Vite dev server and .NET API run on different ports. |
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback. Alternatively set `Logging:LogLevel:ApiTestSpark=Debug` in appsettings. |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes. Set to `false` to present a clean harness showing only your host API and API Doc Builder. |
+| `RequireAuthenticatedUser` | `false` | When `true`, all harness routes under `/api-test-spark` require an authenticated user (SPA assets + config + remote proxy endpoints). |
 | `RemoteApiProfiles` | `[]` | List of named remote APIs. Each profile has `Id`, `Name`, `Description`, `RemoteBaseUrl`, `RemoteOpenApiUrl`, credentials, and default headers. |
 | `EnableRemoteCallProxy` | `false` | Routes endpoint calls for server-configured remote profiles through the host API, avoiding browser CORS requirements. See the security note below. |
 | `RemoteBaseUrl` | `null` | Legacy single-remote base URL. Used as one compatibility profile when `RemoteApiProfiles` is empty. |
@@ -75,7 +87,7 @@ app.MapApiTestSpark(options =>
 | `RemoteOpenApiApiKeyHeader` | `null` | Legacy header name for the remote API key. |
 | `RemoteOpenApiApiKeyValue` | `null` | Legacy API key value. Used server-side only and redacted from config. |
 | `RemoteOpenApiBearerToken` | `null` | Legacy bearer token. Used server-side only and redacted from config. |
-| `RemoteDefaultHeaders` | `{}` | Legacy headers injected into browser-side requests to the remote API. Supports identity tokens below plus `{session-guid}` and `{request-guid}`. |
+| `RemoteDefaultHeaders` | `{}` | Legacy remote headers. Included in browser-side remote requests and, when `EnableRemoteCallProxy = true`, resolved server-side before proxy forwarding. Supports identity tokens below plus `{session-guid}` and `{request-guid}` for proxied calls. |
 
 ### Identity header tokens
 
@@ -88,6 +100,10 @@ Unauthenticated or unresolved values become an empty string.
 | `{user-name}` | `Identity.Name` → `name` → `preferred_username` |
 | `{user-email}` | `ClaimTypes.Email` → `email` → `preferred_username` |
 | `{user-id}` | `ClaimTypes.NameIdentifier` → `sub` → `oid` |
+
+For server-proxied remote calls (`EnableRemoteCallProxy = true`), `RemoteDefaultHeaders`
+also supports `{request-guid}` and `{session-guid}`. The server resolves these values
+per request before forwarding to the remote API.
 
 `preferred_username` is used as an email fallback only when the identity provider
 guarantees that it contains an email address or UPN.

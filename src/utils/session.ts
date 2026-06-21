@@ -75,7 +75,10 @@ export function getSessionId(): string {
 }
 
 export function getRequestIdentityHeaders(): Record<string, string> {
-  return {};
+  return {
+    'X-ApiTestSpark-SessionGuid': getSessionGuid(),
+    'X-ApiTestSpark-RequestGuid': getRequestGuid(),
+  };
 }
 
 export function resetSessionId(): void {
