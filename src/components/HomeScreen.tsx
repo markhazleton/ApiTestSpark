@@ -5,7 +5,6 @@ import { SECTION_CONFIGS } from "../config";
 import { useHarnessConfigStore } from "../store/harnessConfigStore";
 import { getRemoteProfileLabel, getVisibleRemoteProfiles, useRemoteConfigStore } from "../store/remoteConfigStore";
 import type { RemoteApiProfile } from "../types";
-import makeBoldLogo from "../assets/brand/make-bold-solutions-logo.svg";
 
 interface NavItem {
   icon: string;
@@ -149,9 +148,7 @@ export default function HomeScreen() {
               {BRANDING.tagline} for local, hosted, and remote APIs managed inside the Make Bold ecosystem.
             </p>
           </div>
-          <a href={BRANDING.companyUrl} className="bg-white rounded-md px-4 py-3 w-fit shadow-lg" aria-label={BRANDING.companyName}>
-            <img src={makeBoldLogo} alt={BRANDING.companyName} className="brand-wordmark" />
-          </a>
+
         </div>
       </div>
 

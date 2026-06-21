@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { BRANDING } from '../utils';
-import makeBoldLogo from '../assets/brand/make-bold-solutions-logo.svg';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home' },
@@ -51,9 +50,6 @@ export function Header() {
           <nav className="flex items-center gap-1">
             {navLinks}
           </nav>
-          <a href={BRANDING.companyUrl} aria-label={BRANDING.companyName} className="hidden 2xl:block">
-            <img src={makeBoldLogo} alt={BRANDING.companyName} className="brand-wordmark" />
-          </a>
         </div>
 
         <button
