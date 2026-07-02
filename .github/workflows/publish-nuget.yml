@@ -60,6 +60,7 @@ jobs:
                   name: test-results
                   path: ./TestResults
                   if-no-files-found: warn
+                  retention-days: 1
 
             - name: Check .NET package vulnerabilities
               run: dotnet list ApiTestSpark/ApiTestSpark.csproj package --vulnerable --include-transitive
@@ -93,6 +94,7 @@ jobs:
                   name: nuget-packages
                   path: ./nupkg
                   if-no-files-found: error
+                  retention-days: 1
 
             # Only publish when triggered by a version tag push (not workflow_dispatch or PRs)
             - name: Publish to NuGet.org
