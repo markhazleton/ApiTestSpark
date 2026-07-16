@@ -122,6 +122,7 @@ Navigate to `https://localhost:{port}/api-test-spark/` — API Test Spark autodi
 | **API Doc Builder** | Select endpoints, capture live curl + responses, annotate, and export markdown at `/api-docs` |
 | **Remote API Profiles** | Configure multiple named remote APIs in `Program.cs` or the browser, each with its own explorer and doc builder route |
 | **Server-side Remote Call Proxy** | Opt-in `EnableRemoteCallProxy` routes server-configured remote endpoint calls through your host app to avoid browser CORS requirements |
+| **OAuth Token Configuration** | Acquire and use OAuth2 bearer tokens per remote API — configure `client_credentials`/`password` grants per Environment in the browser (Config screen), or set a server-held `RemoteApiProfile.OAuth` (`client_credentials`) in `Program.cs` so the client secret and token never reach the browser |
 | **Identity-Aware Header Templates** | Expand `{user-name}`, `{user-email}`, and `{user-id}` in configured host and remote headers using the authenticated user context |
 | **Live Debug Panel** | Every request, response, error, and performance metric — drag-resizable, FIFO buffered |
 | **Environment Gating** | Restrict the harness to Development or Staging; keep it off production with one option |
@@ -157,7 +158,7 @@ app.MapApiTestSpark(options =>
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens and disables their routes. Set to `false` for a clean harness showing only your host API. |
 | `RequireAuthenticatedUser` | `false` | When `true`, all harness routes under `/api-test-spark` require an authenticated user (SPA assets + config + remote proxy endpoints). |
-| `RemoteApiProfiles` | `[]` | Named remote API defaults. Each profile has an id, name, description, base URL, OpenAPI URL, credentials, and headers. |
+| `RemoteApiProfiles` | `[]` | Named remote API defaults. Each profile has an id, name, description, base URL, OpenAPI URL, credentials, and headers. Each profile can also set `OAuth` (see below) for server-acquired bearer tokens. |
 | `EnableRemoteCallProxy` | `false` | Routes endpoint calls for server-configured remote profiles through `/api-test-spark/remote-call`, avoiding browser CORS requirements while keeping server-held credentials off the client. |
 | `RemoteBaseUrl` / `RemoteOpenApiUrl` | `null` | Legacy single-remote options. When `RemoteApiProfiles` is empty, these seed one compatibility profile. |
 
@@ -199,6 +200,41 @@ app.MapApiTestSpark(options =>
 
 Server profile secrets are redacted from `GET /api-test-spark/config`. The server proxy fetches specs by profile id at `GET /api-test-spark/remote-spec?profileId=orders-api`, so browser-created profiles cannot submit arbitrary URLs to the server proxy. When `EnableRemoteCallProxy = true`, endpoint calls for server-configured profiles are also routed through `GET|POST|PUT|PATCH|DELETE /api-test-spark/remote-call?profileId=...&path=...`. Browser-created profiles are stored in `localStorage`, fetch OpenAPI documents directly from the browser, and keep their endpoint calls browser-direct.
 
+### OAuth-authenticated remote APIs (server-configured only)
+
+If a remote API requires an OAuth2 `client_credentials` bearer token, set `OAuth` on the profile instead of a static `RemoteOpenApiBearerToken`:
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.EnableRemoteCallProxy = true; // required — see below
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "orders-api",
+        Name = "Orders API",
+        RemoteBaseUrl = "https://orders.example.com",
+        RemoteOpenApiUrl = "https://orders.example.com/openapi.json",
+        OAuth = new RemoteApiProfileOAuth
+        {
+            TokenEndpointUrl = "https://login.example.com/oauth/token",
+            ClientId = builder.Configuration["Orders:ClientId"]!,
+            ClientSecret = builder.Configuration["Orders:ClientSecret"]!,
+        },
+    });
+});
+```
+
+The server acquires and caches the access token itself (`client_credentials` grant, ~30s
+expiry buffer) and injects `Authorization: Bearer <token>` when fetching the remote OpenAPI
+document and when proxying endpoint calls through `/api-test-spark/remote-call`. **The
+client secret and the acquired token never reach the browser** — `/api-test-spark/config`
+only returns `remoteOAuthConfigured: true`. Because the token is only ever attached
+server-side, `EnableRemoteCallProxy` must be `true` for the profile's endpoint calls to
+actually carry the token (the same requirement that already applies to a static
+`RemoteOpenApiBearerToken` held on the server). The Config page shows `oauth: configured
+on server (client_credentials)` for these profiles — no editable OAuth fields are ever
+shown in the browser.
+
 ---
 
 ## Live Demo
@@ -221,8 +257,8 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 
 1. **Static file middleware** — serves the embedded SPA assets (HTML, JS, CSS) from `EmbeddedFileProvider` at `/api-test-spark/`. No files are copied to your project.
 2. **Config endpoint** — `GET /api-test-spark/config` returns your `OpenApiUrl`, `AuthScheme`, `DefaultHeaders`, resolved `userName` / `userEmail` / `userId`, redacted remote API profile metadata, and harness version at runtime. The SPA fetches this on startup — no values are hardcoded in the bundle.
-3. **Remote spec proxy** — `GET /api-test-spark/remote-spec?profileId=...` fetches the configured server remote profile OpenAPI document and returns the JSON to the SPA. API key and Bearer token are injected at the server; credential values are not serialized to the browser config payload.
-4. **Remote call proxy** — when `EnableRemoteCallProxy` is enabled, endpoint calls for server-configured remote profiles are forwarded through `GET|POST|PUT|PATCH|DELETE /api-test-spark/remote-call?profileId=...&path=...`, avoiding browser CORS requirements and keeping server-held credentials out of the browser.
+3. **Remote spec proxy** — `GET /api-test-spark/remote-spec?profileId=...` fetches the configured server remote profile OpenAPI document and returns the JSON to the SPA. API key, Bearer token, and OAuth-acquired tokens are injected at the server; credential values are not serialized to the browser config payload.
+4. **Remote call proxy** — when `EnableRemoteCallProxy` is enabled, endpoint calls for server-configured remote profiles are forwarded through `GET|POST|PUT|PATCH|DELETE /api-test-spark/remote-call?profileId=...&path=...`, avoiding browser CORS requirements and keeping server-held credentials (including OAuth client secrets and acquired tokens) out of the browser.
 5. **SPA fallback** — extensionless paths under `/api-test-spark/` serve `index.html` so client-side routing works. Unknown file extensions return HTTP 404.
 
 ---

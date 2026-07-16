@@ -85,7 +85,7 @@ export const AboutScreen: React.FC = () => {
             </li>
             <li className="flex gap-2">
               <span className="text-[#982407] font-bold shrink-0">2.</span>
-              <span><strong>Remote API Explorer</strong> — tests named external API profiles; server-configured specs use a credential-safe proxy and browser-created profiles stay local.</span>
+              <span><strong>Remote API Explorer</strong> — tests named external API profiles; server-configured specs use a credential-safe proxy and browser-created profiles stay local. Profiles can authenticate with a static API key/Bearer token, a browser-side OAuth2 token configured per Environment, or a server-acquired OAuth2 <code className="text-xs bg-gray-100 px-1 py-0.5 rounded font-mono">client_credentials</code> token that never reaches the browser.</span>
             </li>
           </ul>
           <p className="text-sm text-stone-700 leading-relaxed mt-3">
@@ -116,7 +116,7 @@ export const AboutScreen: React.FC = () => {
               </p>
               <ol className="list-decimal list-inside space-y-1 pl-2">
                 <li>Validates the configured remote URL uses <code className="bg-gray-100 px-1 rounded font-mono">http://</code> or <code className="bg-gray-100 px-1 rounded font-mono">https://</code> (SSRF guard).</li>
-                <li>Resolves only server-provided profile ids and adds the API key or Bearer token server-side.</li>
+                <li>Resolves only server-provided profile ids and adds the API key or Bearer token server-side — or, if the profile has an <code className="bg-gray-100 px-1 rounded font-mono">OAuth</code> config, acquires and caches a <code className="bg-gray-100 px-1 rounded font-mono">client_credentials</code> access token itself.</li>
                 <li>Fetches the remote OpenAPI JSON document.</li>
                 <li>Returns it to the browser — credentials never appear in the browser's network tab.</li>
               </ol>
@@ -142,12 +142,14 @@ export const AboutScreen: React.FC = () => {
               <ul className="list-disc list-inside space-y-1 pl-2">
                 <li>All <strong>Default Request Headers</strong> (e.g. correlation IDs, session tokens).</li>
                 <li>The <strong>API key header</strong> (if configured).</li>
-                <li>An <code className="bg-gray-100 px-1 rounded font-mono">Authorization: Bearer …</code> header (if a Bearer token is configured).</li>
+                <li>An <code className="bg-gray-100 px-1 rounded font-mono">Authorization: Bearer …</code> header — from either a static Bearer token or a server-acquired OAuth token, if either is configured.</li>
               </ul>
               <p className="text-gray-500 italic">
                 Enable this only for trusted, server-configured targets: the host can make requests on the
                 user&apos;s behalf. The proxy accepts only a configured profile and its configured origin; browser-created
-                profiles always remain direct.
+                profiles always remain direct. This proxy is also required for an OAuth-configured profile's
+                endpoint calls to actually carry the server-acquired token — the token is only ever attached
+                server-side and is never sent to the browser.
               </p>
             </div>
           </div>

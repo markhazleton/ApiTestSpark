@@ -47,11 +47,12 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
   );
 }
 
-function Callout({ color = 'blue', title, children }: { color?: 'blue' | 'amber' | 'green'; title: string; children: React.ReactNode }) {
+function Callout({ color = 'blue', title, children }: { color?: 'blue' | 'amber' | 'green' | 'purple'; title: string; children: React.ReactNode }) {
   const styles = {
     blue:  'bg-[#fff7f5] border-[#d9aaa0] text-[#741b05]',
     amber: 'bg-amber-50 border-amber-200 text-amber-900',
     green: 'bg-green-50 border-green-200 text-green-900',
+    purple: 'bg-purple-50 border-purple-200 text-purple-900',
   };
   return (
     <div className={`rounded-lg border p-4 ${styles[color]}`}>
@@ -209,7 +210,10 @@ export const HowToUseScreen: React.FC = () => {
               Add your <strong>API Key Header</strong> + <strong>API Key Value</strong>, or a{' '}
               <strong>Bearer Token</strong>. Credential fields are masked. They are stored only
               in your browser's <Code>localStorage</Code> — they never leave your machine except
-              as request headers.
+              as request headers. If the remote API uses OAuth2 instead, configure a token on the{' '}
+              <Link to="/config" className="text-[#982407] hover:underline font-medium">Config page's</Link>{' '}
+              OAuth panel for the current Environment, then check <strong>Use environment OAuth
+              token</strong> on the profile instead of setting a static Bearer Token.
             </Step>
             <Step n={4}>
               Add any <strong>Default Request Headers</strong> that every call needs (e.g.
@@ -242,6 +246,17 @@ export const HowToUseScreen: React.FC = () => {
               on the Config page, the app creates a separate browser-only profile instead of overriding
               the Program.cs entry. Hiding a server profile stores only that hidden id in the browser.
             </Callout>
+
+            <Callout color="purple" title="OAuth tokens — two independent options">
+              <strong>Browser-side:</strong> configure a <InlineCode>client_credentials</InlineCode> or{' '}
+              <InlineCode>password</InlineCode> grant per Environment on the OAuth panel at the top of
+              the Config page. Tokens are cached per Environment and any profile can opt in to using
+              that token instead of a static Bearer Token. <strong>Server-side:</strong> a Program.cs
+              profile can instead set <InlineCode>RemoteApiProfile.OAuth</InlineCode> so the server
+              acquires and caches a <InlineCode>client_credentials</InlineCode> token itself — the
+              client secret and token never reach the browser. These profiles show <InlineCode>oauth:
+              configured on server</InlineCode> on the Config page with no editable OAuth fields.
+            </Callout>
           </div>
         </Card>
 
@@ -266,6 +281,8 @@ export const HowToUseScreen: React.FC = () => {
                   ['API Key Header',        'RemoteApiProfile.RemoteOpenApiApiKeyHeader', 'Name of the header to send the API key in, e.g. x-api-key.'],
                   ['API Key Value',         'RemoteApiProfile.RemoteOpenApiApiKeyValue', 'Value of the API key. Server profile values are redacted from config.'],
                   ['Bearer Token',          'RemoteApiProfile.RemoteOpenApiBearerToken', 'Token sent as Authorization: Bearer <value>. Alternative to API key.'],
+                  ['Use environment OAuth token', 'RemoteApiProfile.remoteUseOAuthToken', 'Browser-side opt-in: use the current Environment\'s cached OAuth token instead of a static Bearer Token. Requests block rather than fall back if no valid token is available.'],
+                  ['OAuth (server-configured)', 'RemoteApiProfile.OAuth (RemoteApiProfileOAuth)', 'Server-only client_credentials config (TokenEndpointUrl/ClientId/ClientSecret). Token is acquired and cached server-side and never sent to the browser; shown as read-only \'configured on server\'.'],
                   ['Default Request Headers','RemoteDefaultHeaders',      'Key-value pairs injected into every direct remote API call (not the spec fetch). Good for correlation IDs, session tokens, tenant IDs.'],
                 ].map(([field, prop, desc]) => (
                   <tr key={field} className="border-b border-gray-100 hover:bg-gray-50">

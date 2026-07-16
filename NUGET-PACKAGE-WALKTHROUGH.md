@@ -134,6 +134,7 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
       "remoteOpenApiBearerToken": null,
       "remoteOpenApiApiKeyConfigured": true,
       "remoteOpenApiBearerTokenConfigured": false,
+      "remoteOAuthConfigured": false,
       "remoteCallProxyEnabled": true,
       "remoteDefaultHeaders": { "correlationId": "{request-guid}" },
       "source": "server",
@@ -150,6 +151,8 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
 `harnessVersion` and `harnessBuiltAt` are baked in at pack time from the assembly's `AssemblyInformationalVersionAttribute` and the DLL's last-write timestamp. The About page in the SPA reads these from the config response — no separate `build-info.json` fetch required, which was the approach that failed silently in NuGet embedded mode.
 
 Remote API profile credentials configured on the server are redacted from the config response. The browser receives profile metadata, configured flags, and a `profileId`; `GET /api-test-spark/remote-spec?profileId=...` resolves only server-provided profiles and uses the server-held credentials to proxy the OpenAPI document. When `EnableRemoteCallProxy` is enabled, server-configured profile endpoint calls can also be forwarded through `GET|POST|PUT|PATCH|DELETE /api-test-spark/remote-call?profileId=...&path=...`. Browser-created profiles stay local and fetch OpenAPI documents and endpoint calls directly from the browser.
+
+Profiles can also configure `OAuth` (`RemoteApiProfileOAuth`: `TokenEndpointUrl`, `ClientId`, `ClientSecret`) instead of a static `RemoteOpenApiBearerToken`. The server acquires and caches an OAuth2 `client_credentials` access token itself (in-memory, ~30s expiry buffer, same pattern as the browser-side OAuth store) and injects `Authorization: Bearer <token>` for the remote spec fetch and for `/api-test-spark/remote-call` proxying. The client secret and the acquired token are never returned by `/api-test-spark/config` — only `remoteOAuthConfigured: true/false` is exposed. Because the token is only ever attached server-side, `EnableRemoteCallProxy` must be enabled for a profile's actual endpoint calls to carry the token.
 
 ---
 
@@ -281,7 +284,22 @@ ApiTestSpark.ApiTestSparkOptions.TestHttpClient.set -> void
 static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!
 ```
 
-If you add a new public method in `ApiTestSparkExtensions.cs`, the build produces RS0016 ("Symbol is not part of the declared public API") until you add it to `PublicAPI.Unshipped.txt`.
+If you add a new public method in `ApiTestSparkExtensions.cs`, the build produces RS0016 ("Symbol is not part of the declared public API") until you add it to `PublicAPI.Unshipped.txt`. For example, the OAuth-for-server-configured-profiles addition currently lives in `PublicAPI.Unshipped.txt` (moved to `Shipped.txt` at the next release tag):
+
+```
+# PublicAPI.Unshipped.txt (pending release)
+#nullable enable
+ApiTestSpark.RemoteApiProfile.OAuth.get -> ApiTestSpark.RemoteApiProfileOAuth?
+ApiTestSpark.RemoteApiProfile.OAuth.set -> void
+ApiTestSpark.RemoteApiProfileOAuth
+ApiTestSpark.RemoteApiProfileOAuth.RemoteApiProfileOAuth() -> void
+ApiTestSpark.RemoteApiProfileOAuth.ClientId.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.ClientId.set -> void
+ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.set -> void
+ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.set -> void
+```
 
 ---
 
