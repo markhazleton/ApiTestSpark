@@ -177,10 +177,10 @@ As a tester, I want to see whether my current OAuth token is valid or expired an
 
 ### Out of Scope
 
-- Seeding OAuth secrets on the server side via the .NET package options so they never reach the browser (deferred to a future enhancement).
-- OAuth grant types other than client_credentials and password (e.g., authorization_code, device_code).
+- ~~Seeding OAuth secrets on the server side via the .NET package options so they never reach the browser~~ — **implemented post-launch 2026-07-16**, see plan.md Implementation Notes #4 (`RemoteApiProfile.OAuth`, `client_credentials` only, used only when `EnableRemoteCallProxy` is enabled for the profile).
+- OAuth grant types other than client_credentials and password (e.g., authorization_code, device_code) — server-side config is client_credentials-only; browser-side (Environment-scoped) config supports both.
 - Automatic token renewal using a refresh_token.
-- Separate OAuth credentials per Remote API Profile — this feature is Environment-scoped, with a profile-level opt-in flag only.
+- Separate OAuth credentials per Remote API Profile for the **browser-side, Environment-scoped** flow — that remains a profile-level opt-in flag only. (Server-side `RemoteApiProfile.OAuth` is inherently per-profile, since it lives on the profile itself.)
 
 ## Success Criteria *(mandatory)*
 

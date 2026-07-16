@@ -12,6 +12,9 @@ export interface RemoteApiProfile {
   remoteOpenApiBearerToken?: string;
   remoteOpenApiApiKeyConfigured?: boolean;
   remoteOpenApiBearerTokenConfigured?: boolean;
+  /** True when this profile's OAuth token acquisition is configured server-side (Program.cs).
+   * The client secret and acquired token never reach the browser; this is a read-only indicator. */
+  remoteOAuthConfigured?: boolean;
   /** When true, requests use the active Environment's OAuth-derived token instead of remoteOpenApiBearerToken. */
   remoteUseOAuthToken?: boolean;
   /** Server-configured profiles use the same-origin remote call proxy when true. */

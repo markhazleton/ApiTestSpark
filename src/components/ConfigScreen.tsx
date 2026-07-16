@@ -173,6 +173,12 @@ function ServerProfileRow({
               ? 'configured on server'
               : 'not configured'}
           </span>
+          {profile.remoteOAuthConfigured && (
+            <>
+              <span className="text-gray-400">oauth</span>
+              <span className="text-gray-700">configured on server (client_credentials)</span>
+            </>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">

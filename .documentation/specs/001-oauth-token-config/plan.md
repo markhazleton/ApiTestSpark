@@ -144,3 +144,36 @@ implement workflow's rule to record rather than silently diverge.*
    tasks remain open pending a live/mock provider for final sign-off — see the `<!-- WIP -->` notes
    on those tasks in tasks.md.
 
+4. **Added capability beyond original scope: server-side (`Program.cs`) OAuth configuration for
+   `RemoteApiProfile` (2026-07-16, post-implementation).** The original spec explicitly listed
+   "Seeding OAuth secrets on the server side via the .NET package options" as Out of Scope. After
+   evaluating the feature, the user requested this capability be added, following the same
+   "server holds the secret, browser only sees a `*Configured: true` flag" pattern already used
+   for `RemoteOpenApiBearerToken`/`RemoteOpenApiApiKeyValue`. Implemented as:
+   - `ApiTestSpark/ApiTestSparkOptions.cs`: new `RemoteApiProfileOAuth` class (`TokenEndpointUrl`,
+     `ClientId`, `ClientSecret`) and `RemoteApiProfile.OAuth` property. Public API surface change
+     recorded in `PublicAPI.Unshipped.txt` (requires a `SEMVER: MINOR` label on the PR per
+     Constitution/NuGet package conventions).
+   - `ApiTestSpark/ApiTestSparkExtensions.cs`: a static, in-memory, per-profile token cache
+     (`ConcurrentDictionary`, 30s expiry buffer, same convention as the browser-side cache) acquires
+     a `client_credentials` token via `SharedHttpClient`/`options.TestHttpClient` and injects
+     `Authorization: Bearer <token>` when (a) fetching the remote OpenAPI document and (b) proxying
+     calls through `/api-test-spark/remote-call`. **The client secret and the acquired token never
+     reach the browser** — this only works for actual API calls when `EnableRemoteCallProxy` is
+     enabled for the profile, matching the existing behavior of `RemoteOpenApiBearerToken` (a
+     server-held secret that isn't sent to the browser is only usable by the server's own proxy
+     path, not by direct browser-initiated calls).
+   - `/api-test-spark/config` now returns `remoteOAuthConfigured: true/false` per profile (boolean
+     only, never the endpoint URL/client id/secret).
+   - Browser: `RemoteApiProfile.remoteOAuthConfigured` (read-only) added to `host-api.ts`;
+     `ConfigScreen.tsx`'s `ServerProfileRow` shows an "oauth: configured on server
+     (client_credentials)" indicator. No editable fields are shown for server-configured OAuth —
+     `ServerProfileRow` was already read-only by construction (only `BrowserProfileEditor` has
+     editable fields, and server profiles never render through that component), so "hide from UI"
+     required no additional hiding logic beyond adding the indicator.
+   - Scope: `client_credentials` grant only (password grant was not requested for the server-side
+     path, since Program.cs-configured profiles represent a fixed application identity, not a
+     rotating test user).
+   - `dotnet build ApiTestSpark` and `dotnet test ApiTestSpark.Tests` (49/49) both pass; `npm run
+     verify` passes.
+
