@@ -731,6 +731,157 @@ public class HarnessIntegrationTests
         Assert.IsTrue(profiles[1].GetProperty("remoteOpenApiBearerTokenConfigured").GetBoolean());
     }
 
+    // ── New: server-side OAuth (M-01, PR #7 pr-review) ───────────────────────
+
+    [TestMethod]
+    public async Task ConfigEndpoint_RemoteOAuthConfigured_TrueWhenFullyConfigured()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "oauth-profile",
+                RemoteOpenApiUrl = "https://example.com/openapi.json",
+                OAuth = new RemoteApiProfileOAuth
+                {
+                    TokenEndpointUrl = "https://example.com/oauth/token",
+                    ClientId = "client-id",
+                    ClientSecret = "client-secret",
+                },
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var profile = JsonDocument.Parse(body).RootElement.GetProperty("remoteApiProfiles")[0];
+
+        Assert.IsTrue(profile.GetProperty("remoteOAuthConfigured").GetBoolean());
+        // The client secret and token endpoint URL must never be serialized to the browser.
+        Assert.IsFalse(body.Contains("client-secret"), "Client secret must not appear in config response");
+        Assert.IsFalse(body.Contains("oauth/token"), "Token endpoint URL must not appear in config response");
+    }
+
+    [TestMethod]
+    public async Task ConfigEndpoint_RemoteOAuthConfigured_FalseWhenNotConfigured()
+    {
+        var app = BuildTestApp(o =>
+        {
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "no-oauth-profile",
+                RemoteOpenApiUrl = "https://example.com/openapi.json",
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/config");
+        var body = await response.Content.ReadAsStringAsync();
+        var profile = JsonDocument.Parse(body).RootElement.GetProperty("remoteApiProfiles")[0];
+
+        Assert.IsFalse(profile.GetProperty("remoteOAuthConfigured").GetBoolean());
+    }
+
+    [TestMethod]
+    public async Task RemoteSpec_InjectsOAuthBearerToken_WhenProfileHasOAuth()
+    {
+        static HttpResponseMessage Respond(HttpRequestMessage req) =>
+            req.RequestUri!.AbsolutePath == "/oauth/token"
+                ? new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """{"access_token":"tok-abc","token_type":"Bearer","expires_in":3600}""",
+                        System.Text.Encoding.UTF8, "application/json"),
+                }
+                : new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """{"openapi":"3.0.0","info":{"title":"T","version":"1"},"paths":{}}""",
+                        System.Text.Encoding.UTF8, "application/json"),
+                };
+
+        var handler = new RoutingHttpMessageHandler(Respond);
+        var testClient = new HttpClient(handler);
+
+        var app = BuildTestApp(o =>
+        {
+            o.TestHttpClient = testClient;
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                Id = "oauth-profile",
+                RemoteOpenApiUrl = "https://example.com/openapi.json",
+                OAuth = new RemoteApiProfileOAuth
+                {
+                    TokenEndpointUrl = "https://example.com/oauth/token",
+                    ClientId = "client-id",
+                    ClientSecret = "client-secret",
+                },
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=oauth-profile");
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var specRequest = handler.Requests.LastOrDefault(r => r.RequestUri!.AbsolutePath == "/openapi.json");
+        Assert.IsNotNull(specRequest, "Expected a request to the remote OpenAPI URL");
+        Assert.IsTrue(specRequest!.Headers.TryGetValues("Authorization", out var authValues),
+            "Remote spec fetch must carry an Authorization header when OAuth is configured");
+        Assert.AreEqual("Bearer tok-abc", authValues!.Single());
+    }
+
+    [TestMethod]
+    public async Task RemoteSpec_ProceedsWithoutAuthHeader_WhenOAuthTokenAcquisitionFails()
+    {
+        static HttpResponseMessage Respond(HttpRequestMessage req) =>
+            req.RequestUri!.AbsolutePath == "/oauth/token"
+                ? new HttpResponseMessage(HttpStatusCode.Unauthorized)
+                {
+                    Content = new StringContent("""{"error":"invalid_client"}""", System.Text.Encoding.UTF8, "application/json"),
+                }
+                : new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """{"openapi":"3.0.0","info":{"title":"T","version":"1"},"paths":{}}""",
+                        System.Text.Encoding.UTF8, "application/json"),
+                };
+
+        var handler = new RoutingHttpMessageHandler(Respond);
+        var testClient = new HttpClient(handler);
+
+        var app = BuildTestApp(o =>
+        {
+            o.TestHttpClient = testClient;
+            o.RemoteApiProfiles.Add(new RemoteApiProfile
+            {
+                // Distinct id from the success-path test above — GetOAuthAccessTokenAsync caches
+                // by profile.Id in a process-wide static dictionary (see L-01), so reusing the
+                // same id here would silently return the other test's cached token instead of
+                // exercising the acquisition-failure path.
+                Id = "oauth-profile-acquisition-fails",
+                RemoteOpenApiUrl = "https://example.com/openapi.json",
+                OAuth = new RemoteApiProfileOAuth
+                {
+                    TokenEndpointUrl = "https://example.com/oauth/token",
+                    ClientId = "client-id",
+                    ClientSecret = "wrong-secret",
+                },
+            });
+        });
+        var client = app.GetTestClient();
+
+        var response = await client.GetAsync("/api-test-spark/remote-spec?profileId=oauth-profile-acquisition-fails");
+
+        // Fail-open: a token acquisition failure must not throw or block the proxy — it just
+        // proceeds without the Authorization header (matches the existing RemoteOpenApiBearerToken
+        // fail-open convention).
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var specRequest = handler.Requests.LastOrDefault(r => r.RequestUri!.AbsolutePath == "/openapi.json");
+        Assert.IsNotNull(specRequest);
+        Assert.IsFalse(specRequest!.Headers.TryGetValues("Authorization", out _),
+            "No Authorization header should be sent when OAuth token acquisition failed");
+    }
+
     // ── New: remote spec proxy — T023 (400 cases) ────────────────────────────
 
     [TestMethod]
@@ -1120,5 +1271,20 @@ internal sealed class TimeoutHttpMessageHandler : HttpMessageHandler
     {
         await Task.Delay(Timeout.Infinite, cancellationToken);
         return new HttpResponseMessage(HttpStatusCode.OK);
+    }
+}
+
+// Routes each outbound request to a caller-supplied responder based on the request itself
+// (e.g. by RequestUri path), and records every request seen — used for OAuth token-acquisition
+// tests where the same TestHttpClient must serve both the token endpoint and the remote spec URL.
+internal sealed class RoutingHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responder) : HttpMessageHandler
+{
+    public List<HttpRequestMessage> Requests { get; } = new();
+
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        Requests.Add(request);
+        return Task.FromResult(responder(request));
     }
 }

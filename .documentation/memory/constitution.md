@@ -48,11 +48,23 @@ Templates updated:
      structure is feature-driven; constitution gates enforced at plan level
 
 Deferred items  : none
+
+Version change  : 1.1.2 → 1.1.3
+Method          : /devspark.address-pr-review (PR #7 CON-01)
+Date            : 2026-07-16
+Source          : pr-review of PR #7 (001-oauth-token-config) — registry-table drift found
+                  during Rev 2/Rev 3 review of the OAuth Token Configuration feature
+Changes         :
+  §V   — Corrected the `useAuthStore` row in the canonical store registry: "Persists" was
+         documented as "Config only", but the shipped implementation (per FR-015 of the OAuth
+         Token Configuration feature) persists both config and acquired access tokens per
+         Environment. The code was correct and intentional; this amendment brings the
+         constitution's documentation in line with it.
 -->
 
 # API Test Spark Constitution
 
-**Version**: 1.1.2 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-06-06
+**Version**: 1.1.3 | **Ratified**: 2026-05-18 | **Last Amended**: 2026-07-16
 
 > This constitution defines the non-negotiable engineering principles for the API Test Spark project.
 > All pull requests, AI-assisted code generation, and architectural decisions MUST comply with these principles.
@@ -174,10 +186,16 @@ Zustand stores are focused, action-gated, and buffer-bounded.
 | Store | Concern | Storage Key | Persists |
 |-------|---------|-------------|---------|
 | `useUnifiedConfigStore` | API endpoint config per environment | `api-test-spark-config` | Full config |
-| `useAuthStore` | Auth configuration + audit trail | `api-test-spark-auth-config` | Config only |
+| `useAuthStore` | OAuth token configuration + acquired access tokens, per Environment | `api-test-spark-auth-config` | Config + access tokens |
 | `useDebugStore` | Request/response/error/metrics capture | `api-test-spark-debug` | Enabled flag only |
 | `useHarnessConfigStore` | Runtime harness config + discovered OpenAPI endpoints | *(none — session only)* | No |
 | `useRemoteConfigStore` | Remote API connection config (URL, credentials, default headers) | `api-test-spark-remote-config` | Full config |
+
+`useAuthStore` persists both the OAuth config (token endpoint, client credentials, test-user
+credentials) and the acquired access tokens, keyed per Environment. Tokens are cached across
+browser reloads so testers do not need to re-authenticate on every page load (FR-015). The store
+performs no network I/O itself — token acquisition is orchestrated by `useOAuthToken`
+(Constitution III/IV). *(Corrected: 1.1.3 — was previously documented as "Config only")*
 
 `useHarnessConfigStore` is **not persisted** — its config is always re-fetched from
 `/api-test-spark/config` on app load. It holds the `HarnessConfig` from the .NET layer,
@@ -320,3 +338,4 @@ at any time. SHOULD be run before major releases.
 | 1.1.0 | 2026-05-31 | CAP-2026-001: Clarified Principle VI — defined "unrecoverable", expanded routing scope to all of `src/`. CAP-2026-002: Updated Principle VII — split into per-artifact stances; formally recognised .NET MSTest suite as a MUST quality gate |
 | 1.1.1 | 2026-05-31 | Full-repo review: §IV recognised `createRestCaller` as second valid client pattern; §V added `useHarnessConfigStore` to store registry; §VI expanded `ErrorCategory` union to include `'React'`, added App Insights integration guidance. Code fix: `ErrorRecord.category` typed as `ErrorCategory` (was `string`). |
 | 1.1.2 | 2026-06-06 | §V — Added `useRemoteConfigStore` to canonical store registry (PR #2 CON-01, addressed via `/devspark.address-pr-review`). |
+| 1.1.3 | 2026-07-16 | §V — Corrected `useAuthStore`'s "Persists" column from "Config only" to "Config + access tokens", matching the shipped OAuth Token Configuration feature (FR-015) (PR #7 CON-01, addressed via `/devspark.address-pr-review`). |
