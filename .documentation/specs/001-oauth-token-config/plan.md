@@ -1,0 +1,113 @@
+# Implementation Plan: OAuth Token Configuration for API Authentication
+
+**Branch**: `001-oauth-token-config` | **Date**: 2026-07-16 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/.documentation/specs/001-oauth-token-config/spec.md`
+
+**Note**: This template is filled in by the `/devspark.plan` command. See `.documentation/templates/commands/plan.md` for the execution workflow.
+
+## Summary
+
+Activate the existing but dormant per-Environment `authStore` OAuth scaffolding into a real
+`client_credentials` + `password` grant token-acquisition feature. Token requests are executed
+through a small, additive extension to the shared `executeRequest` client layer (adds a
+`contentType: 'form'` option for `application/x-www-form-urlencoded` bodies), invoked from a new
+`useOAuthToken` hook via TanStack Query `useMutation`. The `authStore` is corrected to hold only
+configuration + token **state** (no direct `fetch`), with the token cache re-keyed per Environment
+and, per clarification, persisted across page refresh. A single boolean flag
+(`RemoteApiProfile.remoteUseOAuthToken`) lets a Remote API profile opt in to the environment's
+OAuth-derived token in place of its existing static Bearer Token field; profiles that don't opt in
+are entirely unaffected.
+
+## Technical Context
+
+**Language/Version**: TypeScript 6.0 (strict mode), React 19
+**Primary Dependencies**: Zustand 5 (`persist` middleware), TanStack Query 5 (`useMutation`), Vite 8, React Router DOM 7
+**Storage**: Browser `localStorage` via Zustand `persist`, existing key `api-test-spark-auth-config` (auth config + token cache) and `api-test-spark-remote-config` (profile opt-in flag) — no new storage keys
+**Testing**: N/A — React SPA has no JS/TS test runner by constitutional design (Principle VII); manual verification per [quickstart.md](./quickstart.md)
+**Target Platform**: Browser SPA, embedded in a host ASP.NET Core app via the `ApiTestSpark` NuGet package (no .NET code changes in this feature)
+**Project Type**: Single project — feature addition within the existing React SPA (`src/`)
+**Performance Goals**: No new performance targets; a token request is a single network round trip gated by the existing 20s timeout (FR-017) — no throughput/latency target beyond "doesn't block the UI thread"
+**Constraints**: Zero raw `fetch` outside `executeRequest` (Constitution IV); zero behavior change for Remote API profiles that don't opt in (FR-011, SC-004); token acquisition timeout ~15-30s (FR-017)
+**Scale/Scope**: 3 Environments × 1 OAuth config + 1 cached token each; arbitrary number of Remote API profiles, each with one new boolean flag
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*Constitution version: 1.1.2 — see `.documentation/memory/constitution.md`*
+
+| # | Gate | Status |
+|---|------|--------|
+| I | `npm run verify` (tsc -b + vite build) MUST pass — zero TypeScript errors | ☑ PASS — new types are additive; renamed dormant fields (`username`→`testUsername` etc.) have no other consumers |
+| II | `npm run lint` MUST pass — zero ESLint errors (react-hooks/exhaustive-deps enforced) | ☑ PASS — no new lint-risk patterns introduced |
+| III | New feature follows: types → api client → hook → component + barrel exports at every directory | ☑ PASS — see Project Structure below; every new file re-exported from its directory's `index.ts` |
+| IV | API client extends `ApiClient`/`createRestCaller`, instantiated per-call, UUID-correlated, debug callbacks injected | ☑ PASS (after correction) — **initial design in session discussion called for the Zustand store to call `fetch` directly for token acquisition, which would have violated this gate.** Corrected during planning (research.md R1/R2): token acquisition is a `src/api/oauthTokenClient.ts` function built on the existing `executeRequest`, invoked only from a `useOAuthToken` hook via `useMutation`. The store performs no I/O. |
+| V | Zustand stores: one concern each, mutate via actions only, FIFO buffer limits respected | ☑ PASS — reuses the existing single-concern `useAuthStore` (already in the canonical registry); no new store. Token cache re-keying per Environment and persisting it (research.md R3) is a deliberate, clarification-driven change to what that one store persists, not a new concern. |
+| VI | No `console.log` in `src/`; all request/response/error routed through `useDebugStore` | ☑ PASS — token fetch failures route through `useDebugStore.addError` with `'Network'`/`'API'` categories, matching FR-012 |
+| VIII | No PII/PHI in any test data, type, store, log, or App Insights payload | ☑ PASS — fields are test-tool client secrets / test-user credentials, not real personal data; quickstart.md carries an explicit synthetic-credential reminder |
+
+*Gate VII (testing stance) is aspirational and not a blocking gate.*
+
+**Post-Phase-1 re-check**: All gates remain PASS after data-model.md/quickstart.md design — no new
+violations were introduced by the entity design (see data-model.md). No `## Constitution Waivers`
+section is required.
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+.documentation/specs/001-oauth-token-config/
+├── plan.md              # This file (/devspark.plan command output)
+├── research.md          # Phase 0 output (/devspark.plan command)
+├── data-model.md        # Phase 1 output (/devspark.plan command)
+├── quickstart.md        # Phase 1 output (/devspark.plan command)
+├── checklists/
+│   └── requirements.md  # /devspark.specify output
+└── tasks.md              # Phase 2 output (/devspark.tasks command - NOT created by /devspark.plan)
+```
+
+No `contracts/` directory — this feature exposes no new external interface (no new .NET
+endpoint, no new public NuGet API); it is entirely an internal SPA capability (see spec Out of
+Scope and quickstart.md).
+
+### Source Code (repository root)
+
+```text
+src/
+├── types/
+│   ├── state.ts                          # MODIFY: AuthConfigSet, AuthStoreState, AccessTokenState fields
+│   └── host-api.ts                       # MODIFY: RemoteApiProfile.remoteUseOAuthToken
+├── api/
+│   ├── client.ts                         # MODIFY: add contentType:'form' option to executeRequest/ApiRequestConfig
+│   ├── oauthTokenClient.ts               # NEW: builds grant-type request bodies, calls executeRequest
+│   └── index.ts                          # MODIFY: barrel re-export
+├── hooks/
+│   ├── useOAuthToken.ts                  # NEW: useMutation wrapper + ensureOAuthToken() orchestration
+│   └── index.ts                          # MODIFY: barrel re-export
+├── store/
+│   ├── authStore.ts                      # MODIFY: per-Environment token cache, persisted, no direct fetch
+│   ├── remoteConfigStore.ts              # MODIFY: normalizeRemoteProfile defaults remoteUseOAuthToken
+│   └── index.ts                          # (no change — already exports useAuthStore)
+├── components/
+│   ├── harness-config/
+│   │   ├── OAuthConfigPanel.tsx          # NEW: global per-Environment OAuth config + Get Token actions
+│   │   ├── RemoteOpenApiConfig.tsx       # MODIFY: opt-in checkbox
+│   │   └── index.ts                     # MODIFY: barrel re-export
+│   ├── ConfigScreen.tsx                  # MODIFY: mount OAuthConfigPanel
+│   ├── host-api/
+│   │   └── EndpointTester.tsx            # MODIFY: await ensureOAuthToken before firing when opted in
+│   └── remote-api/
+│       └── RemoteApiDocScreen.tsx        # MODIFY: use cached token or placeholder in generated curl
+```
+
+**Structure Decision**: Single-project React SPA structure (existing `src/` layer order from
+Constitution III: types → api → hooks → components/store). No backend/frontend split, no new
+top-level project — this is an addition to the existing feature set within the current repository
+layout.
+
+## Complexity Tracking
+
+*No unresolved Constitution violations. The one identified risk (raw `fetch` inside the store,
+Gate IV) was resolved during planning via research.md R1/R2 rather than justified as a deviation —
+no waiver needed.*
+
