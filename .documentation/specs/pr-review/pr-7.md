@@ -15,9 +15,9 @@ summary: "Re-review after the T017/T023/T029 completion commit (f597851), which 
 - **Target Branch**: `main`
 - **Review Date**: 2026-07-16 19:05:00 UTC
 - **Last Updated**: 2026-07-17 00:05:00 UTC
-- **Reviewed Commit**: `f597851`
+- **Reviewed Commit**: `f597851` (findings below addressed in follow-up commit `fe5238b` — see Revision Log Rev 4)
 - **Reviewer**: devspark.pr-review
-- **Constitution Version**: 1.1.2
+- **Constitution Version**: 1.1.3 (amended by this address-pr-review pass — see Rev 4)
 
 ## Revision Log
 
@@ -26,6 +26,7 @@ summary: "Re-review after the T017/T023/T029 completion commit (f597851), which 
 | 1 | `4f37b34` | 2026-07-16 | 2 | 1 | 0 | 0 | 0 | N/A (docs-only, no test files changed) | skipped |
 | 2 | `4884e8f` | 2026-07-16 | 2 | 1 | 1 | 1 | 1 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (49/49 .NET, verify clean) |
 | 3 | `f597851` | 2026-07-16 | 0 | 0 | 1 | 1 | 1 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (49/49 .NET, verify clean) |
+| 4 | `fe5238b` | 2026-07-16 | 0 | 0 | 0 | 0 | 0 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (53/53 .NET, verify clean) — via `/devspark.address-pr-review`: M-01 fixed (4 new integration tests), CON-01 fixed (constitution.md → 1.1.3), L-01 acknowledged (no code change) |
 
 *Note: the `get-pr-context.ps1` team override at `.documentation/scripts/powershell/` still returns stale/unrelated data (a 2016 PR from a different repository/branch) — the stock `.devspark/scripts/powershell/get-pr-context.ps1` is also still blocked by a false-negative `gh auth status` (keyring token invalid, but `gh pr view`/`gh pr edit` work via a different auth path). Both bypassed again; context gathered directly via `gh pr view --json ...` and `git diff`/`git rev-list`/`git log`.*
 
@@ -39,6 +40,15 @@ summary: "Re-review after the T017/T023/T029 completion commit (f597851), which 
 - **Lines (this revision)**: +210 −103
 
 ## Stats
+
+| Metric | Value |
+|--------|-------|
+| Files changed (Rev 3 → Rev 4) | 2 |
+| Lines added (Rev 3 → Rev 4) | +187 |
+| Lines removed (Rev 3 → Rev 4) | −2 |
+| Commit snapshot | `fe5238b` |
+
+*Rev 3 → Rev 4 delta collected via `git diff --numstat`. Original Rev 2 → Rev 3 stats below, preserved for history.*
 
 | Metric | Value |
 |--------|-------|
@@ -84,13 +94,13 @@ None found. Both prior Critical findings (C-01, C-02) and the prior High finding
 
 ### Recommended Improvements
 
-- [ ] **M-01** `ApiTestSpark/ApiTestSparkExtensions.cs`, `ApiTestSpark/ApiTestSparkOptions.cs` — *(carried, unchanged)* New public API surface (`RemoteApiProfileOAuth`, `RemoteApiProfile.OAuth`) still has no integration test coverage in `ApiTestSpark.Tests/HarnessIntegrationTests.cs` (49 tests, unchanged by this revision's diff).
+- [x] **M-01** `ApiTestSpark/ApiTestSparkExtensions.cs`, `ApiTestSpark/ApiTestSparkOptions.cs` — *(carried, unchanged)* New public API surface (`RemoteApiProfileOAuth`, `RemoteApiProfile.OAuth`) still has no integration test coverage in `ApiTestSpark.Tests/HarnessIntegrationTests.cs` (49 tests, unchanged by this revision's diff). — *Fixed in fe5238b: added 4 integration tests (remoteOAuthConfigured true/false, Authorization header injection via a new RoutingHttpMessageHandler, fail-open on acquisition failure); 53/53 tests pass.*
   - **Recommendation**: Add integration test(s) covering `remoteOAuthConfigured` exposure and proxy token injection/failure paths before or shortly after this merges.
-- [ ] **L-01** `ApiTestSpark/ApiTestSparkExtensions.cs:50` — *(carried, unchanged)* `OAuthTokenCache` keyed only by `profile.Id`, process-wide static. Informational only.
+- [x] **L-01** `ApiTestSpark/ApiTestSparkExtensions.cs:50` — *(carried, unchanged)* `OAuthTokenCache` keyed only by `profile.Id`, process-wide static. Informational only. — *Acknowledged, no code change per the finding's own recommendation; incidentally confirmed as real behavior while writing the M-01 tests (the two OAuth test profiles required distinct `Id`s to avoid one test's cached token leaking into the other).*
 
 ### Constitution Improvements (Non-blocking — feed into `/devspark.evolve-constitution`)
 
-- [ ] **CON-01** — *(carried, unchanged)* §V's canonical store registry table still lists `useAuthStore`'s "Persists" column as "Config only"; the shipped implementation persists config + access tokens (FR-015). Suggested amendment unchanged from Rev 2.
+- [x] **CON-01** — *(carried, unchanged)* §V's canonical store registry table still lists `useAuthStore`'s "Persists" column as "Config only"; the shipped implementation persists config + access tokens (FR-015). Suggested amendment unchanged from Rev 2. — *Fixed in fe5238b: constitution.md amended to 1.1.3, `useAuthStore` row corrected to "Config + access tokens" with a Sync Impact Report entry and ratification-history row.*
 
 ## What's Good
 
