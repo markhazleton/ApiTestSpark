@@ -32,9 +32,11 @@ new top-level project (see plan.md Structure Decision).
 **Purpose**: Confirm environment readiness — no new dependencies or scaffolding required (existing
 Zustand 5 / TanStack Query 5 / Vite 8 stack already covers this feature).
 
-- [ ] T001 Confirm branch `001-oauth-token-config` is checked out and confirm no new npm packages
+- [X] T001 Confirm branch `001-oauth-token-config` is checked out and confirm no new npm packages
       are required (Zustand `persist`, TanStack Query `useMutation` already installed);
       no file changes in this task.
+
+**Checkpoint**: Setup complete — 2026-07-16.
 
 ---
 
@@ -44,7 +46,7 @@ Zustand 5 / TanStack Query 5 / Vite 8 stack already covers this feature).
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Extend `ApiRequestConfig`/`executeRequest` in `src/api/client.ts` with an opt-in
+- [X] T002 [P] Extend `ApiRequestConfig`/`executeRequest` in `src/api/client.ts` with an opt-in
       `contentType: 'json' | 'form'` field (default `'json'`, no change to existing callers); when
       `'form'`, serialize `body` as `application/x-www-form-urlencoded` via `URLSearchParams`
       instead of `JSON.stringify`. Add a ~20s timeout that fires independently of, and in addition
@@ -53,7 +55,7 @@ Zustand 5 / TanStack Query 5 / Vite 8 stack already covers this feature).
       `AbortSignal.any`), and ensure the resulting error message distinguishes "timed out" from
       "cancelled" from "caller-aborted" so callers can tell which occurred.
       (research.md R1, R5; gates/critic.md critic-002)
-- [ ] T003 [P] Update `src/types/state.ts`: rename `AuthConfigSet.username`/`password` →
+- [X] T003 [P] Update `src/types/state.ts`: rename `AuthConfigSet.username`/`password` →
       `testUsername`/`testPassword`; add `userClientId?`, `userClientSecret?`, `description?`;
       change token state to `tokens: Record<Environment, AccessTokenState>` (fields: `accessToken`,
       `tokenType`, `expiresAt`, `acquiredVia`, `isAuthenticated` — drop `refreshToken`/`userName`/
@@ -61,25 +63,25 @@ Zustand 5 / TanStack Query 5 / Vite 8 stack already covers this feature).
       environment-scoped (`setToken(environment, response)`, `clearToken(environment)`,
       `isTokenValid(environment)`, `isTokenExpired(environment)`, `getAccessToken(environment)`).
       (data-model.md OAuthConfig / AccessTokenState)
-- [ ] T004 [P] Update `src/types/host-api.ts`: add `remoteUseOAuthToken?: boolean` to
+- [X] T004 [P] Update `src/types/host-api.ts`: add `remoteUseOAuthToken?: boolean` to
       `RemoteApiProfile`. (data-model.md RemoteApiProfile)
-- [ ] T005 Create `src/api/oauthTokenClient.ts`: functional factory that builds the
+- [X] T005 Create `src/api/oauthTokenClient.ts`: functional factory that builds the
       `client_credentials` request body (`grant_type`, `client_id`, `client_secret`) and the
       `password` request body (`grant_type=password`, `client_id` = `userClientId ?? clientId`,
       `client_secret` = `userClientSecret ?? clientSecret` when present, `username`, `password`),
       and calls `executeRequest` with `contentType: 'form'` against `config.baseUrl`.
       (depends on: T002) (research.md R4)
-- [ ] T006 Update `src/api/index.ts` barrel to re-export `oauthTokenClient`. (depends on: T005)
-- [ ] T007 Rewrite `src/store/authStore.ts`: config CRUD keeps existing shape aside from renamed
+- [X] T006 Update `src/api/index.ts` barrel to re-export `oauthTokenClient`. (depends on: T005)
+- [X] T007 Rewrite `src/store/authStore.ts`: config CRUD keeps existing shape aside from renamed
       fields (T003); re-key token cache per Environment; add `tokens` to the `persist` `partialize`
       (reversing the prior "session-only" comment per FR-015); remove any direct `fetch` from the
       store; keep `updateAuthConfig`/`getAuthConfig` synchronous; token actions become
       `setToken(environment, tokenResponse)`, `clearToken(environment)`, `isTokenValid(environment)`,
       `isTokenExpired(environment)`, `getAccessToken(environment)` — all pure state, no I/O.
       (depends on: T003) (research.md R2, R3)
-- [ ] T008 Update `src/store/remoteConfigStore.ts` `normalizeRemoteProfile` to default
+- [X] T008 Update `src/store/remoteConfigStore.ts` `normalizeRemoteProfile` to default
       `remoteUseOAuthToken: profile.remoteUseOAuthToken ?? false`. (depends on: T004)
-- [ ] T009 Create `src/hooks/useOAuthToken.ts`: `useMutation` wrapping `oauthTokenClient` with debug
+- [X] T009 Create `src/hooks/useOAuthToken.ts`: `useMutation` wrapping `oauthTokenClient` with debug
       callbacks injected from `useDebugStore` (per-call instantiation, UUID correlation, per
       Constitution IV). Expose TWO distinct entry points — do not blur them:
       (a) `ensureOAuthToken(environment, grantType)`, used only by automatic pre-fire callers (US3),
@@ -91,7 +93,7 @@ Zustand 5 / TanStack Query 5 / Vite 8 stack already covers this feature).
       `useAuthStore.getState().setToken(environment, response)`; on failure route through
       `useDebugStore.addError` with `'Network'`/`'API'` category (FR-012).
       (depends on: T005, T007) (research.md R2; gates/analyze.md A1)
-- [ ] T010 Redact secret values before debug capture (SHOWSTOPPER fix — gates/critic.md critic-001):
+- [X] T010 Redact secret values before debug capture (SHOWSTOPPER fix — gates/critic.md critic-001):
       in `src/hooks/useOAuthToken.ts` (or as a small helper in `src/api/oauthTokenClient.ts` used by
       both), build a SEPARATE, redacted copy of the request body (replace `client_secret`,
       `user_client_secret`/effective secret, and `password` values with a fixed marker such as
@@ -99,7 +101,9 @@ Zustand 5 / TanStack Query 5 / Vite 8 stack already covers this feature).
       callbacks; the real, unredacted body must still be sent to the actual `fetch` call inside
       `executeRequest`. This applies to every token-endpoint request (`client_credentials` and
       `password` grants) with no exceptions. (depends on: T005, T009)
-- [ ] T011 Update `src/hooks/index.ts` barrel to re-export `useOAuthToken`. (depends on: T009, T010)
+- [X] T011 Update `src/hooks/index.ts` barrel to re-export `useOAuthToken`. (depends on: T009, T010)
+
+**Checkpoint**: Phase complete — 2026-07-16.
 
 **Checkpoint**: Shared token-acquisition plumbing (types, client, store, hook) is complete,
 constitution-compliant (Gate IV — no raw `fetch` outside `executeRequest`), and does not leak
@@ -118,19 +122,21 @@ API profile changes.
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Create `src/components/harness-config/OAuthConfigPanel.tsx`: form fields for
+- [X] T012 [US1] Create `src/components/harness-config/OAuthConfigPanel.tsx`: form fields for
       Token Endpoint URL (`baseUrl`), Client ID, Client Secret (masked, consistent with existing
       masked-credential convention in `RemoteOpenApiConfig.tsx`), and Description; a
       "Get App Token" button that ALWAYS calls `useOAuthToken().acquireOAuthToken(env,
       'client_credentials')` (never `ensureOAuthToken` — see T009/gates/analyze.md A1) so a click
       always fetches fresh per FR-016; a token status badge showing none/valid-until/expired; a
       "Clear Token" button. (FR-001, FR-004, FR-006, FR-013)
-- [ ] T013 [US1] Update `src/components/harness-config/index.ts` barrel to re-export
+- [X] T013 [US1] Update `src/components/harness-config/index.ts` barrel to re-export
       `OAuthConfigPanel`. (depends on: T012)
-- [ ] T014 [US1] Mount `<OAuthConfigPanel env={currentEnvironment} />` in
+- [X] T014 [US1] Mount `<OAuthConfigPanel />` in
       `src/components/ConfigScreen.tsx` alongside the existing per-environment sections.
-      (depends on: T012, T013)
-- [ ] T015 [US1] Wire the "Get App Token" button's loading/error states in `OAuthConfigPanel.tsx`
+      (depends on: T012, T013) <!-- Implementation Note: OAuthConfigPanel manages its own
+      localhost/test/other environment tabs internally rather than taking an `env` prop, since
+      ConfigScreen has no existing environment switcher of its own — see plan.md Implementation Notes. -->
+- [X] T015 [US1] Wire the "Get App Token" button's loading/error states in `OAuthConfigPanel.tsx`
       so acquisition failures (timeout, non-2xx) surface a clear inline message sourced from the
       same error routed to `useDebugStore.addError` (no separate/duplicate error channel).
       (depends on: T012) (FR-012)
@@ -138,6 +144,8 @@ API profile changes.
 **Checkpoint**: User Story 1 is fully functional and independently testable — a tester can acquire
 and view an application-level token without touching any Remote API profile, and the debug panel
 never shows the plaintext client secret (verify against T010).
+
+**Checkpoint**: Phase complete — 2026-07-16. ✅ Complete
 
 ---
 
@@ -151,7 +159,7 @@ client identity) and acquire a `password`-grant access token.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Extend `OAuthConfigPanel.tsx` (from US1) with Test Username, Test Password
+- [X] T016 [US2] Extend `OAuthConfigPanel.tsx` (from US1) with Test Username, Test Password
       (masked), User Client ID, and User Client Secret (masked) fields, plus a
       "Get Test User Token" button that ALWAYS calls `acquireOAuthToken(env, 'password')` (same
       always-fetch guarantee as T012 — never `ensureOAuthToken`). (depends on: T012)
@@ -160,14 +168,18 @@ client identity) and acquire a `password`-grant access token.
       `src/api/oauthTokenClient.ts` (`userClientId ?? clientId`, `userClientSecret ?? clientSecret`)
       against a real or mock provider that requires a distinct password-grant client identity.
       (depends on: T005) (FR-002)
-- [ ] T018 [US2] Confirm both `acquireOAuthToken` calls (T012's and T016's) silently overwrite any
+      <!-- WIP: fallback logic implemented and code-reviewed; verification against a live/mock
+      OAuth provider requires an external environment not available during this implementation
+      session — remains an open manual step (see also T029). -->
+- [X] T018 [US2] Confirm both `acquireOAuthToken` calls (T012's and T016's) silently overwrite any
       existing valid token for the environment regardless of which grant button was clicked
       (FR-016), and that `acquiredVia` is recorded correctly for each grant type.
       (depends on: T009, T010, T016)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — both grant types can be exercised
 from the Config screen, and clicking either button always replaces any existing token (FR-016
-verified, not just assumed).
+verified, not just assumed). Phase code-complete 2026-07-16; T017's live-provider verification is
+the one remaining open item (see WIP note above).
 
 ---
 
@@ -182,11 +194,14 @@ token, not the static field.
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Add a "Use environment OAuth token" checkbox to
-      `src/components/harness-config/RemoteOpenApiConfig.tsx`, bound to `remoteUseOAuthToken`;
+- [X] T019 [US3] Add a "Use environment OAuth token" checkbox bound to `remoteUseOAuthToken`;
       visually de-emphasize/disable the static Bearer Token field when checked. (depends on: T004,
-      T008) (FR-007, FR-011)
-- [ ] T020 [US3] Update `handleFire` in `src/components/host-api/EndpointTester.tsx`: when
+      T008) (FR-007, FR-011) <!-- Implementation Note: added to `BrowserProfileEditor` inside
+      `src/components/ConfigScreen.tsx`, NOT `RemoteOpenApiConfig.tsx` as originally planned —
+      discovered during implementation that RemoteOpenApiConfig.tsx is unused/dead code (never
+      rendered anywhere in the app); the actual per-profile RemoteApiProfile editing UI is
+      ConfigScreen.tsx's BrowserProfileEditor. See plan.md Implementation Notes. -->
+- [X] T020 [US3] Update `handleFire` in `src/components/host-api/EndpointTester.tsx`: when
       `remoteProfile?.remoteUseOAuthToken` is true, `await ensureOAuthToken(environment,
       'client_credentials')` (the short-circuit-on-valid variant from T009 — appropriate here,
       unlike the Config-screen buttons) before building `requestHeaders`; use the OAuth token as
@@ -198,15 +213,16 @@ token, not the static field.
       acquisition rather than reusing generic "required field" phrasing — distinct from instant
       validation errors like a missing path parameter (gates/critic.md critic-003). (depends on:
       T009, T019) (FR-008, FR-010, FR-011, FR-014)
-- [ ] T021 [US3] Update `captureConfig.headers` in
+- [X] T021 [US3] Update `captureConfig.headers` in
       `src/components/remote-api/RemoteApiDocScreen.tsx`: when `remoteUseOAuthToken` is true, use
       the cached token via `isTokenValid`/`getAccessToken` if valid, otherwise emit a
       `{OAUTH_ACCESS_TOKEN}` placeholder in generated docs/curl — do not trigger a token fetch as a
       side effect of viewing the Doc Builder. (depends on: T009, T019)
 
-**Checkpoint**: User Stories 1–3 all work independently; Endpoint Explorer and Doc Builder both
-honor the opt-in flag with the correct precedence over the static Bearer Token field, and
-Environment-switching never leaks a token across environments (FR-010).
+**Checkpoint**: Phase complete — 2026-07-16. ✅ Complete. User Stories 1–3 all work independently;
+Endpoint Explorer and Doc Builder both honor the opt-in flag with the correct precedence over the
+static Bearer Token field, and Environment-switching never leaks a token across environments
+(FR-010).
 
 ---
 
@@ -219,7 +235,7 @@ status reflects "no token" afterward and a subsequent opted-in request is blocke
 
 ### Implementation for User Story 4
 
-- [ ] T022 [US4] Ensure `OAuthConfigPanel.tsx`'s token status badge (built in US1/T012) reactively
+- [X] T022 [US4] Ensure `OAuthConfigPanel.tsx`'s token status badge (built in US1/T012) reactively
       reflects valid/expired/none as time passes (e.g., re-derive on render/interval), showing a
       human-readable expiration timestamp. (depends on: T012) (FR-006)
 - [ ] T023 [US4] Wire the "Clear Token" button to `useAuthStore.getState().clearToken(environment)`
@@ -229,8 +245,13 @@ status reflects "no token" afterward and a subsequent opted-in request is blocke
       opted-in request and confirm the system blocks per FR-014 rather than silently re-running the
       password grant with the stored test credentials (gates/analyze.md A2).
       (depends on: T012, T020)
+      <!-- WIP: Clear Token button wired and code-reviewed; the manual live-request verification
+      (fire against a real opted-in profile after clearing the token) requires an external test
+      API/OAuth provider not available during this implementation session — remains open (see
+      T029). -->
 
-**Checkpoint**: All four user stories are independently functional.
+**Checkpoint**: Code for all four user stories is complete; T023's live manual verification is the
+one remaining open item for this phase.
 
 ---
 
@@ -238,25 +259,34 @@ status reflects "no token" afterward and a subsequent opted-in request is blocke
 
 **Purpose**: Constitution compliance verification and final manual validation.
 
-- [ ] T024 [P] Run `npm run verify` (`tsc -b` + `vite build`) — MUST pass with zero TypeScript
-      errors (Constitution I).
-- [ ] T025 [P] Run `npm run lint` — MUST pass with zero ESLint errors, including
-      `react-hooks/exhaustive-deps` (Constitution II).
-- [ ] T026 Confirm every new/modified `src/` directory (`api/`, `hooks/`, `store/`,
+- [X] T024 [P] Run `npm run verify` (`tsc -b` + `vite build`) — MUST pass with zero TypeScript
+      errors (Constitution I). <!-- Verified 2026-07-16: tsc -b + vite build clean. -->
+- [X] T025 [P] Run `npm run lint` — MUST pass with zero ESLint errors, including
+      `react-hooks/exhaustive-deps` (Constitution II). <!-- Verified 2026-07-16 as part of `npm run
+      verify` (lint runs before vite build) — zero errors. -->
+- [X] T026 Confirm every new/modified `src/` directory (`api/`, `hooks/`, `store/`,
       `components/harness-config/`) still has an `index.ts` barrel re-exporting the new/changed
-      public surface (Constitution III).
-- [ ] T027 [P] Grep `src/` for `fetch(` occurrences outside `src/api/client.ts`'s `executeRequest`
-      to confirm no raw `fetch` calls were introduced (Constitution IV).
-- [ ] T028 Spot-check that `useDebugStore` FIFO buffer limits (50/50/50/100) and the existing
+      public surface (Constitution III). <!-- Verified: api/index.ts, hooks/index.ts,
+      harness-config/index.ts, components/index.ts all updated. -->
+- [X] T027 [P] Grep `src/` for `fetch(` occurrences outside `src/api/client.ts`'s `executeRequest`
+      to confirm no raw `fetch` calls were introduced (Constitution IV). <!-- Verified: only
+      pre-existing fetch() calls remain (build-info/version checks, spec fetch) — none added by
+      this feature; oauthTokenClient.ts uses executeRequest exclusively. -->
+- [X] T028 Spot-check that `useDebugStore` FIFO buffer limits (50/50/50/100) and the existing
       canonical store registry remain unaffected by the `authStore`/`remoteConfigStore` changes
-      (Constitution V).
+      (Constitution V). <!-- Verified: debugStore.ts untouched by this feature. -->
 - [ ] T029 Manually execute all 10 steps of `quickstart.md` end-to-end against a real or mock
       OAuth2 token endpoint, using only synthetic test credentials (Constitution VIII reminder
       already documented in quickstart.md) — including the new steps verifying no secret is visible
       in the debug panel (critic-001) and that an expired password-grant token is never silently
       resubmitted (FR-009/A2).
-- [ ] T030 [P] Re-validate `.documentation/specs/001-oauth-token-config/checklists/requirements.md`
+      <!-- WIP: requires a real or mock OAuth2 token endpoint reachable from a running dev server —
+      not available during this implementation session. All code paths exercised by this
+      quickstart are implemented and pass `npm run verify`; live end-to-end validation remains the
+      one open item before this feature can be considered fully Complete. -->
+- [X] T030 [P] Re-validate `.documentation/specs/001-oauth-token-config/checklists/requirements.md`
       still passes if any FR wording changed during implementation (expected: no changes needed).
+      <!-- Verified: no FR wording changed; checklist remains 19/19 pass. -->
 
 ---
 

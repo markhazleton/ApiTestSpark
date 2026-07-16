@@ -6,6 +6,7 @@ import {
   useRemoteConfigStore,
   validateRemoteProfile,
 } from '../store/remoteConfigStore';
+import { OAuthConfigPanel } from './harness-config';
 import type { RemoteApiProfile } from '../types';
 
 function Field({
@@ -289,8 +290,20 @@ function BrowserProfileEditor({
           value={profile.remoteOpenApiBearerToken ?? ''}
           onChange={(e) => onChange({ remoteOpenApiBearerToken: e.target.value })}
           autoComplete="off"
-          className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407]"
+          disabled={!!profile.remoteUseOAuthToken}
+          className="w-full font-mono text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#982407] disabled:opacity-50 disabled:bg-gray-50"
         />
+      </Field>
+
+      <Field label="Use environment OAuth token" hint="When enabled, requests use the active Environment's configured OAuth-derived token instead of the Bearer Token above.">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={!!profile.remoteUseOAuthToken}
+            onChange={(e) => onChange({ remoteUseOAuthToken: e.target.checked })}
+          />
+          Use environment OAuth token
+        </label>
       </Field>
 
       <Field label="Default Request Headers" hint="Values support {session-guid} and {request-guid}.">
@@ -384,6 +397,8 @@ export function ConfigScreen() {
             Saved to browser
           </div>
         )}
+
+        <OAuthConfigPanel />
 
         <section className="space-y-3">
           <div className="flex items-baseline justify-between gap-3">

@@ -12,6 +12,8 @@ export interface RemoteApiProfile {
   remoteOpenApiBearerToken?: string;
   remoteOpenApiApiKeyConfigured?: boolean;
   remoteOpenApiBearerTokenConfigured?: boolean;
+  /** When true, requests use the active Environment's OAuth-derived token instead of remoteOpenApiBearerToken. */
+  remoteUseOAuthToken?: boolean;
   /** Server-configured profiles use the same-origin remote call proxy when true. */
   remoteCallProxyEnabled?: boolean;
   remoteDefaultHeaders: Record<string, string>;

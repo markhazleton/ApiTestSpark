@@ -18,7 +18,7 @@ participants:
 
 **Feature Branch**: `001-oauth-token-config`
 **Created**: 2026-07-16
-**Status**: Draft <!-- Valid: Draft | In Progress | Complete -->
+**Status**: In Progress <!-- Valid: Draft | In Progress | Complete -->
 **Input**: User description: "Allow users to configure OAuth token acquisition (client_credentials and password grant) per environment so API calls needing a bearer token can auto-fetch and attach it, instead of requiring a manually pasted static token."
 
 ## Rationale Summary
@@ -70,7 +70,7 @@ Focus review on: (1) correctness of token acquisition, caching, and expiration h
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Configure and acquire an application-level token (Priority: P1)
+### User Story 1 - Configure and acquire an application-level token (Priority: P1) ✅ Complete
 
 As a tester, I want to configure a token endpoint URL and application client credentials for an environment, and request an access token using those credentials, so that I can call a bearer-token-protected API without manually obtaining a token through some external process.
 
@@ -101,7 +101,7 @@ As a tester, I want to configure test user credentials (and, if the API requires
 
 ---
 
-### User Story 3 - Remote API profile automatically uses the configured token (Priority: P2)
+### User Story 3 - Remote API profile automatically uses the configured token (Priority: P2) ✅ Complete
 
 As a tester, I want a Remote API profile to automatically use my environment's configured OAuth token instead of a manually pasted static token, so that I don't have to copy a new token into the profile every time the old one expires.
 

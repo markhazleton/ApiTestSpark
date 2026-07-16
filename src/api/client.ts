@@ -48,10 +48,16 @@ export interface ApiRequestConfig {
   callbacks?: ApiClientCallbacks;
   /** Pass an AbortController.signal to support cancellation. */
   signal?: AbortSignal;
+  /** Body serialization mode. Defaults to 'json' (JSON.stringify). Use 'form' for
+   * application/x-www-form-urlencoded bodies (e.g. OAuth token requests). */
+  contentType?: "json" | "form";
+  /** Optional request timeout in milliseconds. Composed with any caller-supplied
+   * `signal` (both can abort the request independently) rather than replacing it. */
+  timeoutMs?: number;
 }
 
 export async function executeRequest<T>(config: ApiRequestConfig): Promise<T> {
-  const { method, url, body, headers = {}, callbacks, signal } = config;
+  const { method, url, body, headers = {}, callbacks, signal, contentType = "json", timeoutMs } = config;
   const requestId = uuidv4();
   const startTime = performance.now();
 
@@ -67,12 +73,42 @@ export async function executeRequest<T>(config: ApiRequestConfig): Promise<T> {
   let responseStatus = 0;
   let responseBody: unknown;
 
+  let effectiveSignal = signal;
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  if (timeoutMs !== undefined) {
+    const timeoutController = new AbortController();
+    timeoutHandle = setTimeout(() => {
+      timedOut = true;
+      timeoutController.abort();
+    }, timeoutMs);
+    if (signal) {
+      if (typeof AbortSignal.any === "function") {
+        effectiveSignal = AbortSignal.any([signal, timeoutController.signal]);
+      } else {
+        // Fallback bridge for runtimes without AbortSignal.any: forward caller aborts
+        // into the timeout controller so both cancellation paths still work.
+        signal.addEventListener("abort", () => timeoutController.abort());
+        effectiveSignal = timeoutController.signal;
+      }
+    } else {
+      effectiveSignal = timeoutController.signal;
+    }
+  }
+
   try {
+    const serializedBody =
+      body === undefined
+        ? undefined
+        : contentType === "form"
+          ? (body instanceof URLSearchParams ? body : new URLSearchParams(body as Record<string, string>)).toString()
+          : JSON.stringify(body);
+
     const resp = await fetch(url, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal,
+      body: serializedBody,
+      signal: effectiveSignal,
     });
     responseStatus = resp.status;
     const respHeaders: Record<string, string> = {};
@@ -111,6 +147,17 @@ export async function executeRequest<T>(config: ApiRequestConfig): Promise<T> {
     return responseBody as T;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
+      if (timedOut) {
+        const err: ErrorResponse = {
+          id: uuidv4(),
+          category: "Network",
+          message: `Request timed out after ${timeoutMs}ms`,
+          timestamp: new Date(),
+          context: { url, method },
+        };
+        callbacks?.onError?.(err);
+        throw new Error(err.message, { cause: error });
+      }
       throw new RequestAbortedError(url, method);
     }
     if (error instanceof Error && !(error instanceof RequestAbortedError)) {
@@ -135,6 +182,8 @@ export async function executeRequest<T>(config: ApiRequestConfig): Promise<T> {
       }
     }
     throw error;
+  } finally {
+    if (timeoutHandle) clearTimeout(timeoutHandle);
   }
 }
 

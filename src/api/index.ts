@@ -18,4 +18,6 @@ export {
   JSON_PLACEHOLDER_BASE_URL,
 } from "./jsonPlaceholderClient";
 export { HostApiClient } from "./hostApiClient";
+export { acquireOAuthToken } from "./oauthTokenClient";
+export type { AcquireOAuthTokenParams } from "./oauthTokenClient";
 export { createRemoteOpenApiCaller } from "./remoteOpenApiClient";

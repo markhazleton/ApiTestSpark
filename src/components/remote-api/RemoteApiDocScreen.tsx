@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getRemoteProfileLabel, getVisibleRemoteProfiles, useRemoteConfigStore } from '../../store/remoteConfigStore';
+import { useAuthStore } from '../../store/authStore';
+import { useUnifiedConfigStore } from '../../store/unifiedConfigStore';
 import { useRemoteOpenApi } from '../../hooks/useRemoteOpenApi';
 import { EndpointList } from '../host-api/EndpointList';
 import { buildCurlCommand, generateMarkdown } from '../../utils/generateMarkdown';
@@ -331,6 +333,16 @@ export function RemoteApiDocScreen() {
 
   // Build the capture config from remote settings (credentials injected server-side for spec fetch,
   // but direct browser calls use the headers from config)
+  const { currentEnvironment } = useUnifiedConfigStore();
+  const isTokenValid = useAuthStore((state) => state.isTokenValid);
+  const getAccessToken = useAuthStore((state) => state.getAccessToken);
+  const oauthAuthHeader: Record<string, string> = profile?.remoteUseOAuthToken
+    ? {
+        Authorization: `Bearer ${
+          isTokenValid(currentEnvironment) ? getAccessToken(currentEnvironment) : '{OAUTH_ACCESS_TOKEN}'
+        }`,
+      }
+    : {};
   const captureConfig = remoteBaseUrl ? {
     baseUrl: remoteBaseUrl,
     proxyProfileId: profile && usesServerRemoteCallProxy(profile) ? profile.id : undefined,
@@ -339,9 +351,11 @@ export function RemoteApiDocScreen() {
       ...(profile?.source !== 'server' && profile?.remoteOpenApiApiKeyHeader && profile?.remoteOpenApiApiKeyValue
         ? { [profile.remoteOpenApiApiKeyHeader]: profile.remoteOpenApiApiKeyValue }
         : {}),
-      ...(profile?.source !== 'server' && profile?.remoteOpenApiBearerToken
-        ? { Authorization: `Bearer ${profile.remoteOpenApiBearerToken}` }
-        : {}),
+      ...(profile?.remoteUseOAuthToken
+        ? oauthAuthHeader
+        : (profile?.source !== 'server' && profile?.remoteOpenApiBearerToken
+          ? { Authorization: `Bearer ${profile.remoteOpenApiBearerToken}` }
+          : {})),
     },
   } : null;
 

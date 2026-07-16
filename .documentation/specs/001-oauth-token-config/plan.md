@@ -111,3 +111,36 @@ layout.
 Gate IV) was resolved during planning via research.md R1/R2 rather than justified as a deviation —
 no waiver needed.*
 
+## Implementation Notes
+
+*Discovered during `/devspark.implement` (2026-07-16) — deviations from the original plan, per the
+implement workflow's rule to record rather than silently diverge.*
+
+1. **`OAuthConfigPanel` manages its own Environment tabs, not an `env` prop (T014).** The plan
+   assumed `<OAuthConfigPanel env={currentEnvironment} />` mounted alongside an existing
+   environment switcher. In practice, `ConfigScreen.tsx` (where the panel needed to live, next to
+   Remote API profile management) has no environment switcher of its own — that pattern
+   (`SectionConfigPanel`'s `activeEnv` tabs) belongs to the per-API-section config screens
+   (JokeAPI/JSONPlaceholder), not the remote-profiles screen. `OAuthConfigPanel` therefore owns a
+   small internal `localhost | test | other` tab selector, matching `SectionConfigPanel`'s existing
+   UX convention rather than introducing a prop dependency ConfigScreen can't satisfy.
+
+2. **The opt-in checkbox (T019) lives in `ConfigScreen.tsx`'s `BrowserProfileEditor`, not
+   `src/components/harness-config/RemoteOpenApiConfig.tsx` as originally planned.** Investigation
+   during implementation found `RemoteOpenApiConfig.tsx` is dead code — exported from
+   `harness-config/index.ts` and `components/index.ts` but never rendered anywhere in the app (no
+   `<RemoteOpenApiConfig` usage exists). It edits a parallel, unused `harnessconfig` section of
+   `useUnifiedConfigStore`, not the `RemoteApiProfile` entities that actually back the Remote API
+   Explorer and Doc Builder. The real, active per-profile editing UI is `ConfigScreen.tsx`'s
+   `BrowserProfileEditor` component (backed by `useRemoteConfigStore`/`RemoteApiProfile`), which is
+   where the "Use environment OAuth token" checkbox was added instead, alongside the existing
+   static Bearer Token field it takes precedence over. `RemoteOpenApiConfig.tsx` was left
+   unmodified — it remains dead code outside this feature's scope to remove.
+
+3. **Remaining manual verification (T017, T023, T029).** Password-grant fallback logic, the
+   Clear-Token → blocked-request end-to-end flow, and the full quickstart.md walkthrough all
+   require a reachable OAuth2 token endpoint (real or mock) that was not available in this
+   implementation session. All code paths are implemented and pass `npm run verify`; these three
+   tasks remain open pending a live/mock provider for final sign-off — see the `<!-- WIP -->` notes
+   on those tasks in tasks.md.
+
