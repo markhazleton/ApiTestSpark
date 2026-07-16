@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Claims;
@@ -43,6 +44,83 @@ public static class ApiTestSparkExtensions
     {
         Timeout = TimeSpan.FromSeconds(10),
     };
+
+    // Server-side OAuth access token cache, keyed by RemoteApiProfile.Id. Tokens (and the
+    // client secret used to acquire them) never leave the server — see RemoteApiProfile.OAuth.
+    private static readonly ConcurrentDictionary<string, (string AccessToken, DateTimeOffset ExpiresAt)> OAuthTokenCache = new();
+    private static readonly TimeSpan OAuthTokenExpiryBuffer = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Returns a valid cached OAuth access token for the profile, acquiring/refreshing one via
+    /// the client_credentials grant if needed. Returns null if OAuth is not configured for this
+    /// profile or if acquisition fails (failure is logged, never thrown, so proxied calls can
+    /// still proceed without the header rather than hard-failing the whole request).
+    /// </summary>
+    private static async Task<string?> GetOAuthAccessTokenAsync(
+        RemoteApiProfile profile,
+        HttpClient httpClient,
+        ILogger? logger,
+        CancellationToken cancellationToken)
+    {
+        var oauth = profile.OAuth;
+        if (oauth is null ||
+            string.IsNullOrWhiteSpace(oauth.TokenEndpointUrl) ||
+            string.IsNullOrWhiteSpace(oauth.ClientId) ||
+            string.IsNullOrWhiteSpace(oauth.ClientSecret))
+        {
+            return null;
+        }
+
+        if (OAuthTokenCache.TryGetValue(profile.Id, out var cached) &&
+            DateTimeOffset.UtcNow < cached.ExpiresAt - OAuthTokenExpiryBuffer)
+        {
+            return cached.AccessToken;
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, oauth.TokenEndpointUrl)
+            {
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = "client_credentials",
+                    ["client_id"] = oauth.ClientId,
+                    ["client_secret"] = oauth.ClientSecret,
+                }),
+            };
+
+            using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                logger?.LogWarning("OAuth token acquisition failed for remote profile {ProfileId}: HTTP {StatusCode}", profile.Id, (int)response.StatusCode);
+                return null;
+            }
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("access_token", out var tokenProp) || tokenProp.ValueKind != JsonValueKind.String)
+            {
+                logger?.LogWarning("OAuth token response for remote profile {ProfileId} did not contain access_token.", profile.Id);
+                return null;
+            }
+
+            var accessToken = tokenProp.GetString()!;
+            var expiresIn = root.TryGetProperty("expires_in", out var expiresProp) && expiresProp.TryGetInt64(out var seconds)
+                ? seconds
+                : 3600; // Reasonable default when the provider omits expires_in.
+            var expiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn);
+
+            OAuthTokenCache[profile.Id] = (accessToken, expiresAt);
+            return accessToken;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Network error/timeout — credentials MUST NOT appear in the log message.
+            logger?.LogWarning(ex, "OAuth token acquisition failed for remote profile {ProfileId}.", profile.Id);
+            return null;
+        }
+    }
 
     /// <summary>
     /// Registers the API Test Spark SPA at <c>/api-test-spark/</c>.
@@ -270,6 +348,17 @@ public static class ApiTestSparkExtensions
             }
 
             var httpClient = options.TestHttpClient ?? SharedHttpClient;
+
+            if (profile.OAuth is not null)
+            {
+                var oauthToken = await GetOAuthAccessTokenAsync(profile, httpClient, logger, ctx.RequestAborted).ConfigureAwait(false);
+                if (oauthToken is not null)
+                {
+                    request.Headers.Remove("Authorization");
+                    request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {oauthToken}");
+                }
+            }
+
             HttpResponseMessage remoteResponse;
             try
             {
@@ -352,6 +441,17 @@ public static class ApiTestSparkExtensions
             }
 
             var httpClient = options.TestHttpClient ?? SharedHttpClient;
+
+            if (profile.OAuth is not null)
+            {
+                var oauthToken = await GetOAuthAccessTokenAsync(profile, httpClient, logger, ctx.RequestAborted).ConfigureAwait(false);
+                if (oauthToken is not null)
+                {
+                    request.Headers.Remove("Authorization");
+                    request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {oauthToken}");
+                }
+            }
+
             HttpResponseMessage remoteResponse;
             try
             {
@@ -524,6 +624,10 @@ public static class ApiTestSparkExtensions
         remoteOpenApiBearerToken = (string?)null,
         remoteOpenApiApiKeyConfigured = !string.IsNullOrWhiteSpace(profile.RemoteOpenApiApiKeyValue),
         remoteOpenApiBearerTokenConfigured = !string.IsNullOrWhiteSpace(profile.RemoteOpenApiBearerToken),
+        remoteOAuthConfigured = profile.OAuth is not null &&
+            !string.IsNullOrWhiteSpace(profile.OAuth.TokenEndpointUrl) &&
+            !string.IsNullOrWhiteSpace(profile.OAuth.ClientId) &&
+            !string.IsNullOrWhiteSpace(profile.OAuth.ClientSecret),
         remoteDefaultHeaders = profile.RemoteDefaultHeaders,
         remoteCallProxyEnabled = enableRemoteCallProxy,
         source = "server",
@@ -542,6 +646,7 @@ public static class ApiTestSparkExtensions
             RemoteOpenApiApiKeyHeader = profile.RemoteOpenApiApiKeyHeader,
             RemoteOpenApiApiKeyValue = profile.RemoteOpenApiApiKeyValue,
             RemoteOpenApiBearerToken = profile.RemoteOpenApiBearerToken,
+            OAuth = profile.OAuth,
             RemoteDefaultHeaders = ResolveHeaderTokens(profile.RemoteDefaultHeaders, user),
         };
     }

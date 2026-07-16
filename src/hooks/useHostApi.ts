@@ -17,6 +17,9 @@ export interface HostApiRequest {
   body?: unknown;
   extraHeaders?: Record<string, string>;
   remoteProfile?: RemoteApiProfile;
+  /** Pre-acquired OAuth access token (see useOAuthToken). When the profile has
+   * remoteUseOAuthToken set, this takes precedence over remoteOpenApiBearerToken. */
+  oauthToken?: string | null;
 }
 
 function buildUrl(baseUrl: string, path: string, pathParams?: Record<string, string>, queryParams?: Record<string, string>): string {
@@ -69,7 +72,11 @@ export function useHostApi() {
         if (remoteProfile?.remoteOpenApiApiKeyHeader && remoteProfile.remoteOpenApiApiKeyValue) {
           remoteAuthHeaders[remoteProfile.remoteOpenApiApiKeyHeader] = remoteProfile.remoteOpenApiApiKeyValue;
         }
-        if (remoteProfile?.remoteOpenApiBearerToken) {
+        // OAuth-derived token (when the profile opts in) takes precedence over a
+        // manually entered static Bearer Token — FR-008/FR-011.
+        if (remoteProfile?.remoteUseOAuthToken && req.oauthToken) {
+          remoteAuthHeaders.Authorization = `Bearer ${req.oauthToken}`;
+        } else if (remoteProfile?.remoteOpenApiBearerToken) {
           remoteAuthHeaders.Authorization = `Bearer ${remoteProfile.remoteOpenApiBearerToken}`;
         }
       }

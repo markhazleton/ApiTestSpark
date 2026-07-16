@@ -1,32 +1,14 @@
 // OAuth Token Types
 
-export interface AuthTokenRequest {
-  grant_type: 'password';
-  client_id: string;
-  client_secret: string;
-  username: string;
-  password: string;
-}
-
+/**
+ * Response from an OAuth2 token endpoint. Only access_token/token_type/expires_in are
+ * guaranteed by the OAuth2 spec (RFC 6749); additional identity-provider-specific fields
+ * (e.g. ASP.NET Identity's `.issued`/`as:client_id`) may be present but are not required
+ * or read by this tool.
+ */
 export interface AuthTokenResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
-  refresh_token: string;
-  'as:client_id': string;
-  RefreshTokenLifeTime: string;
-  Id: string;
-  EPID: string;
-  BQAMemberships: string;
-  userName: string;
-  Surname: string;
-  GivenName: string;
-  Email: string;
-  Roles: string;
-  Logins: string;
-  TwoFactorAvailable: string;
-  TwoFactorEnabled: string;
-  TwoFactorConfig: string;
-  '.issued': string;
-  '.expires': string;
+  [key: string]: unknown;
 }

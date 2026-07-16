@@ -1,11 +1,14 @@
 /**
  * Authentication Store
  *
- * Manages OAuth authentication configuration per environment
- * and session-only bearer token state.
+ * Manages OAuth authentication configuration and acquired access tokens, both scoped
+ * per Environment (localhost/test/other).
  *
- * - Config (baseUrl, clientId, clientSecret, username, password) is persisted per environment
- * - Token state is session-only (not persisted)
+ * - Config (baseUrl, clientId, clientSecret, userClientId, userClientSecret, testUsername,
+ *   testPassword, description) is persisted per environment.
+ * - Access tokens are also persisted per environment (FR-015). This store performs no network
+ *   I/O itself — token acquisition is orchestrated by the useOAuthToken hook (Constitution
+ *   III/IV: hooks own API orchestration, stores own state only).
  */
 
 import { create } from 'zustand';
@@ -13,23 +16,27 @@ import { persist } from 'zustand/middleware';
 import type {
   AuthConfigSet,
   AuthEnvironmentConfigs,
-  AuthTokenState,
+  AccessTokenState,
+  AccessTokenEnvironmentState,
   AuthStoreState,
   Environment,
 } from '../types/state';
-import type { AuthTokenResponse } from '../types/api';
 import { v4 as uuidv4 } from 'uuid';
 import useDebugStore from './debugStore';
 
 const AUTH_STORAGE_KEY = 'api-test-spark-auth-config';
+const TOKEN_EXPIRY_BUFFER_MS = 30_000;
 
 function createDefaultAuthConfig(): AuthEnvironmentConfigs {
   const makeDefault = (): AuthConfigSet => ({
     baseUrl: '',
     clientId: '',
     clientSecret: '',
-    username: '',
-    password: '',
+    userClientId: '',
+    userClientSecret: '',
+    testUsername: '',
+    testPassword: '',
+    description: '',
     lastUpdatedAt: 0,
     status: 'incomplete',
   });
@@ -41,25 +48,31 @@ function createDefaultAuthConfig(): AuthEnvironmentConfigs {
   };
 }
 
-const defaultTokenState: AuthTokenState = {
-  accessToken: null,
-  refreshToken: null,
-  expiresAt: null,
-  userName: null,
-  givenName: null,
-  surname: null,
-  email: null,
-  roles: null,
-  isAuthenticated: false,
-};
+function createDefaultTokenState(): AccessTokenState {
+  return {
+    accessToken: null,
+    tokenType: null,
+    expiresAt: null,
+    acquiredVia: null,
+    isAuthenticated: false,
+  };
+}
+
+function createDefaultTokens(): AccessTokenEnvironmentState {
+  return {
+    localhost: createDefaultTokenState(),
+    test: createDefaultTokenState(),
+    other: createDefaultTokenState(),
+  };
+}
 
 function validateAuthConfigStatus(config: AuthConfigSet): 'complete' | 'incomplete' {
   const hasBaseUrl = !!config.baseUrl?.trim();
-  const hasClientId = !!config.clientId?.trim();
-  const hasClientSecret = !!config.clientSecret?.trim();
   const hasValidUrl = hasBaseUrl && /^https?:\/\/.+/.test(config.baseUrl);
+  const hasClientCredentials = !!config.clientId?.trim() && !!config.clientSecret?.trim();
+  const hasTestUserCredentials = !!config.testUsername?.trim() && !!config.testPassword?.trim();
 
-  if (!hasBaseUrl || !hasClientId || !hasClientSecret || !hasValidUrl) {
+  if (!hasBaseUrl || !hasValidUrl || (!hasClientCredentials && !hasTestUserCredentials)) {
     return 'incomplete';
   }
   return 'complete';
@@ -69,7 +82,7 @@ export const useAuthStore = create<AuthStoreState>()(
   persist(
     (set, get) => ({
       config: createDefaultAuthConfig(),
-      token: { ...defaultTokenState },
+      tokens: createDefaultTokens(),
 
       updateAuthConfig: (environment: Environment, updates: Partial<AuthConfigSet>) => {
         const current = get().config[environment];
@@ -93,10 +106,10 @@ export const useAuthStore = create<AuthStoreState>()(
           addError({
             id: uuidv4(),
             category: 'Configuration',
-            message: `Auth config updated: ${environment} [${updated.status}]`,
+            message: `OAuth config updated: ${environment} [${updated.status}]`,
             timestamp: new Date(),
             context: {
-              configType: 'authentication',
+              configType: 'oauth',
               environment,
               status: updated.status,
               hasBaseUrl: !!updated.baseUrl,
@@ -110,28 +123,24 @@ export const useAuthStore = create<AuthStoreState>()(
       },
 
       getAuthConfig: (environment?: Environment) => {
-        // We need the current environment from the unified config store
-        // but to avoid circular deps, we accept it as a parameter
-        // If not provided, default to 'localhost'
         const env = environment || 'localhost';
         return get().config[env];
       },
 
-      setToken: (tokenResponse: AuthTokenResponse) => {
+      setToken: (environment, tokenResponse, grantType) => {
         const expiresAt = Date.now() + (tokenResponse.expires_in * 1000);
-        set({
-          token: {
-            accessToken: tokenResponse.access_token,
-            refreshToken: tokenResponse.refresh_token || null,
-            expiresAt,
-            userName: tokenResponse.userName,
-            givenName: tokenResponse.GivenName,
-            surname: tokenResponse.Surname,
-            email: tokenResponse.Email,
-            roles: tokenResponse.Roles,
-            isAuthenticated: true,
+        set((state) => ({
+          tokens: {
+            ...state.tokens,
+            [environment]: {
+              accessToken: tokenResponse.access_token,
+              tokenType: tokenResponse.token_type ?? 'Bearer',
+              expiresAt,
+              acquiredVia: grantType,
+              isAuthenticated: true,
+            },
           },
-        });
+        }));
 
         // Audit log
         try {
@@ -139,14 +148,13 @@ export const useAuthStore = create<AuthStoreState>()(
           addError({
             id: uuidv4(),
             category: 'Configuration',
-            message: `Auth token acquired for user: ${tokenResponse.userName}`,
+            message: `OAuth access token acquired for ${environment} via ${grantType}`,
             timestamp: new Date(),
             context: {
-              configType: 'authentication',
-              userName: tokenResponse.userName,
-              email: tokenResponse.Email,
+              configType: 'oauth',
+              environment,
+              grantType,
               expiresIn: tokenResponse.expires_in,
-              roles: tokenResponse.Roles,
             },
           });
         } catch {
@@ -154,69 +162,81 @@ export const useAuthStore = create<AuthStoreState>()(
         }
       },
 
-      clearToken: () => {
-        set({ token: { ...defaultTokenState } });
+      clearToken: (environment) => {
+        set((state) => ({
+          tokens: {
+            ...state.tokens,
+            [environment]: createDefaultTokenState(),
+          },
+        }));
       },
 
-      isTokenValid: () => {
-        const { token } = get();
+      isTokenValid: (environment) => {
+        const token = get().tokens[environment];
         if (!token.accessToken || !token.expiresAt) return false;
         // Add 30-second buffer before expiry
-        return Date.now() < (token.expiresAt - 30_000);
+        return Date.now() < (token.expiresAt - TOKEN_EXPIRY_BUFFER_MS);
       },
 
-      isTokenExpired: () => {
-        const { token } = get();
+      isTokenExpired: (environment) => {
+        const token = get().tokens[environment];
         if (!token.accessToken || !token.expiresAt) return false;
         // Token exists but is expired (past the 30s buffer)
-        return Date.now() >= (token.expiresAt - 30_000);
+        return Date.now() >= (token.expiresAt - TOKEN_EXPIRY_BUFFER_MS);
       },
 
-      getAccessToken: () => {
+      getAccessToken: (environment) => {
         const state = get();
-        if (state.isTokenValid()) {
-          return state.token.accessToken;
-        }
-        return null;
-      },
-
-      getRefreshToken: () => {
-        const { token } = get();
-        return token.refreshToken;
+        return state.isTokenValid(environment) ? state.tokens[environment].accessToken : null;
       },
     }),
     {
       name: AUTH_STORAGE_KEY,
-      // Only persist config, NOT token state
+      // Config AND tokens are both persisted (FR-015 reverses the prior token-is-session-only intent).
       partialize: (state) => ({
         config: state.config,
+        tokens: state.tokens,
       }),
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<AuthStoreState> | undefined;
-        const defaults = currentState.config;
+        const defaultConfig = currentState.config;
+        const defaultTokens = currentState.tokens;
 
         const mergeConfig = (
           persistedConfig: Partial<AuthConfigSet> | undefined,
-          defaultConfig: AuthConfigSet
+          defaultConfigSet: AuthConfigSet
         ): AuthConfigSet => {
           const merged: AuthConfigSet = {
-            ...defaultConfig,
+            ...defaultConfigSet,
             ...persistedConfig,
-            baseUrl: persistedConfig?.baseUrl?.trim() ? persistedConfig.baseUrl : defaultConfig.baseUrl,
-            clientId: persistedConfig?.clientId?.trim() ? persistedConfig.clientId : defaultConfig.clientId,
+            baseUrl: persistedConfig?.baseUrl?.trim() ? persistedConfig.baseUrl : defaultConfigSet.baseUrl,
+            clientId: persistedConfig?.clientId?.trim() ? persistedConfig.clientId : defaultConfigSet.clientId,
           };
 
           merged.status = validateAuthConfigStatus(merged);
           return merged;
         };
 
+        const mergeToken = (
+          persistedToken: Partial<AccessTokenState> | undefined,
+          defaultToken: AccessTokenState
+        ): AccessTokenState => ({
+          ...defaultToken,
+          ...persistedToken,
+        });
+
         return {
           ...currentState,
           ...persisted,
           config: {
-            localhost: mergeConfig(persisted?.config?.localhost, defaults.localhost),
-            test: mergeConfig(persisted?.config?.test, defaults.test),
-            other: mergeConfig(persisted?.config?.other, defaults.other),
+            localhost: mergeConfig(persisted?.config?.localhost, defaultConfig.localhost),
+            test: mergeConfig(persisted?.config?.test, defaultConfig.test),
+            other: mergeConfig(persisted?.config?.other, defaultConfig.other),
+          },
+          tokens: {
+            localhost: mergeToken(persisted?.tokens?.localhost, defaultTokens.localhost),
+            test: mergeToken(persisted?.tokens?.test, defaultTokens.test),
+            other: mergeToken(persisted?.tokens?.other, defaultTokens.other),
           },
         };
       },

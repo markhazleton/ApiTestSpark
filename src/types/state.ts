@@ -52,8 +52,13 @@ export interface AuthConfigSet {
   baseUrl: string;
   clientId: string;
   clientSecret: string;
-  username: string;
-  password: string;
+  /** Overrides clientId for the password grant only. Falls back to clientId when empty. */
+  userClientId?: string;
+  /** Overrides clientSecret for the password grant only. Falls back to clientSecret when empty. */
+  userClientSecret?: string;
+  testUsername?: string;
+  testPassword?: string;
+  description?: string;
   lastUpdatedAt: number;
   status: "complete" | "incomplete";
 }
@@ -64,33 +69,42 @@ export interface AuthEnvironmentConfigs {
   other: AuthConfigSet;
 }
 
-export interface AuthTokenState {
+export type OAuthGrantType = "client_credentials" | "password";
+
+export interface AccessTokenState {
   accessToken: string | null;
-  refreshToken: string | null;
+  tokenType: string | null;
   expiresAt: number | null;
-  userName: string | null;
-  givenName: string | null;
-  surname: string | null;
-  email: string | null;
-  roles: string | null;
+  acquiredVia: OAuthGrantType | null;
   isAuthenticated: boolean;
+}
+
+export interface AccessTokenEnvironmentState {
+  localhost: AccessTokenState;
+  test: AccessTokenState;
+  other: AccessTokenState;
 }
 
 export interface AuthStoreState {
   config: AuthEnvironmentConfigs;
-  token: AuthTokenState;
+  /** Per-Environment access token cache, persisted across page refresh (FR-015). */
+  tokens: AccessTokenEnvironmentState;
   updateAuthConfig: (
     environment: Environment,
     updates: Partial<AuthConfigSet>,
   ) => void;
   getAuthConfig: (environment?: Environment) => AuthConfigSet;
-  setToken: (tokenResponse: import("./api").AuthTokenResponse) => void;
-  clearToken: () => void;
-  isTokenValid: () => boolean;
-  isTokenExpired: () => boolean;
-  getAccessToken: () => string | null;
-  getRefreshToken: () => string | null;
+  setToken: (
+    environment: Environment,
+    tokenResponse: import("./api").AuthTokenResponse,
+    grantType: OAuthGrantType,
+  ) => void;
+  clearToken: (environment: Environment) => void;
+  isTokenValid: (environment: Environment) => boolean;
+  isTokenExpired: (environment: Environment) => boolean;
+  getAccessToken: (environment: Environment) => string | null;
 }
+
 
 // ============================================================================
 // Debug State

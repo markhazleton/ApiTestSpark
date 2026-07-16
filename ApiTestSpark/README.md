@@ -82,7 +82,7 @@ app.MapApiTestSpark(options =>
 | `EnableVerboseLogging` | `false` | Emits `ILogger.LogDebug` for every asset served and SPA fallback. Alternatively set `Logging:LogLevel:ApiTestSpark=Debug` in appsettings. |
 | `EnableDemoIntegrations` | `true` | When `false`, hides the built-in JokeAPI and JSONPlaceholder demo screens from the home page and disables their routes. Set to `false` to present a clean harness showing only your host API and API Doc Builder. |
 | `RequireAuthenticatedUser` | `false` | When `true`, all harness routes under `/api-test-spark` require an authenticated user (SPA assets + config + remote proxy endpoints). |
-| `RemoteApiProfiles` | `[]` | List of named remote APIs. Each profile has `Id`, `Name`, `Description`, `RemoteBaseUrl`, `RemoteOpenApiUrl`, credentials, and default headers. |
+| `RemoteApiProfiles` | `[]` | List of named remote APIs. Each profile has `Id`, `Name`, `Description`, `RemoteBaseUrl`, `RemoteOpenApiUrl`, credentials, default headers, and an optional `OAuth` (see below) for server-acquired bearer tokens. |
 | `EnableRemoteCallProxy` | `false` | Routes endpoint calls for server-configured remote profiles through the host API, avoiding browser CORS requirements. See the security note below. |
 | `RemoteBaseUrl` | `null` | Legacy single-remote base URL. Used as one compatibility profile when `RemoteApiProfiles` is empty. |
 | `RemoteOpenApiUrl` | `null` | Legacy single-remote OpenAPI URL. Used as one compatibility profile when `RemoteApiProfiles` is empty. |
@@ -159,6 +159,41 @@ app.MapApiTestSpark(options =>
 
 Server profile credentials are redacted from `/api-test-spark/config` and used only by `/api-test-spark/remote-spec?profileId=...`. When `EnableRemoteCallProxy = true`, server-configured profiles can also send endpoint calls through `/api-test-spark/remote-call` to avoid browser CORS requirements. Browser-created profiles on the Config page are stored locally, fetch OpenAPI documents directly from the browser, and keep endpoint calls browser-direct.
 
+### OAuth-authenticated remote APIs (server-configured only)
+
+If a remote API requires an OAuth2 `client_credentials` bearer token, set `OAuth` on the profile instead of a static `RemoteOpenApiBearerToken`:
+
+```csharp
+app.MapApiTestSpark(options =>
+{
+    options.EnableRemoteCallProxy = true; // required — see below
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "partner-api",
+        Name = "Partner API",
+        RemoteBaseUrl = "https://api.example.com",
+        RemoteOpenApiUrl = "https://api.example.com/openapi.json",
+        OAuth = new RemoteApiProfileOAuth
+        {
+            TokenEndpointUrl = "https://login.example.com/oauth/token",
+            ClientId = builder.Configuration["Partner:ClientId"]!,
+            ClientSecret = builder.Configuration["Partner:ClientSecret"]!,
+        },
+    });
+});
+```
+
+The server acquires and caches the access token itself (`client_credentials` grant, ~30s
+expiry buffer) and injects `Authorization: Bearer <token>` when fetching the remote OpenAPI
+document and when proxying endpoint calls through `/api-test-spark/remote-call`. **The
+client secret and the acquired token never reach the browser** — `/api-test-spark/config`
+only returns `remoteOAuthConfigured: true`. Because the token is only ever attached
+server-side, `EnableRemoteCallProxy` must be `true` for the profile's endpoint calls to
+actually carry the token (the same requirement that already applies to a static
+`RemoteOpenApiBearerToken` held on the server). The Config page shows `oauth: configured
+on server (client_credentials)` for these profiles — no editable OAuth fields are ever
+shown in the browser.
+
 ---
 
 ## Features
@@ -167,6 +202,7 @@ Server profile credentials are redacted from `/api-test-spark/config` and used o
 - **OpenAPI autodiscovery** — endpoints grouped by tag in a collapsible accordion; real-time search filter
 - **Remote API Explorer** — browse and test one or more named remote REST APIs from their OpenAPI documents; server-configured credentials stay server-side, browser-created profiles stay local, and duplicate visible names are blocked before save
 - **Server-side remote call proxy** — enable `EnableRemoteCallProxy` to route endpoint calls for server-configured profiles through the host app instead of requiring the remote API to allow browser CORS
+- **Server-side OAuth token acquisition** — set `RemoteApiProfile.OAuth` (`client_credentials`) in `Program.cs` so the server acquires, caches, and injects the bearer token itself; the client secret and token never reach the browser
 - **Identity-aware header templates** — configured host and remote headers can expand `{user-name}`, `{user-email}`, and `{user-id}` from the authenticated user when the config payload is generated
 - **Full metadata surface** — descriptions rendered as markdown, response codes as coloured badges with expandable inline schemas, `operationId` as a copyable chip, schema constraint tables
 - **JSON scaffold** — request body pre-filled from `example → default → enum[0] → type placeholder`; nested objects and arrays scaffolded recursively

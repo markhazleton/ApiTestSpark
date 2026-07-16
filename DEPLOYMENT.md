@@ -116,6 +116,29 @@ app.MapApiTestSpark(options =>
 });
 ```
 
+If the partner API instead requires an OAuth2 `client_credentials` bearer token, set `OAuth`
+instead of `RemoteOpenApiApiKeyHeader`/`RemoteOpenApiApiKeyValue`:
+
+```csharp
+    options.RemoteApiProfiles.Add(new RemoteApiProfile
+    {
+        Id = "partner-api",
+        Name = "Partner API",
+        RemoteBaseUrl = "https://api.partner.com",
+        RemoteOpenApiUrl = "https://api.partner.com/openapi.json",
+        OAuth = new RemoteApiProfileOAuth
+        {
+            TokenEndpointUrl = "https://login.partner.com/oauth/token",
+            ClientId = builder.Configuration["Partner:ClientId"]!,
+            ClientSecret = builder.Configuration["Partner:ClientSecret"]!,
+        },
+    });
+```
+
+The client secret and the token the server acquires are never returned to the browser —
+`EnableRemoteCallProxy` must be `true` (already set above) for the profile's actual endpoint
+calls to carry the token, since it is only ever attached server-side.
+
 ### Security note
 
 The `ApiTestSpark` harness is designed for **local and trusted development environments only**. The config endpoint (`/api-test-spark/config`) exposes harness metadata and browser-callable header values, while the remote spec proxy (`/api-test-spark/remote-spec`) and optional remote call proxy (`/api-test-spark/remote-call`) use server-held profile credentials for configured profiles. Restrict the harness to non-production environments if the VM is internet-facing:

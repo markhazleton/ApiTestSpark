@@ -49,11 +49,39 @@ public class RemoteApiProfile
     public string? RemoteOpenApiBearerToken { get; set; }
 
     /// <summary>
+    /// Optional OAuth2 client_credentials configuration used to acquire a bearer token for this
+    /// remote API on the server. The client secret and the acquired access token are held only
+    /// on the server and are never returned by <c>/api-test-spark/config</c> — the browser only
+    /// sees <c>remoteOAuthConfigured: true</c>. The token is applied only when fetching the
+    /// remote OpenAPI document and when proxying calls through
+    /// <c>/api-test-spark/remote-call</c> (requires <see cref="ApiTestSparkOptions.EnableRemoteCallProxy"/>);
+    /// it is never sent to the browser for direct (non-proxied) calls.
+    /// </summary>
+    public RemoteApiProfileOAuth? OAuth { get; set; }
+
+    /// <summary>
     /// Headers injected into endpoint calls for this remote API. Values support per-request
     /// expansion of <c>{user-name}</c>, <c>{user-email}</c>, and <c>{user-id}</c> when the
     /// config endpoint is requested; unresolved values become an empty string.
     /// </summary>
     public Dictionary<string, string> RemoteDefaultHeaders { get; set; } = new();
+}
+
+/// <summary>
+/// OAuth2 client_credentials configuration for a <see cref="RemoteApiProfile"/>. The server
+/// acquires and caches the access token itself using <see cref="ClientId"/>/<see cref="ClientSecret"/>;
+/// neither the secret nor the acquired token is ever returned to the browser.
+/// </summary>
+public class RemoteApiProfileOAuth
+{
+    /// <summary>OAuth2 token endpoint URL (must be http:// or https://).</summary>
+    public string TokenEndpointUrl { get; set; } = "";
+
+    /// <summary>Client ID for the client_credentials grant.</summary>
+    public string ClientId { get; set; } = "";
+
+    /// <summary>Client secret for the client_credentials grant. Never returned by config.</summary>
+    public string ClientSecret { get; set; } = "";
 }
 
 /// <summary>

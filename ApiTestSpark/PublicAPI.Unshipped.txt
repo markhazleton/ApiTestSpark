@@ -1,1 +1,11 @@
 #nullable enable
+ApiTestSpark.RemoteApiProfile.OAuth.get -> ApiTestSpark.RemoteApiProfileOAuth?
+ApiTestSpark.RemoteApiProfile.OAuth.set -> void
+ApiTestSpark.RemoteApiProfileOAuth
+ApiTestSpark.RemoteApiProfileOAuth.RemoteApiProfileOAuth() -> void
+ApiTestSpark.RemoteApiProfileOAuth.ClientId.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.ClientId.set -> void
+ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.set -> void
+ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.set -> void

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **OAuth Token Configuration (browser-side)** — configure OAuth2 `client_credentials` or `password` grant token acquisition per Environment on the Config screen. Tokens are acquired via the shared request pipeline (never a raw `fetch`), cached per Environment, and secrets/passwords are redacted before they reach the debug panel or telemetry. Remote API profiles can opt in to using the environment's OAuth token instead of a static Bearer token (`remoteUseOAuthToken`); `EndpointTester` blocks the request rather than silently falling back to a static token if no valid token can be acquired.
+- **OAuth Token Configuration (server-side)** — `SEMVER: MINOR` — new `RemoteApiProfile.OAuth` (`RemoteApiProfileOAuth`: `TokenEndpointUrl`, `ClientId`, `ClientSecret`) lets a remote API profile use an OAuth2 `client_credentials` bearer token acquired and cached entirely on the server. The token is injected into the remote spec proxy and, when `EnableRemoteCallProxy` is enabled, into proxied endpoint calls. The client secret and acquired token are never returned to the browser — `/api-test-spark/config` exposes only `remoteOAuthConfigured: true/false`, and the Config screen shows a read-only "configured on server" indicator for these profiles.
+
 ## [v1.8.0] - 2026-06-21
 
 ### Added

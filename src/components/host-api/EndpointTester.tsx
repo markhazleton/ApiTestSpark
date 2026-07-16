@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { DiscoveredEndpoint, RemoteApiProfile, ResponseCode } from '../../types';
-import { useHostApi } from '../../hooks';
-import { useHarnessConfigStore, useDebugStore } from '../../store';
+import { useHostApi, useOAuthToken } from '../../hooks';
+import { useHarnessConfigStore, useDebugStore, useUnifiedConfigStore } from '../../store';
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { buildCurl, getMissingRequiredPathParameters, getParameterValue, resolvePathParameters } from '../../utils';
@@ -92,12 +92,18 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
   const { config } = useHarnessConfigStore();
   const { addError } = useDebugStore();
   const { mutate, isPending, data, error } = useHostApi();
+  const { ensureOAuthToken } = useOAuthToken();
+  const { currentEnvironment } = useUnifiedConfigStore();
   const [copied, setCopied] = useState(false);
   // Capture only after success so response-panel cURL matches the displayed response.
   const [lastRequest, setLastRequest] = useState<LastRequest | null>(null);
   const [curlCopied, setCurlCopied] = useState(false);
   // O(1) remount key for object responses; incremented after successful calls.
   const [responseKey, setResponseKey] = useState(0);
+  // True only while acquiring an OAuth token before firing — distinct from isPending
+  // (the actual request in flight) so the UI can show a specific "acquiring token" state
+  // rather than reusing the generic Fire-button pending label (gates/critic.md critic-003).
+  const [acquiringToken, setAcquiringToken] = useState(false);
 
   const needsBody = ['POST', 'PUT', 'PATCH'].includes(endpoint.method);
   const [pathParams, setPathParams]   = useState<Record<string, string>>({});
@@ -133,6 +139,10 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
   }
 
   function handleFire() {
+    void fireRequest();
+  }
+
+  async function fireRequest() {
     const missingPathParameters = getMissingRequiredPathParameters(pathParamList, pathParams);
     if (missingPathParameters.length > 0) {
       setValidationError(`Required path parameter${missingPathParameters.length === 1 ? '' : 's'}: ${missingPathParameters.join(', ')}`);
@@ -154,6 +164,25 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
       return;
     }
 
+    // OAuth opt-in profiles MUST resolve a valid token before firing — block the request
+    // entirely and surface a distinct error rather than sending it unauthenticated or
+    // silently falling back to the static Bearer Token field (FR-008, FR-011, FR-014).
+    let oauthToken: string | null = null;
+    if (remoteProfile?.remoteUseOAuthToken) {
+      setAcquiringToken(true);
+      try {
+        oauthToken = await ensureOAuthToken(currentEnvironment, 'client_credentials');
+      } finally {
+        setAcquiringToken(false);
+      }
+      if (!oauthToken) {
+        setValidationError(
+          'Unable to acquire an OAuth access token for this environment — configure OAuth in the Config screen and try again. Request was not sent.'
+        );
+        return;
+      }
+    }
+
     const extraHeaders: Record<string, string> = {};
     if (!remoteProfile && authToken && config?.authScheme) {
       extraHeaders['Authorization'] = `${config.authScheme} ${authToken}`;
@@ -173,9 +202,11 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
       ...(isRemote && remoteProfile?.source !== 'server' && remoteProfile?.remoteOpenApiApiKeyHeader && remoteProfile?.remoteOpenApiApiKeyValue
         ? { [remoteProfile.remoteOpenApiApiKeyHeader]: remoteProfile.remoteOpenApiApiKeyValue }
         : {}),
-      ...(isRemote && remoteProfile?.source !== 'server' && remoteProfile?.remoteOpenApiBearerToken
-        ? { Authorization: `Bearer ${remoteProfile.remoteOpenApiBearerToken}` }
-        : {}),
+      ...(remoteProfile?.remoteUseOAuthToken && oauthToken
+        ? { Authorization: `Bearer ${oauthToken}` }
+        : (isRemote && remoteProfile?.source !== 'server' && remoteProfile?.remoteOpenApiBearerToken
+          ? { Authorization: `Bearer ${remoteProfile.remoteOpenApiBearerToken}` }
+          : {})),
       ...extraHeaders,
       ...(needsBody && body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     };
@@ -192,7 +223,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
     );
 
     mutate(
-      { method: endpoint.method, path: endpoint.path, pathParams: resolvedPathParams, queryParams, body, extraHeaders, remoteProfile },
+      { method: endpoint.method, path: endpoint.path, pathParams: resolvedPathParams, queryParams, body, extraHeaders, remoteProfile, oauthToken },
       {
         onSuccess: () => {
           // Capture at success time so cURL always matches the displayed response.
@@ -290,7 +321,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
         bodyText={bodyText}
         setBodyText={setBodyText}
         needsBody={needsBody}
-        isPending={isPending}
+        isPending={isPending || acquiringToken}
         error={error}
         onSend={handleFire}
       />
