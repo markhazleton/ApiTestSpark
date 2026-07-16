@@ -3,7 +3,7 @@ gate: pr-review
 status: pass
 blocking: false
 severity: info
-summary: "Re-review after the T017/T023/T029 completion commit (f597851), which also fixed a CRITICAL live-testing-discovered defect (OAuth token computed but never attached to the real outgoing request in useHostApi.ts/EndpointTester.tsx). Spec Lifecycle blockers C-01 (spec not Complete) and C-02 (incomplete tasks) are now RESOLVED — spec.md Status is Complete and 30/30 tasks are checked. H-01 (missing Gate Acknowledgements) is RESOLVED AS NO-LONGER-APPLICABLE since the WIP state it existed to document no longer exists. No new Critical/High findings. M-01/L-01/CON-01 (non-blocking) carry forward unchanged. APPROVE."
+summary: "Focused UPDATE re-review confirming the /devspark.address-pr-review pass (commits fe5238b + 172ed34) actually resolved M-01, L-01, and CON-01 in code/docs, not just in the review-file checkboxes. Verified directly: 4 new .NET integration tests exist and pass (53/53 total), the constitution's useAuthStore registry row is corrected to 1.1.3, and the process-wide token-cache behavior L-01 flagged is now empirically confirmed (it caused a real test-isolation bug while writing the M-01 tests, fixed by using distinct profile ids). Zero open findings at any severity. No co-mingling between review-file commits and code commits. APPROVE — unchanged from Rev 3, now with all recommended follow-ups closed out same-day."
 ```
 
 # Pull Request Review: feat(001-oauth-token-config): implement OAuth token configuration for API authentication (SEMVER: MINOR)
@@ -14,10 +14,10 @@ summary: "Re-review after the T017/T023/T029 completion commit (f597851), which 
 - **Source Branch**: `001-oauth-token-config`
 - **Target Branch**: `main`
 - **Review Date**: 2026-07-16 19:05:00 UTC
-- **Last Updated**: 2026-07-17 00:05:00 UTC
-- **Reviewed Commit**: `f597851` (findings below addressed in follow-up commit `fe5238b` — see Revision Log Rev 4)
+- **Last Updated**: 2026-07-17 01:00:00 UTC
+- **Reviewed Commit**: `172ed34`
 - **Reviewer**: devspark.pr-review
-- **Constitution Version**: 1.1.3 (amended by this address-pr-review pass — see Rev 4)
+- **Constitution Version**: 1.1.3
 
 ## Revision Log
 
@@ -26,63 +26,64 @@ summary: "Re-review after the T017/T023/T029 completion commit (f597851), which 
 | 1 | `4f37b34` | 2026-07-16 | 2 | 1 | 0 | 0 | 0 | N/A (docs-only, no test files changed) | skipped |
 | 2 | `4884e8f` | 2026-07-16 | 2 | 1 | 1 | 1 | 1 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (49/49 .NET, verify clean) |
 | 3 | `f597851` | 2026-07-16 | 0 | 0 | 1 | 1 | 1 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (49/49 .NET, verify clean) |
-| 4 | `fe5238b` | 2026-07-16 | 0 | 0 | 0 | 0 | 0 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (53/53 .NET, verify clean) — via `/devspark.address-pr-review`: M-01 fixed (4 new integration tests), CON-01 fixed (constitution.md → 1.1.3), L-01 acknowledged (no code change) |
+| 4 | `fe5238b` + `172ed34` | 2026-07-16 | 0 | 0 | 0 | 0 | 0 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (53/53 .NET, verify clean) — via `/devspark.address-pr-review`: M-01, L-01, CON-01 all resolved |
+| 5 | `172ed34` | 2026-07-17 | 0 | 0 | 0 | 0 | 0 | `npm run verify` + `dotnet test ApiTestSpark.Tests` | pass (53/53 .NET, verify clean) — focused UPDATE re-review confirming Rev 4's fixes directly in code, not just review-file checkboxes |
 
-*Note: the `get-pr-context.ps1` team override at `.documentation/scripts/powershell/` still returns stale/unrelated data (a 2016 PR from a different repository/branch) — the stock `.devspark/scripts/powershell/get-pr-context.ps1` is also still blocked by a false-negative `gh auth status` (keyring token invalid, but `gh pr view`/`gh pr edit` work via a different auth path). Both bypassed again; context gathered directly via `gh pr view --json ...` and `git diff`/`git rev-list`/`git log`.*
+*Note: the `get-pr-context.ps1` team override at `.documentation/scripts/powershell/` still returns stale/unrelated data (a 2016 PR from a different repository/branch) — the stock `.devspark/scripts/powershell/get-pr-context.ps1` is also still blocked by a false-negative `gh auth status`. Both bypassed again; context gathered directly via `git log`/`git diff`/`git rev-list`.*
 
 ## PR Summary
 
 - **Author**: @markhazleton
 - **Created**: 2026-07-16T18:55:00Z
 - **Status**: OPEN (ready for review, not draft)
-- **Files Changed**: 6 since Rev 2 (38 total across the PR)
-- **Commits**: 2 since Rev 2 (`b294196` review-file-only, `f597851` fix + docs) — 7 total
-- **Lines (this revision)**: +210 −103
+- **Files Changed**: 3 since Rev 3 (41 total across the PR)
+- **Commits**: 3 since Rev 3 (`00e57e4` review-only, `fe5238b` fix, `172ed34` review-only) — 10 total
+- **Lines (Rev 3 → Rev 5)**: +275 −101 (cumulative across the 3 commits; the actual fix commit `fe5238b` alone is +187/−2)
 
 ## Stats
 
 | Metric | Value |
 |--------|-------|
-| Files changed (Rev 3 → Rev 4) | 2 |
-| Lines added (Rev 3 → Rev 4) | +187 |
-| Lines removed (Rev 3 → Rev 4) | −2 |
-| Commit snapshot | `fe5238b` |
+| Files changed (Rev 3 → Rev 5) | 3 |
+| Lines added | +275 |
+| Lines removed | −101 |
+| Net lines | +174 |
+| Commit snapshot | `172ed34` |
 
-*Rev 3 → Rev 4 delta collected via `git diff --numstat`. Original Rev 2 → Rev 3 stats below, preserved for history.*
-
-| Metric | Value |
-|--------|-------|
-| Files changed (Rev 2 → Rev 3) | 6 |
-| Lines added | +210 |
-| Lines removed | −103 |
-| Net lines | +107 |
-| Commit snapshot | `f597851` |
-
-*Collected via `git diff --numstat 4884e8f..f597851`. Dominated by `tasks.md`/`plan.md`/`spec.md` documentation of the completed verification; the code delta itself is 2 lines (`useHostApi.ts` +8/−1, `EndpointTester.tsx` +1/−1).*
+*Collected via `git diff --numstat f597851..172ed34`. Dominated by the review-file's own two updates (Rev 3's write, Rev 4's checkbox flips); the actual code delta this cycle is `fe5238b` alone: `ApiTestSpark.Tests/HarnessIntegrationTests.cs` +166/−0, `.documentation/memory/constitution.md` +21/−2.*
 
 ## Trust-Tier Classification
 
-**full-compliance** — `spec.md`, `plan.md`, and `tasks.md` are all present and now fully complete. Standard review depth applied; no trust-tier-01 finding emitted.
+**full-compliance** — `spec.md`, `plan.md`, and `tasks.md` are all present and complete. Standard review depth applied; no trust-tier-01 finding emitted.
 
 ## Branch Sync Check
 
-`git rev-list --count HEAD..origin/main` = 0 (not behind). `git rev-list --count origin/main..HEAD` = 7 (ahead). **Branch is in sync with `main`** — review may proceed per the hard rule.
+`git rev-list --count HEAD..origin/main` = 0 (not behind). `git rev-list --count origin/main..HEAD` = 10 (ahead). **Branch is in sync with `main`** — review may proceed per the hard rule.
+
+## Co-mingling Check (address-pr-review isolation)
+
+Compared commit SHAs touching `.documentation/specs/pr-review/pr-7.md` against SHAs touching code/constitution paths:
+
+- **Review-only commits**: `172ed34`, `00e57e4`, `b294196`, `43a2ea5`
+- **Code/constitution commits**: `fe5238b`, `f597851`, `4884e8f`, `e6b65d3`, `9e71ddc`
+
+**Zero overlap** — the mandatory commit-isolation rule enforced by `/devspark.address-pr-review`'s gate script held for this cycle. No M-NN co-mingling finding.
 
 ## Executive Summary
 
-- ✅ **Constitution Compliance**: PASS on all applicable code principles (7/8 evaluated with code evidence; 1 — Testing Stance §.NET — partial, see M-01, unchanged from Rev 2)
-- 📋 **Spec Lifecycle**: **Complete** (was In Progress in Rev 2 — RESOLVED)
-- 📝 **Task Completion**: **30/30 tasks complete** (was 27/30 in Rev 2 — RESOLVED)
-- 🔒 **Security**: 0 issues found — the fix itself (see below) is a positive security/correctness improvement, not a new risk
-- 📊 **Code Quality**: 1 Low finding carried forward (L-01, informational); the fix is minimal, correct, and precedence-preserving
-- 🧪 **Testing**: PASS — `npm run verify` clean; `dotnet test ApiTestSpark.Tests` 49/49 pass; M-01 (missing new .NET tests for the server-side OAuth surface) carries forward unchanged
-- 📝 **Documentation**: ADEQUATE — `tasks.md`/`plan.md`/`spec.md` all updated with detailed, dated verification evidence for T017/T023/T029
-- 🏛️ **Constitution Improvements**: 1 CON finding carried forward (CON-01, unchanged)
+- ✅ **Constitution Compliance**: PASS on all 8 principles with code evidence (was 7/8 partial in Rev 3 — §V and §VII gaps are now closed)
+- 📋 **Spec Lifecycle**: Complete (unchanged from Rev 3)
+- 📝 **Task Completion**: 30/30 tasks complete (unchanged from Rev 3)
+- 🔒 **Security**: 0 issues found
+- 📊 **Code Quality**: 0 open findings (M-01, L-01, CON-01 all verified resolved in this pass)
+- 🧪 **Testing**: PASS — `npm run verify` clean; `dotnet test ApiTestSpark.Tests` **53/53** pass (was 49/53 — 4 new tests added for the server-side OAuth surface, M-01's exact recommendation)
+- 📝 **Documentation**: ADEQUATE — constitution.md amended to 1.1.3 with a proper Sync Impact Report and ratification-history row
+- 🏛️ **Constitution Improvements**: 0 open (CON-01 resolved)
 
-**Overall Assessment**: This revision closes out the feature. The commit fixes a genuinely CRITICAL, live-testing-only-discoverable defect: `EndpointTester.tsx` computed the OAuth-acquired token correctly and displayed a plausible `Authorization` header in its UI-only cURL/headers preview, but the real network request — built inside `useHostApi.ts`'s `mutationFn` — never received the token at all, so an opted-in profile would silently send unauthenticated requests while the debug panel showed what looked like a correct, authenticated call. The fix is minimal (one new optional field threaded through two files), preserves the existing OAuth-over-static-token precedence rule, and was verified by the author against a live mock OAuth2 provider (401 before, 200 after) — this is exactly the kind of defect that a spec/plan/tasks/code-review process is designed to catch late rather than never, and the fact that it was caught during T023's own live-verification task (rather than shipped) is a strong positive signal for this delivery. Both mandatory spec-lifecycle blockers from Rev 1/Rev 2 are now resolved: `spec.md` Status is `Complete` and all 30 tasks are checked. H-01 (missing `## Gate Acknowledgements` section) is resolved as no-longer-applicable — that finding existed only to document an intentional, temporary WIP state (3 open tasks pending a live provider), and that state no longer exists; there is nothing left to acknowledge.
+**Overall Assessment**: This is a focused `UPDATE` re-review verifying that the previous `/devspark.address-pr-review` pass (Rev 4) actually did what its commit messages and review-file checkboxes claimed, rather than trusting the checkboxes at face value. Direct verification confirms all three claims: (1) `ApiTestSpark.Tests/HarnessIntegrationTests.cs` genuinely gained 4 new integration tests exercising `remoteOAuthConfigured` exposure, OAuth Authorization-header injection via a new `RoutingHttpMessageHandler` test helper, and fail-open behavior on acquisition failure — 53/53 tests pass, up from 49; (2) `constitution.md` genuinely was amended to version 1.1.3 with the `useAuthStore` registry row corrected from "Config only" to "Config + access tokens", plus a well-formed Sync Impact Report entry and ratification-history row; (3) the L-01 finding's premise (a process-wide static token cache keyed only by `profile.Id`) was independently corroborated — while writing the M-01 tests, that exact cache caused a real cross-test token leak, which was fixed by using distinct profile ids in the two OAuth tests, turning a purely theoretical Low-severity observation into an empirically-demonstrated one. Commit isolation between review-file updates and code fixes was verified with zero SHA overlap across the entire PR history, not just this cycle.
 
 **Approval Recommendation**: ✅ APPROVE
-*All Critical and High findings from Rev 1/Rev 2 are resolved. Remaining findings (M-01, L-01, CON-01) are Medium/Low/Constitution-Improvement severity — non-blocking by this workflow's own report format rules — and are appropriate as tracked fast-follow items, not merge blockers.*
+*Unchanged from Rev 3 — this cycle addressed only non-blocking recommendations, all of which are now closed. Zero open findings at any severity remain.*
 
 ## Action Items
 
@@ -90,24 +91,22 @@ summary: "Re-review after the T017/T023/T029 completion commit (f597851), which 
 
 ### Immediate Actions (Blocking — must resolve before merge)
 
-None found. Both prior Critical findings (C-01, C-02) and the prior High finding (H-01) are resolved — see Findings Detail below.
+None found.
 
 ### Recommended Improvements
 
-- [x] **M-01** `ApiTestSpark/ApiTestSparkExtensions.cs`, `ApiTestSpark/ApiTestSparkOptions.cs` — *(carried, unchanged)* New public API surface (`RemoteApiProfileOAuth`, `RemoteApiProfile.OAuth`) still has no integration test coverage in `ApiTestSpark.Tests/HarnessIntegrationTests.cs` (49 tests, unchanged by this revision's diff). — *Fixed in fe5238b: added 4 integration tests (remoteOAuthConfigured true/false, Authorization header injection via a new RoutingHttpMessageHandler, fail-open on acquisition failure); 53/53 tests pass.*
-  - **Recommendation**: Add integration test(s) covering `remoteOAuthConfigured` exposure and proxy token injection/failure paths before or shortly after this merges.
-- [x] **L-01** `ApiTestSpark/ApiTestSparkExtensions.cs:50` — *(carried, unchanged)* `OAuthTokenCache` keyed only by `profile.Id`, process-wide static. Informational only. — *Acknowledged, no code change per the finding's own recommendation; incidentally confirmed as real behavior while writing the M-01 tests (the two OAuth test profiles required distinct `Id`s to avoid one test's cached token leaking into the other).*
+None found. M-01 and L-01 are both resolved — see Findings Detail below.
 
 ### Constitution Improvements (Non-blocking — feed into `/devspark.evolve-constitution`)
 
-- [x] **CON-01** — *(carried, unchanged)* §V's canonical store registry table still lists `useAuthStore`'s "Persists" column as "Config only"; the shipped implementation persists config + access tokens (FR-015). Suggested amendment unchanged from Rev 2. — *Fixed in fe5238b: constitution.md amended to 1.1.3, `useAuthStore` row corrected to "Config + access tokens" with a Sync Impact Report entry and ratification-history row.*
+None found. CON-01 is resolved — see Findings Detail below.
 
 ## What's Good
 
-- **A real, user-impacting defect was caught before merge, not after.** The author's own T023 live-verification task surfaced that a successfully-acquired OAuth token never reached the real network request — a defect invisible to static code review of `EndpointTester.tsx` in isolation, since the bug lived in what `useHostApi.ts`'s `mutationFn` was (and wasn't) given, not in the header-construction logic itself. This is precisely the value a "must verify live, not just read the code" task is meant to deliver.
-- **The fix is minimal, targeted, and precedence-correct.** Two files, ~9 lines total; `oauthToken` now flows through `HostApiRequest` and is applied with the same OAuth-over-static-bearer-token precedence rule already used elsewhere in the codebase (`EndpointTester.tsx`'s own — now-corrected — UI preview logic, and the server-side proxy logic from the prior commit). No new raw `fetch`, no new console output, no scope creep.
-- **Verification evidence is unusually rigorous and legible.** `tasks.md`'s notes on T017/T023/T029 document exactly what was tested, against what (a local mock OAuth2 provider + protected API), and what the before/after HTTP status codes were — this is reviewable evidence, not just a checked box.
-- **Honest lifecycle tracking throughout.** Both Rev 1 and Rev 2 correctly left `spec.md` at `In Progress` and tasks unchecked while genuine live-verification work remained outstanding, rather than prematurely marking things `Complete`. That discipline is what makes this Rev 3 `Complete` status trustworthy.
+- **The address-pr-review fixes were independently re-verified, not just trusted.** This re-review re-ran `dotnet test` (53/53, up from 49) and directly read both the new test file content and the amended constitution — confirming the Rev 4 commit messages and checkbox flips were accurate, not just claimed.
+- **The M-01 fix itself surfaced and fixed a second, smaller real bug.** Writing the acquisition-failure test with the same profile `Id` as the success test caused a genuine cross-test cache leak (the exact process-wide-cache concern L-01 raised) — this was caught and fixed with a code comment explaining why, turning an informational finding into demonstrated, documented behavior for future maintainers.
+- **The constitution amendment follows the project's own established convention precisely** — a new "Version change" block appended inside the existing single HTML comment (not a separate comment, which would have rendered as visible text — an error this reviewer specifically checked for and confirmed was avoided), plus a matching ratification-history row.
+- **Perfect commit isolation maintained across the entire PR's 10-commit history.** Zero SHA overlap between review-file-only commits and code/constitution commits, verified directly via `git log --name-only`, not assumed.
 
 ## Findings Detail
 
@@ -115,107 +114,99 @@ None found. Both prior Critical findings (C-01, C-02) and the prior High finding
 
 ### Critical Issues (Blocking)
 
-None found.
-
-| ID | Status | Principle | File:Line | Issue | Resolution |
-|----|--------|-----------|-----------|-------|-----|
-| C-01 | ✅ Resolved | Spec Lifecycle (§6 of this workflow) | spec.md (Status field) | Spec status was `In Progress`, required `Complete` | `spec.md` Status is now `Complete` (verified 2026-07-17) |
-| C-02 | ✅ Resolved | Spec Lifecycle (§6 of this workflow) | tasks.md | 27/30 tasks were checked off | All 30/30 tasks now checked (verified via direct count) |
+None found. (C-01, C-02 resolved in Rev 3.)
 
 ### High Priority Issues
 
+None found. (H-01 resolved in Rev 3.)
+
+### Medium Priority Suggestions
+
 None found.
 
 | ID | Status | Principle | File:Line | Issue | Resolution |
 |----|--------|-----------|-----------|-------|-----|
-| H-01 | ✅ Resolved | Process/Traceability | tasks.md | No `## Gate Acknowledgements` section recording the intentional decision to keep T017/T023/T029 open | Resolved as no-longer-applicable — T017/T023/T029 are now complete; there is no remaining WIP state to acknowledge |
-
-### Medium Priority Suggestions
-
-| ID | Status | Principle | File:Line | Issue | Recommendation |
-|----|--------|-----------|-----------|-------|----------------|
-| M-01 | ➡️ Carried | VII. Testing Stance (.NET) | ApiTestSpark/ApiTestSparkExtensions.cs, ApiTestSpark.Tests/HarnessIntegrationTests.cs | New public API (`RemoteApiProfileOAuth`, `RemoteApiProfile.OAuth`) still has no integration test coverage (SHOULD, not MUST) | Add integration test(s) as a fast-follow |
+| M-01 | ✅ Resolved | VII. Testing Stance (.NET) | `ApiTestSpark.Tests/HarnessIntegrationTests.cs` | New public API (`RemoteApiProfileOAuth`, `RemoteApiProfile.OAuth`) had no integration test coverage | Verified: 4 new `[TestMethod]`s added in `fe5238b` (`ConfigEndpoint_RemoteOAuthConfigured_TrueWhenFullyConfigured`, `ConfigEndpoint_RemoteOAuthConfigured_FalseWhenNotConfigured`, `RemoteSpec_InjectsOAuthBearerToken_WhenProfileHasOAuth`, `RemoteSpec_ProceedsWithoutAuthHeader_WhenOAuthTokenAcquisitionFails`); `dotnet test` re-run this pass confirms 53/53 pass |
 
 ### Low Priority Improvements
 
-| ID | Status | Principle | File:Line | Issue | Recommendation |
-|----|--------|-----------|-----------|-------|----------------|
-| L-01 | ➡️ Carried | Code Quality | ApiTestSpark/ApiTestSparkExtensions.cs:50 | `OAuthTokenCache` keyed only by `profile.Id`, process-wide static | No action needed today |
+None found.
+
+| ID | Status | Principle | File:Line | Issue | Resolution |
+|----|--------|-----------|-----------|-------|-----|
+| L-01 | ✅ Resolved (acknowledged) | Code Quality | `ApiTestSpark/ApiTestSparkExtensions.cs:50` | `OAuthTokenCache` keyed only by `profile.Id`, process-wide static | No code change per the finding's own recommendation; its real-world effect was independently corroborated when it caused a cross-test cache leak while writing the M-01 tests, fixed via distinct test profile ids (documented inline in the test file) |
 
 ### Constitution Improvements
 
-| ID | Status | Section | Observation | Suggested Amendment |
+None found.
+
+| ID | Status | Section | Observation | Resolution |
 |----|--------|---------|-------------|---------------------|
-| CON-01 | ➡️ Carried | §V | `useAuthStore` persists config + tokens (FR-015), registry table still says "Config only" | Update the registry table's `useAuthStore` row |
+| CON-01 | ✅ Resolved | §V | `useAuthStore` persists config + tokens (FR-015), registry table said "Config only" | Verified: `constitution.md` is now version 1.1.3; the `useAuthStore` row reads "Config + access tokens" with a supporting paragraph and a `*(Corrected: 1.1.3 ...)*` annotation; Sync Impact Report and ratification-history table both updated correctly |
 
 ## Constitution Alignment Details
 
 | Principle | Status | Evidence | Notes |
 |-----------|--------|----------|-------|
-| I. TypeScript Strict Compilation | ✅ Pass | `npm run verify` re-run this review — clean | Unchanged from Rev 2 |
-| II. Code Quality — ESLint Only | ✅ Pass | `npm run verify` — zero errors | Unchanged from Rev 2 |
-| III. Feature Structure — Layer Separation & Barrel Exports | ✅ Pass | No new files this revision; existing barrels untouched and still correct | The fix adds a field to an existing hook interface, no new layer/barrel surface |
-| IV. API Client Pattern | ✅ Pass | Fix flows the token through the existing `HostApiRequest`/`useMutation` pattern — no raw `fetch` introduced | Confirmed by direct diff read (`useHostApi.ts` +8/−1) |
-| V. State Management — Zustand Store Rules | ⚠️ Partial | No store changes this revision | CON-01 registry-table drift unchanged from Rev 2 |
-| VI. Observability & Logging | ✅ Pass | No new `console.*` calls; fix reuses existing debug-callback plumbing | Confirmed by direct diff read |
-| VII. Testing Stance | ⚠️ Partial | `dotnet test ApiTestSpark.Tests` 49/49 pass; no new .NET tests added | M-01 unchanged from Rev 2; React SPA has no test runner by design (compliant) |
-| VIII. PII/PHI Data Protection | ✅ Pass | Fix and doc updates contain no PII/PHI or literal secrets | Confirmed by direct diff read |
+| I. TypeScript Strict Compilation | ✅ Pass | `npm run verify` re-run this review — clean | No TS changes this cycle (the fix touched only .NET test code and a markdown constitution file) |
+| II. Code Quality — ESLint Only | ✅ Pass | `npm run verify` — zero errors | Unchanged |
+| III. Feature Structure — Layer Separation & Barrel Exports | ✅ Pass | No `src/` changes this cycle | N/A |
+| IV. API Client Pattern | ✅ Pass | No `src/` changes this cycle | N/A |
+| V. State Management — Zustand Store Rules | ✅ Pass | `constitution.md` §V registry table corrected | CON-01 resolved — this principle's *documentation* now matches the code, which was already compliant |
+| VI. Observability & Logging | ✅ Pass | grep for `console.*`/`Console.Write*` in the new test file returned zero matches | Test code uses MSTest `Assert`/`StringAssert` exclusively |
+| VII. Testing Stance | ✅ Pass | `dotnet test ApiTestSpark.Tests` 53/53 pass, including 4 new tests for previously-uncovered public API | M-01 resolved — .NET test coverage gate is now fully current with the shipped public surface |
+| VIII. PII/PHI Data Protection | ✅ Pass | New test file uses only synthetic values (`"test-client"`, `"wrong-secret"`, `"tok-abc"`) | No real credentials or PII |
 
 ## Security Checklist
 
-- [x] No hardcoded secrets or credentials — confirmed by direct read of the 2-line code fix and all doc updates
-- [x] Input validation present where needed — N/A, no new input surface in this revision
-- [x] Authentication/authorization checks appropriate — this revision's entire purpose is fixing an auth-header attachment defect; verified fixed via live mock-provider test (401 → 200)
+- [x] No hardcoded secrets or credentials — all new test fixtures use obviously-synthetic placeholder values
+- [x] Input validation present where needed — N/A, no new input surface
+- [x] Authentication/authorization checks appropriate — the new tests specifically assert the fail-open (no-Authorization-header, no-throw) behavior on OAuth acquisition failure, and the success-path Authorization header content
 - [x] No SQL injection vulnerabilities — N/A
 - [x] No XSS vulnerabilities — N/A
 - [x] Dependencies reviewed for vulnerabilities — no new dependencies
 
 ## Testing Coverage
 
-**Status**: ADEQUATE (React) / PARTIAL (.NET — see M-01, unchanged)
+**Status**: ADEQUATE (both React and .NET)
 
-`npm run verify` re-run for this review: clean. `dotnet test ApiTestSpark.Tests` re-run for this review: **49/49 pass**, 0 failures, 583ms. No new automated test files were added by this revision (the added verification was live/manual against a local mock provider, as `tasks.md` explicitly documents) — M-01 remains an open, non-blocking recommendation to eventually backfill automated `.NET` coverage for the server-side OAuth surface added in the prior commit.
+`npm run verify` re-run for this review: clean. `dotnet test ApiTestSpark.Tests` re-run for this review: **53/53 pass**, 0 failures, 629ms — up from 49 at Rev 3. M-01's SHOULD-level gap is now closed: the server-side OAuth public surface added two commits ago has direct integration test coverage for both its success and failure paths.
 
 ## Test Inventory
 
-| File | Rev 2 baseline | Rev 3 | Delta | Justification |
+| File | Rev 3 baseline | Rev 5 | Delta | Justification |
 |------|------|--------|-------|---------------|
-| `ApiTestSpark.Tests/HarnessIntegrationTests.cs` | 49 | 49 | 0 | Unchanged — see M-01 |
-| **Total** | 49 | 49 | 0 | |
+| `ApiTestSpark.Tests/HarnessIntegrationTests.cs` | 49 | 53 | +4 | M-01 fix — new coverage for `RemoteApiProfileOAuth`/`RemoteApiProfile.OAuth` (config exposure, token injection, fail-open) |
+| **Total** | 49 | 53 | +4 | |
 
-No test files changed in this revision.
+No test files removed. New tests added: `ConfigEndpoint_RemoteOAuthConfigured_TrueWhenFullyConfigured`, `ConfigEndpoint_RemoteOAuthConfigured_FalseWhenNotConfigured`, `RemoteSpec_InjectsOAuthBearerToken_WhenProfileHasOAuth`, `RemoteSpec_ProceedsWithoutAuthHeader_WhenOAuthTokenAcquisitionFails`.
 
 ## Documentation Status
 
 **Status**: ADEQUATE
 
-`tasks.md` now documents live-verification evidence for all 30 tasks including T017/T023/T029; `spec.md` Status is `Complete` with US2/US4 marked ✅ Complete; `plan.md` carries a new, clearly dated Implementation Note (item 5) describing the discovered defect, its fix, and re-verification results.
+`constitution.md` is now version 1.1.3 with a correctly-nested Sync Impact Report entry (verified it sits inside the existing single HTML comment block, not as a second stray comment that would render as visible page text — this was specifically checked given the multi-block structure), a corrected §V registry table row, and a matching ratification-history row. `pr-7.md` itself carries a complete, auditable history across 5 revisions and 3 previous-review-history entries.
 
 ## Changed Files Summary
 
 | File | Tier | Changes | Type | Findings |
 |------|------|---------|------|---------|
-| `src/hooks/useHostApi.ts` | P0 | +8 −1 | Modified | None (fix) |
-| `src/components/host-api/EndpointTester.tsx` | P0 | +1 −1 | Modified | None (fix) |
-| `.documentation/specs/001-oauth-token-config/tasks.md` | P2 | +49 −19 | Modified | None |
-| `.documentation/specs/001-oauth-token-config/plan.md` | P2 | +30 −6 | Modified | None |
-| `.documentation/specs/001-oauth-token-config/spec.md` | P2 | +3 −3 | Modified | None |
-| `.documentation/specs/pr-review/pr-7.md` | P3 | +119 −74 | Modified (self, prior commit) | N/A — review artifact |
+| `ApiTestSpark.Tests/HarnessIntegrationTests.cs` | P2 | +166 −0 | Modified | M-01 (resolved) |
+| `.documentation/memory/constitution.md` | P3 | +21 −2 | Modified | CON-01 (resolved) |
+| `.documentation/specs/pr-review/pr-7.md` | P3 | +99 −99 | Modified (review artifact, 2 commits) | N/A — review artifact |
 
 ## Behavioral Changes
 
-| Change | Before | After | Intentional? | Risk |
-|--------|--------|-------|-------------|------|
-| Remote endpoint calls with `remoteUseOAuthToken` enabled | Real request sent with no `Authorization` header (token never attached) despite a correct-looking UI preview | Real request now carries `Authorization: Bearer <oauthToken>` when a valid token is available | Yes — bug fix, verified live (401 → 200) | None — this closes a security/correctness gap; no regression risk identified |
+None detected in this cycle — all changes are additive test coverage and documentation; no production `src/` or `ApiTestSpark/*.cs` runtime code was touched.
 
 ## Approval Decision
 
 **Recommendation**: ✅ APPROVE
 
 **Reasoning**:
-Both mandatory Critical findings (C-01: spec not `Complete`, C-02: incomplete tasks) that blocked Rev 1 and Rev 2 are now resolved with direct evidence (`spec.md` read, task count verified by this reviewer independently, not just taken from the PR body). The one High finding (H-01) is resolved as no-longer-applicable now that the temporary WIP state it existed to flag has been fully completed. This revision's own code change is a well-scoped, well-verified fix for a genuinely serious defect (silent unauthenticated requests behind a misleading UI preview) that reflects well on the delivery process, not poorly — it was caught by the process before it could ship. The three remaining findings (M-01, L-01, CON-01) are all Medium/Low/Constitution-Improvement severity, explicitly non-blocking by this workflow's own rules, and are appropriately tracked as fast-follow items rather than re-litigated as merge blockers.
+This focused `UPDATE` re-review's purpose was to confirm — by direct, independent verification rather than by trusting commit messages or checked checkboxes — that the prior `/devspark.address-pr-review` pass genuinely resolved M-01, L-01, and CON-01. All three are confirmed resolved: the .NET test suite grew from 49 to 53 tests with real coverage of the previously-untested server-side OAuth surface; the constitution was correctly amended with proper governance-document hygiene (Sync Impact Report + ratification history, correctly nested inside the existing comment block); and the token-cache behavior L-01 flagged was not just left as a note but empirically demonstrated and worked around while building the M-01 tests. Commit isolation was verified end-to-end across the PR's full history with zero SHA overlap between review-file and code commits. There are no open findings at any severity. This PR is ready to merge.
 
-**Estimated Rework Time**: N/A — no blocking rework required. M-01 (~30–60 min if picked up) is a reasonable fast-follow; L-01 and CON-01 require no immediate action.
+**Estimated Rework Time**: N/A — no rework required.
 
 ---
 
@@ -228,14 +219,24 @@ Both mandatory Critical findings (C-01: spec not `Complete`, C-02: incomplete ta
 
 ## Previous Review History
 
+### Review 4 — Address-PR-Review Pass: 2026-07-16 (commits `fe5238b`, `172ed34`)
+
+Not a full `/devspark.pr-review` cycle — this was the `/devspark.address-pr-review` command's own Phase 5 update: flipped M-01/L-01/CON-01 checkboxes with fixed-in annotations, appended a Rev 4 row to the Revision Log, updated Stats and Constitution Version metadata. Left the Findings Detail table, Executive Summary, and Approval Decision narrative sections untouched per that command's strict edit-scope rules — refreshing those was the explicit purpose of this Rev 5 `UPDATE`.
+
+### Review 3: 2026-07-16 23:xx UTC
+
+**Commit**: `f597851`
+
+Re-reviewed after the T017/T023/T029 completion commit, which also fixed a CRITICAL live-testing-discovered defect (OAuth token computed but never attached to the real outgoing request in `useHostApi.ts`/`EndpointTester.tsx`). C-01/C-02 (spec lifecycle) resolved — spec `Complete`, 30/30 tasks. H-01 resolved as no-longer-applicable. Recommendation: APPROVE, with 3 non-blocking findings (M-01, L-01, CON-01) carried forward as fast-follow items — all three are the subject of this Rev 5 verification.
+
 ### Review 2: 2026-07-16 23:10:00 UTC
 
 **Commit**: `4884e8f`
 
-Re-reviewed the branch after the browser-side OAuth implementation, server-side `RemoteApiProfile.OAuth` addition, and documentation sweep landed on top of the Rev 1 planning-artifacts-only review. No security or constitution-code violations found — critic-001 SHOWSTOPPER (secret redaction) verified fixed, SSRF guard reused correctly for server-side OAuth, `EndpointTester` appeared to block rather than silently degrade (FR-014) based on code read alone. Recommendation: REQUEST CHANGES, blocked by C-01 (spec `In Progress`, not `Complete`) and C-02 (27/30 tasks). Added M-01 (no new .NET integration tests), L-01 (informational note on the static token cache), and CON-01 (store registry table doesn't reflect that `useAuthStore` now persists tokens per FR-015).
+Re-reviewed the branch after the browser-side OAuth implementation, server-side `RemoteApiProfile.OAuth` addition, and documentation sweep landed on top of the Rev 1 planning-artifacts-only review. No security or constitution-code violations found. Recommendation: REQUEST CHANGES, blocked by C-01/C-02 (spec lifecycle). Added M-01, L-01, CON-01.
 
 ### Review 1: 2026-07-16 19:05:00 UTC
 
 **Commit**: `4f37b34`
 
-Initial review of the docs-only planning PR (spec.md, plan.md, research.md, data-model.md, quickstart.md, tasks.md, checklists/requirements.md, gates/analyze.md, gates/critic.md — 9 files, +1127/−0, no source code). Found 2 Critical (spec status Draft, 0/30 tasks) and 1 High (missing Gate Acknowledgements section) — all lifecycle findings, not code-quality issues, since no code existed yet. Recommended REQUEST CHANGES per the mandatory spec-lifecycle rule, while noting the PR was correctly marked draft and the planning artifacts themselves were high quality (already passed `/devspark.analyze` and `/devspark.critic` with a genuine SHOWSTOPPER caught and remediated before any code was written).
+Initial review of the docs-only planning PR — 9 files, +1127/−0, no source code. Found 2 Critical (spec status Draft, 0/30 tasks) and 1 High (missing Gate Acknowledgements section) — all lifecycle findings, not code-quality issues. Recommended REQUEST CHANGES per the mandatory spec-lifecycle rule, while noting the planning artifacts themselves were high quality.
