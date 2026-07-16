@@ -30,14 +30,11 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 
 ---
 
-## Latest Updates (v1.8.0)
+## Latest Updates (v2.0.0)
 
-- Added `RequireAuthenticatedUser` so teams can require authentication for all harness routes under `/api-test-spark`.
-- Added server-side expansion of `{request-guid}` and `{session-guid}` in proxied remote-call headers.
-- Hardened config endpoint CORS behavior by emitting `Vary: Origin` when `Access-Control-Allow-Origin` is set.
-- Updated CI and publish workflows to run `npm run verify` (lint + typecheck + build) for fail-fast frontend validation.
-- Fixed remote spec proxy resource management (disposal, `ConfigureAwait(false)`, `ArrayPool` buffering).
-- Fixed sticky namespace header overlapping first endpoint in the endpoint list.
+- Added **OAuth Token Configuration** — configure OAuth2 `client_credentials`/`password` grant token acquisition per Environment on the Config screen; opted-in Remote API profiles use the acquired token automatically instead of a static Bearer token.
+- Added **server-side OAuth** — `RemoteApiProfile.OAuth` lets the server acquire and cache a `client_credentials` token itself; the client secret and token never reach the browser.
+- Every OAuth token request redacts `client_secret`/`password` before it reaches the debug panel or Application Insights.
 
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 
@@ -48,7 +45,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 1.8.0 |
+| **Version** | 2.0.0 |
 | **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
@@ -56,7 +53,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | **Package Size** | 0.49 MB |
 | **Symbol Package** | 15.7 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | June 21, 2026 |
+| **Last Updated** | July 16, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Product Family** | [Make Bold Spark](https://makeboldspark.com) |
@@ -239,7 +236,7 @@ shown in the browser.
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v1.8.0 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v2.0.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -264,6 +261,10 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 ---
 
 ## Release Notes
+
+### v2.0.0 — July 16, 2026
+
+OAuth Token Configuration: configure OAuth2 `client_credentials`/`password` grant token acquisition per Environment on the Config screen, with an opt-in flag so Remote API profiles use the acquired token instead of a manually pasted static Bearer token; requests block rather than silently fall back if no valid token can be acquired. Added server-side OAuth: `RemoteApiProfile.OAuth` lets the server acquire and cache a `client_credentials` token itself, so the client secret and token never reach the browser — only a redacted `remoteOAuthConfigured` flag is exposed. Every OAuth token request redacts `client_secret`/`password` before it reaches the debug panel or Application Insights.
 
 ### v1.8.0 — June 21, 2026
 

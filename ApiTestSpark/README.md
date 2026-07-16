@@ -42,14 +42,11 @@ Navigate to `https://localhost:{port}/api-test-spark/` — the harness autodisco
 
 ---
 
-## Latest Updates (v1.8.0)
+## Latest Updates (v2.0.0)
 
-- Added `RequireAuthenticatedUser` so teams can require authentication for all harness routes under `/api-test-spark`.
-- Added server-side expansion of `{request-guid}` and `{session-guid}` in proxied remote-call headers.
-- Hardened config endpoint CORS behavior by emitting `Vary: Origin` when `Access-Control-Allow-Origin` is set.
-- Updated CI and publish workflows to run `npm run verify` (lint + typecheck + build) for fail-fast frontend validation.
-- Fixed remote spec proxy resource management (disposal, `ConfigureAwait(false)`, `ArrayPool` buffering).
-- Fixed sticky namespace header overlapping first endpoint in the endpoint list.
+- Added **OAuth Token Configuration** — configure OAuth2 `client_credentials`/`password` grant token acquisition per Environment on the Config screen; opted-in Remote API profiles use the acquired token automatically instead of a static Bearer token.
+- Added **server-side OAuth** — `RemoteApiProfile.OAuth` lets the server acquire and cache a `client_credentials` token itself; the client secret and token never reach the browser.
+- Every OAuth token request redacts `client_secret`/`password` before it reaches the debug panel or Application Insights.
 
 See [../CHANGELOG.md](../CHANGELOG.md) for full details.
 

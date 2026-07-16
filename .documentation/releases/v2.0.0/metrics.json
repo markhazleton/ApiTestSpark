@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "releaseDate": "2026-07-16",
+  "releaseType": "major",
+  "release": {
+    "from": "2026-06-21",
+    "to": "2026-07-16"
+  },
+  "commitRange": {
+    "baseRef": "v1.8.0",
+    "baseSha": "d1d519d409f4cad19fc8d3f5c48a704274db19b9",
+    "headRef": "HEAD",
+    "headSha": "7351761f74f0b161eecc7bf997cb2d5a2a8be68c",
+    "rangeSpec": "v1.8.0..HEAD"
+  },
+  "previousVersion": "v1.8.0",
+  "features": {
+    "completed": 1,
+    "deferred": 0
+  },
+  "quickfixes": 0,
+  "pullRequests": {
+    "merged": 1,
+    "numbers": [7],
+    "filesChanged": 47,
+    "testsAdded": 4,
+    "breakingChanges": 0,
+    "resolvedHighFindings": 1
+  },
+  "adrs": 1,
+  "commits": 15,
+  "contributors": 1,
+  "specs": ["001-oauth-token-config"],
+  "qualityGates": {
+    "typescriptCompilation": "PASS",
+    "eslint": "PASS",
+    "markdownlint": "PASS",
+    "dotnetBuild": "PASS",
+    "integrationTests": "PASS",
+    "nugetPack": "PASS"
+  },
+  "timestamp": "2026-07-16T23:30:00Z"
+}

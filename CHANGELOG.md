@@ -7,10 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.0.0] - 2026-07-16
+
 ### Added
 
 - **OAuth Token Configuration (browser-side)** — configure OAuth2 `client_credentials` or `password` grant token acquisition per Environment on the Config screen. Tokens are acquired via the shared request pipeline (never a raw `fetch`), cached per Environment, and secrets/passwords are redacted before they reach the debug panel or telemetry. Remote API profiles can opt in to using the environment's OAuth token instead of a static Bearer token (`remoteUseOAuthToken`); `EndpointTester` blocks the request rather than silently falling back to a static token if no valid token can be acquired.
-- **OAuth Token Configuration (server-side)** — `SEMVER: MINOR` — new `RemoteApiProfile.OAuth` (`RemoteApiProfileOAuth`: `TokenEndpointUrl`, `ClientId`, `ClientSecret`) lets a remote API profile use an OAuth2 `client_credentials` bearer token acquired and cached entirely on the server. The token is injected into the remote spec proxy and, when `EnableRemoteCallProxy` is enabled, into proxied endpoint calls. The client secret and acquired token are never returned to the browser — `/api-test-spark/config` exposes only `remoteOAuthConfigured: true/false`, and the Config screen shows a read-only "configured on server" indicator for these profiles.
+- **OAuth Token Configuration (server-side)** — new `RemoteApiProfile.OAuth` (`RemoteApiProfileOAuth`: `TokenEndpointUrl`, `ClientId`, `ClientSecret`) lets a remote API profile use an OAuth2 `client_credentials` bearer token acquired and cached entirely on the server. The token is injected into the remote spec proxy and, when `EnableRemoteCallProxy` is enabled, into proxied endpoint calls. The client secret and acquired token are never returned to the browser — `/api-test-spark/config` exposes only `remoteOAuthConfigured: true/false`, and the Config screen shows a read-only "configured on server" indicator for these profiles.
+
+### Migration Notes
+
+- No breaking changes to existing configuration — this is an additive release. Existing `RemoteOpenApiBearerToken`/`RemoteOpenApiApiKeyValue` profiles are unaffected.
+- To configure browser-side OAuth: open the Config screen, select an Environment, enter a token endpoint URL and client credentials, then check "Use environment OAuth token" on any Remote API profile that needs it.
+- To configure server-side OAuth: set `options.RemoteApiProfiles[].OAuth = new RemoteApiProfileOAuth { TokenEndpointUrl = ..., ClientId = ..., ClientSecret = ... }` in `Program.cs`. Requires `EnableRemoteCallProxy = true` for the profile's proxied endpoint calls to carry the token.
+
+### Contributors
+
+- Mark Hazleton
 
 ## [v1.8.0] - 2026-06-21
 
@@ -285,7 +297,8 @@ None. The new `RemoteApiProfiles` collection and `RemoteApiProfile` model are ad
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.0.0...HEAD
+[v2.0.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.8.0...v2.0.0
 [v1.8.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.5.0...v1.6.0

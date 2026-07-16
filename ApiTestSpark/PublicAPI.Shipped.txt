@@ -56,4 +56,14 @@ ApiTestSpark.RemoteApiProfile.RemoteOpenApiBearerToken.set -> void
 ApiTestSpark.RemoteApiProfile.RemoteOpenApiUrl.get -> string?
 ApiTestSpark.RemoteApiProfile.RemoteOpenApiUrl.set -> void
 ApiTestSpark.RemoteApiProfile.RemoteApiProfile() -> void
+ApiTestSpark.RemoteApiProfile.OAuth.get -> ApiTestSpark.RemoteApiProfileOAuth?
+ApiTestSpark.RemoteApiProfile.OAuth.set -> void
+ApiTestSpark.RemoteApiProfileOAuth
+ApiTestSpark.RemoteApiProfileOAuth.RemoteApiProfileOAuth() -> void
+ApiTestSpark.RemoteApiProfileOAuth.ClientId.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.ClientId.set -> void
+ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.set -> void
+ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.get -> string!
+ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.set -> void
 static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!

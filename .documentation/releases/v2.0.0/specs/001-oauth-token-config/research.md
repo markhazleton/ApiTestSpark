@@ -18,6 +18,7 @@ token endpoint cannot parse. Constitution Principle IV requires ALL API calls to
 extension to the shared layer, not a bypass.
 
 **Alternatives considered**:
+
 - Raw `fetch()` call directly inside the token-acquisition code path — rejected, violates
   Constitution IV ("Raw fetch calls outside of executeRequest MUST NOT be added").
 - Always JSON-encode and hope the token endpoint accepts it — rejected, not RFC-compliant and will
@@ -42,6 +43,7 @@ API calls via `executeRequest`, driven through `useMutation`). Correcting this b
 avoids baking a constitution violation into the first real usage of this store.
 
 **Alternatives considered**:
+
 - `fetchToken` as an async Zustand action calling `fetch` directly — rejected (violates III & IV).
 - Selected: hook-owned mutation, store-owned state only.
 
@@ -59,12 +61,14 @@ in the canonical store registry (Constitution V) — it does not introduce a new
 "one concern per store" rule (config + its own token cache remain one auth concern).
 
 **Alternatives considered**:
+
 - New dedicated non-persisted store for tokens only — rejected; adds a second store for the same
   single concern (auth) and contradicts the explicit clarification to persist the token.
 
 ## R4 — Grant-type request shapes
 
 **Decision**:
+
 - `client_credentials`: `grant_type=client_credentials&client_id={clientId}&client_secret={clientSecret}`
 - `password`: `grant_type=password&client_id={userClientId ?? clientId}&client_secret={userClientSecret ?? clientSecret}` (client_secret omitted if both are empty) `&username={testUsername}&password={testPassword}`
 

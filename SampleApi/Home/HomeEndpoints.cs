@@ -222,15 +222,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v1.8.0</span>
+                            <span class="pkg-version">v2.0.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.49 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated June 21, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.49 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated July 16, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">1.8.0</div>
+                            <div class="value">2.0.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -283,6 +283,7 @@ public static class HomeEndpoints
                         <span class="pkg-tag">api-documentation</span>
                         <span class="pkg-tag">identity-headers</span>
                         <span class="pkg-tag">local-development</span>
+                        <span class="pkg-tag">oauth</span>
                         <span class="pkg-tag">make-bold-spark</span>
                         <span class="pkg-tag">make-bold-solutions</span>
                     </div>
@@ -381,6 +382,11 @@ public static class HomeEndpoints
                         <div class="feature-icon">📑</div>
                         <h3>Remote API Doc Builder</h3>
                         <p>The same endpoint-capture and markdown-export experience as the host API Doc Builder, but scoped to the selected remote profile so generated docs use that profile's name and description.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔏</div>
+                        <h3>OAuth Token Configuration</h3>
+                        <p>Configure OAuth2 <code class="inline">client_credentials</code>/<code class="inline">password</code> grant token acquisition per Environment on the Config screen — or set a server-held <code class="inline">RemoteApiProfile.OAuth</code> in <code class="inline">Program.cs</code> so the client secret and token never reach the browser. Requests block rather than silently send unauthenticated.</p>
                     </div>
                 </div>
             </section>
@@ -513,7 +519,7 @@ app.<span class="cm">Run</span>();</pre>
                         <tr>
                             <td>RemoteApiProfiles</td>
                             <td>[]</td>
-                            <td>List of named remote API defaults. Each profile includes an id, name, description, base URL, OpenAPI URL, credentials, and default headers.</td>
+                            <td>List of named remote API defaults. Each profile includes an id, name, description, base URL, OpenAPI URL, credentials, default headers, and an optional <code class="inline">OAuth</code> for server-acquired bearer tokens.</td>
                         </tr>
                         <tr>
                             <td>EnableRemoteCallProxy</td>
@@ -549,6 +555,11 @@ app.<span class="cm">Run</span>();</pre>
                             <td>RemoteDefaultHeaders</td>
                             <td>{}</td>
                             <td>Legacy headers injected into every browser-side request to the compatibility remote API. Supports <code class="inline">{session-guid}</code>, <code class="inline">{request-guid}</code>, <code class="inline">{user-name}</code>, <code class="inline">{user-email}</code>, and <code class="inline">{user-id}</code> tokens.</td>
+                        </tr>
+                        <tr>
+                            <td>RemoteApiProfile.OAuth</td>
+                            <td>null</td>
+                            <td>Optional server-side OAuth2 <code class="inline">client_credentials</code> config (<code class="inline">TokenEndpointUrl</code>/<code class="inline">ClientId</code>/<code class="inline">ClientSecret</code>) for a profile. The server acquires and caches the token itself — it never reaches the browser. Requires <code class="inline">EnableRemoteCallProxy</code> for proxied endpoint calls to carry the token.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -649,7 +660,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v1.8.0 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v2.0.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 0.49 MB</div>
                     </div>
@@ -695,12 +706,13 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
       "remoteOpenApiApiKeyValue": null,
       "remoteOpenApiApiKeyConfigured": true,
             "remoteCallProxyEnabled": true,
+            "remoteOAuthConfigured": false,
       "source": "server",
       "proxyMode": "server"
     }
   ],
-    "harnessVersion": "1.8.0",
-    "harnessBuiltAt": "2026-06-21T17:52:53Z"
+    "harnessVersion": "2.0.0",
+    "harnessBuiltAt": "2026-07-16T23:30:00Z"
 }</pre>
                         </div>
                     </div>
@@ -984,9 +996,17 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v2.0.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">July 16, 2026</span>
+                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>OAuth Token Configuration.</strong> Configure OAuth2 <code class="inline">client_credentials</code>/<code class="inline">password</code> grant token acquisition per Environment on the Config screen; opted-in Remote API profiles use the acquired token automatically instead of a static Bearer token, and requests block rather than silently send unauthenticated. New server-side <code class="inline">RemoteApiProfile.OAuth</code> lets the server acquire and cache a <code class="inline">client_credentials</code> token itself — the client secret and token never reach the browser. Every OAuth token request redacts secrets before they reach the debug panel or telemetry.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
                             <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v1.8.0</span>
                             <span style="color:#94a3b8;font-size:0.85rem;">June 21, 2026</span>
-                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Auth gate and proxy hardening.</strong> New <code class="inline">RequireAuthenticatedUser</code> option enforces authentication on all harness routes (SPA assets, config, remote-spec, and remote-call endpoints). Remote spec proxy now properly disposes <code class="inline">HttpResponseMessage</code>, uses <code class="inline">ConfigureAwait(false)</code>, and buffers via <code class="inline">ArrayPool</code>. Config endpoint CORS responses include <code class="inline">Vary: Origin</code>. CI gains a fail-fast <code class="inline">npm run verify</code> frontend gate. Fixed sticky namespace header overlap bug in the endpoint list.</p>
                     </div>
@@ -1129,6 +1149,14 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
                     <div>
                         <h3>Why don't browser-created profiles use the server proxy?</h3>
                         <p style="color:#475569;margin-top:0.25rem;">The proxies accept server-provided profile ids only. Browser-created profile credentials are persisted in <code class="inline">localStorage</code> and applied to browser-direct spec fetches and endpoint calls, but they are never submitted to <code class="inline">/api-test-spark/remote-spec</code> or <code class="inline">/api-test-spark/remote-call</code>. This keeps the proxies from becoming arbitrary server-side URL fetchers and keeps browser-local secrets out of proxy requests.</p>
+                    </div>
+                    <div>
+                        <h3>How do I test an API that requires an OAuth2 bearer token?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">Two options. <strong>Browser-side:</strong> open the Config screen, select an Environment, and configure a token endpoint plus <code class="inline">client_credentials</code> or <code class="inline">password</code> grant credentials — then check "Use environment OAuth token" on any Remote API profile. <strong>Server-side:</strong> set <code class="inline">RemoteApiProfile.OAuth</code> in <code class="inline">Program.cs</code> so the server acquires and caches the token itself; the client secret and token never reach the browser, and <code class="inline">/api-test-spark/config</code> exposes only a <code class="inline">remoteOAuthConfigured</code> boolean. Either way, requests block with a clear error rather than being sent unauthenticated if a valid token cannot be obtained.</p>
+                    </div>
+                    <div>
+                        <h3>Are OAuth client secrets and passwords ever visible in the debug panel?</h3>
+                        <p style="color:#475569;margin-top:0.25rem;">No. Token-acquisition requests are captured in the debug panel like any other request, but <code class="inline">client_secret</code> and <code class="inline">password</code> values are replaced with <code class="inline">***redacted***</code> before capture — the real, unredacted values still reach the token endpoint itself. Server-side OAuth secrets never reach the browser at all.</p>
                     </div>
                 </div>
             </section>

@@ -74,4 +74,3 @@ constitution/process tasks rather than requirement-mapped.
 
 - Clean gate — no blocking findings remain. Safe to proceed once the critic gate (also re-run)
   confirms the SHOWSTOPPER fix, then proceed to `/devspark.implement`.
-

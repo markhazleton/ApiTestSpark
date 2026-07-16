@@ -200,4 +200,3 @@ implement workflow's rule to record rather than silently diverge.*
    - Re-verified live after the fix: `npm run verify` clean; live request against the mock
      protected API returned 200 with the correct `Authorization` header confirmed by the API's own
      response body.
-

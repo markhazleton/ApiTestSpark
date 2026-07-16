@@ -9,7 +9,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
-    <Version>1.8.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Make Bold Solutions; Mark Hazleton</Authors>
     <Company>Make Bold Solutions</Company>
     <Copyright>Copyright © Make Bold Solutions 2026</Copyright>
@@ -20,7 +20,9 @@
       call. It autodiscovers OpenAPI v3 endpoints and renders an interactive test harness at
       /api-test-spark/. Features include collapsible accordion endpoint groups, Remote API Explorer
       for multiple named REST APIs, credential-safe server-side profile proxies, browser-manageable
-      remote profiles, full response code documentation with expandable schemas, operationId display,
+      remote profiles, OAuth2 client_credentials/password grant token acquisition (browser-side per
+      Environment, or server-side via RemoteApiProfile.OAuth with the client secret never reaching the
+      browser), full response code documentation with expandable schemas, operationId display,
       schema constraint and default-value surfacing, markdown rendering of OpenAPI descriptions,
       sortable response tables, editable object forms, curl command generation, API Doc Builder,
       draggable debug panel, and Azure Application Insights integration. Zero configuration required —
@@ -33,13 +35,15 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>1.8.0 — Adds RequireAuthenticatedUser option to gate all harness routes under
-      /api-test-spark behind authentication (SPA assets, config, remote-spec, and remote-call endpoints).
-      Hardens the remote-spec proxy with proper HttpResponseMessage disposal, ConfigureAwait(false), and
-      ArrayPool buffer management. Config endpoint now emits Vary: Origin alongside Access-Control-Allow-Origin
-      for correct CORS cache safety. CI workflows now run npm run verify (lint + typecheck + build) first for
-      fail-fast frontend validation. Fixes sticky namespace header overlap bug in the endpoint list. See
-      CHANGELOG.md for full history.</PackageReleaseNotes>
+    <PackageReleaseNotes>2.0.0 — Adds OAuth Token Configuration for API authentication. Browser-side:
+      configure OAuth2 client_credentials or password grant token acquisition per Environment on the
+      Config screen; Remote API profiles can opt in (RemoteApiProfile.remoteUseOAuthToken) to use the
+      acquired token instead of a static Bearer token, and requests block rather than silently fall back
+      if a token cannot be acquired. Server-side: new RemoteApiProfileOAuth (TokenEndpointUrl, ClientId,
+      ClientSecret) on RemoteApiProfile.OAuth lets the server acquire and cache a client_credentials
+      token itself — the client secret and token never reach the browser; only a redacted
+      remoteOAuthConfigured flag is exposed via /api-test-spark/config. See CHANGELOG.md for full
+      history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Build quality -->

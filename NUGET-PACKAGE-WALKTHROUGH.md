@@ -141,8 +141,8 @@ The SPA cannot know the host app's base URL at build time (the package is embedd
       "proxyMode": "server"
     }
   ],
-  "harnessVersion": "1.8.0",
-  "harnessBuiltAt": "2026-06-21T17:52:53Z"
+  "harnessVersion": "2.0.0",
+  "harnessBuiltAt": "2026-07-16T23:30:00Z"
 }
 ```
 
@@ -183,7 +183,7 @@ Every `PackageReference` consumer-facing property is declared in the `<PropertyG
 | Property | Value | Rationale |
 |----------|-------|-----------|
 | `PackageId` | `ApiTestSpark` | Unique, prefix-reservable identifier |
-| `Version` | `1.8.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
+| `Version` | `2.0.0` | SemVer; set via `/p:Version` at pack time from `package.json` |
 | `Authors` | `Make Bold Solutions; Mark Hazleton` | NuGet author display |
 | `Company` | `Make Bold Solutions` | Package ownership and assembly metadata |
 | `PackageLicenseExpression` | `MIT` | SPDX identifier — replaces deprecated `LicenseUrl` |
@@ -240,11 +240,11 @@ Source Link lets consumers step into the library's source code from within Visua
 
 Two files control this:
 
-- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v1.8.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
+- **`PublicAPI.Shipped.txt`** — the API surface of the last released version (v2.0.0). Any symbol listed here that disappears from the code becomes a build error (RS0017), preventing accidental breaking changes.
 - **`PublicAPI.Unshipped.txt`** — symbols added since the last release. New public members appear here automatically via IDE code fix, then are moved to `Shipped.txt` when the next version is tagged.
 
 ```
-# PublicAPI.Shipped.txt (v1.8.0 baseline)
+# PublicAPI.Shipped.txt (v2.0.0 baseline)
 #nullable enable
 ApiTestSpark.ApiTestSparkExtensions
 ApiTestSpark.ApiTestSparkOptions
@@ -281,14 +281,6 @@ ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.get -> string?
 ApiTestSpark.ApiTestSparkOptions.RemoteOpenApiBearerToken.set -> void
 ApiTestSpark.ApiTestSparkOptions.TestHttpClient.get -> System.Net.Http.HttpClient?
 ApiTestSpark.ApiTestSparkOptions.TestHttpClient.set -> void
-static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!
-```
-
-If you add a new public method in `ApiTestSparkExtensions.cs`, the build produces RS0016 ("Symbol is not part of the declared public API") until you add it to `PublicAPI.Unshipped.txt`. For example, the OAuth-for-server-configured-profiles addition currently lives in `PublicAPI.Unshipped.txt` (moved to `Shipped.txt` at the next release tag):
-
-```
-# PublicAPI.Unshipped.txt (pending release)
-#nullable enable
 ApiTestSpark.RemoteApiProfile.OAuth.get -> ApiTestSpark.RemoteApiProfileOAuth?
 ApiTestSpark.RemoteApiProfile.OAuth.set -> void
 ApiTestSpark.RemoteApiProfileOAuth
@@ -299,7 +291,10 @@ ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.get -> string!
 ApiTestSpark.RemoteApiProfileOAuth.ClientSecret.set -> void
 ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.get -> string!
 ApiTestSpark.RemoteApiProfileOAuth.TokenEndpointUrl.set -> void
+static ApiTestSpark.ApiTestSparkExtensions.MapApiTestSpark(this Microsoft.AspNetCore.Builder.WebApplication! app, System.Action<ApiTestSpark.ApiTestSparkOptions!>? configure = null) -> Microsoft.AspNetCore.Builder.WebApplication!
 ```
+
+If you add a new public method in `ApiTestSparkExtensions.cs`, the build produces RS0016 ("Symbol is not part of the declared public API") until you add it to `PublicAPI.Unshipped.txt`. The `RemoteApiProfile.OAuth`/`RemoteApiProfileOAuth` members shown above were added via this workflow in v2.0.0 and have since been moved from `PublicAPI.Unshipped.txt` into the `Shipped.txt` baseline above; `PublicAPI.Unshipped.txt` is now empty again pending the next release.
 
 ---
 
@@ -398,10 +393,10 @@ softprops/action-gh-release → GitHub Release with CHANGELOG.md as body
 
 To publish a new version:
 
-1. Update `version` in `package.json` (e.g. `1.8.0`)
-2. Add a `[v1.8.0]` entry to `CHANGELOG.md`
+1. Update `version` in `package.json` (e.g. `2.0.0`)
+2. Add a `[v2.0.0]` entry to `CHANGELOG.md`
 3. Commit and push
-4. `git tag -a v1.8.0 -m "Release v1.8.0" && git push origin main --tags`
+4. `git tag -a v2.0.0 -m "Release v2.0.0" && git push origin main --tags`
 
 The publish workflow fires automatically. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full step-by-step release process.
 
