@@ -164,13 +164,16 @@ client identity) and acquire a `password`-grant access token.
       "Get Test User Token" button that ALWAYS calls `acquireOAuthToken(env, 'password')` (same
       always-fetch guarantee as T012 — never `ensureOAuthToken`). (depends on: T012)
       (FR-002, FR-003, FR-005)
-- [ ] T017 [US2] Verify/finalize the password-grant fallback logic in
+- [X] T017 [US2] Verify/finalize the password-grant fallback logic in
       `src/api/oauthTokenClient.ts` (`userClientId ?? clientId`, `userClientSecret ?? clientSecret`)
       against a real or mock provider that requires a distinct password-grant client identity.
       (depends on: T005) (FR-002)
-      <!-- WIP: fallback logic implemented and code-reviewed; verification against a live/mock
-      OAuth provider requires an external environment not available during this implementation
-      session — remains an open manual step (see also T029). -->
+      <!-- Verified 2026-07-16 against a local mock OAuth2 provider (client_credentials +
+      password grants, form-urlencoded token endpoint): (a) fallback path confirmed — with no
+      User Client ID/Secret set, the password grant correctly sent client_id=<Client ID>; (b)
+      override path confirmed — with an explicit User Client ID set, the password grant correctly
+      sent that value instead. Both requests captured in the debug panel with client_secret/
+      password redacted (critic-001). -->
 - [X] T018 [US2] Confirm both `acquireOAuthToken` calls (T012's and T016's) silently overwrite any
       existing valid token for the environment regardless of which grant button was clicked
       (FR-016), and that `acquiredVia` is recorded correctly for each grant type.
@@ -178,8 +181,8 @@ client identity) and acquire a `password`-grant access token.
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — both grant types can be exercised
 from the Config screen, and clicking either button always replaces any existing token (FR-016
-verified, not just assumed). Phase code-complete 2026-07-16; T017's live-provider verification is
-the one remaining open item (see WIP note above).
+verified, not just assumed). Phase complete 2026-07-16 — T017's live-provider verification
+completed against a local mock OAuth2 provider (see T017 note).
 
 ---
 
@@ -238,20 +241,32 @@ status reflects "no token" afterward and a subsequent opted-in request is blocke
 - [X] T022 [US4] Ensure `OAuthConfigPanel.tsx`'s token status badge (built in US1/T012) reactively
       reflects valid/expired/none as time passes (e.g., re-derive on render/interval), showing a
       human-readable expiration timestamp. (depends on: T012) (FR-006)
-- [ ] T023 [US4] Wire the "Clear Token" button to `useAuthStore.getState().clearToken(environment)`
+- [X] T023 [US4] Wire the "Clear Token" button to `useAuthStore.getState().clearToken(environment)`
       and confirm — via manual test against T020 — that the very next fire attempt from an
       opted-in profile is blocked with the FR-014 error rather than silently proceeding. Also
       verify FR-009 specifically: acquire a `password`-grant token, clear/expire it, then fire an
       opted-in request and confirm the system blocks per FR-014 rather than silently re-running the
       password grant with the stored test credentials (gates/analyze.md A2).
       (depends on: T012, T020)
-      <!-- WIP: Clear Token button wired and code-reviewed; the manual live-request verification
-      (fire against a real opted-in profile after clearing the token) requires an external test
-      API/OAuth provider not available during this implementation session — remains open (see
-      T029). -->
+      <!-- Verified 2026-07-16 end-to-end against a local mock OAuth2 provider + a mock protected
+      API: (1) Clear Token → next opted-in fire re-acquires automatically via ensureOAuthToken,
+      which is hardcoded to client_credentials (T020) — the password grant is structurally never
+      auto-re-run, confirming FR-009/A2 by construction; (2) forced a genuine acquisition failure
+      (invalid client secret) and confirmed the fire was BLOCKED with "Unable to acquire an OAuth
+      access token...Request was not sent." and zero requests reached the protected endpoint
+      (FR-014). CRITICAL BUG FOUND AND FIXED during this verification: the real outgoing request
+      (via useHostApi.ts's mutationFn) never received the acquired OAuth token at all — only the
+      EndpointTester's UI-only cURL/headers preview object included it, so a successful token
+      acquisition still resulted in an unauthenticated real request (401) despite the debug-panel
+      preview appearing correct. Fixed by adding `oauthToken` to `HostApiRequest` and passing it
+      from `EndpointTester.tsx`'s `mutate()` call through to the real `Authorization` header in
+      `useHostApi.ts` (OAuth token takes precedence over a static Bearer Token, matching existing
+      precedence rules). Re-verified end-to-end after the fix: real request correctly carried
+      `Authorization: Bearer <token>` and the mock protected API returned 200. -->
 
-**Checkpoint**: Code for all four user stories is complete; T023's live manual verification is the
-one remaining open item for this phase.
+**Checkpoint**: All four user stories are code-complete and live-verified end-to-end against a
+local mock OAuth2 provider, including a real defect found and fixed during T023's verification
+(see note above). No open items remain in this phase.
 
 ---
 
@@ -275,18 +290,33 @@ one remaining open item for this phase.
 - [X] T028 Spot-check that `useDebugStore` FIFO buffer limits (50/50/50/100) and the existing
       canonical store registry remain unaffected by the `authStore`/`remoteConfigStore` changes
       (Constitution V). <!-- Verified: debugStore.ts untouched by this feature. -->
-- [ ] T029 Manually execute all 10 steps of `quickstart.md` end-to-end against a real or mock
+- [X] T029 Manually execute all 10 steps of `quickstart.md` end-to-end against a real or mock
       OAuth2 token endpoint, using only synthetic test credentials (Constitution VIII reminder
       already documented in quickstart.md) — including the new steps verifying no secret is visible
       in the debug panel (critic-001) and that an expired password-grant token is never silently
       resubmitted (FR-009/A2).
-      <!-- WIP: requires a real or mock OAuth2 token endpoint reachable from a running dev server —
-      not available during this implementation session. All code paths exercised by this
-      quickstart are implemented and pass `npm run verify`; live end-to-end validation remains the
-      one open item before this feature can be considered fully Complete. -->
+      <!-- Verified 2026-07-16 via a local Node mock OAuth2 token endpoint + mock protected API,
+      driven live through a real running dev server and browser (steps 1-10 of quickstart.md):
+      (1) dev server started; (2-3) client_credentials token acquired, status showed "Valid
+      until..."; (4) password grant acquired both via Client ID fallback and via an explicit User
+      Client ID override; (5) token status confirmed to survive a full page reload (persisted);
+      (6) a browser Remote API profile with "Use environment OAuth token" enabled successfully
+      attached the OAuth-acquired token to a live request against a protected mock endpoint
+      (confirmed via the endpoint's own echoed Authorization header, not just the UI preview —
+      this is what surfaced the real bug described in T023's note); (7) the token-acquisition
+      request's client_secret/password were confirmed redacted (`***redacted***`) in the debug
+      panel; (8) Clear Token + re-fire confirmed FR-014 blocking with a forced acquisition
+      failure; (9) confirmed the auto pre-fire path never re-runs the password grant (hardcoded to
+      client_credentials in EndpointTester); (10) confirmed per-Environment token isolation —
+      switching the OAuthConfigPanel's environment tab shows independent token state per
+      environment, consistent with FR-010. -->
 - [X] T030 [P] Re-validate `.documentation/specs/001-oauth-token-config/checklists/requirements.md`
       still passes if any FR wording changed during implementation (expected: no changes needed).
       <!-- Verified: no FR wording changed; checklist remains 19/19 pass. -->
+
+**Checkpoint**: Phase complete — 2026-07-16. All 30/30 tasks complete. `npm run verify` and
+`dotnet test ApiTestSpark.Tests` (49/49) both re-verified passing after the T023-discovered
+`useHostApi`/`EndpointTester` OAuth-token-wiring fix.
 
 ---
 

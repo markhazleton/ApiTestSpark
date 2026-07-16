@@ -18,7 +18,7 @@ participants:
 
 **Feature Branch**: `001-oauth-token-config`
 **Created**: 2026-07-16
-**Status**: In Progress <!-- Valid: Draft | In Progress | Complete -->
+**Status**: Complete <!-- Valid: Draft | In Progress | Complete -->
 **Input**: User description: "Allow users to configure OAuth token acquisition (client_credentials and password grant) per environment so API calls needing a bearer token can auto-fetch and attach it, instead of requiring a manually pasted static token."
 
 ## Rationale Summary
@@ -85,7 +85,7 @@ As a tester, I want to configure a token endpoint URL and application client cre
 
 ---
 
-### User Story 2 - Configure and acquire a test-user token (Priority: P1)
+### User Story 2 - Configure and acquire a test-user token (Priority: P1) ✅ Complete
 
 As a tester, I want to configure test user credentials (and, if the API requires it, a separate user-facing client ID/secret) and request an access token on behalf of that user, so that I can test endpoints that depend on a specific authenticated user's identity or role.
 
@@ -117,7 +117,7 @@ As a tester, I want a Remote API profile to automatically use my environment's c
 
 ---
 
-### User Story 4 - Inspect and clear the current token (Priority: P3)
+### User Story 4 - Inspect and clear the current token (Priority: P3) ✅ Complete
 
 As a tester, I want to see whether my current OAuth token is valid or expired and be able to clear it, so that I can control token freshness before firing an important test call.
 

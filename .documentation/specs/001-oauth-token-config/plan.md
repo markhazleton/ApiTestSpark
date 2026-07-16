@@ -137,12 +137,12 @@ implement workflow's rule to record rather than silently diverge.*
    static Bearer Token field it takes precedence over. `RemoteOpenApiConfig.tsx` was left
    unmodified — it remains dead code outside this feature's scope to remove.
 
-3. **Remaining manual verification (T017, T023, T029).** Password-grant fallback logic, the
-   Clear-Token → blocked-request end-to-end flow, and the full quickstart.md walkthrough all
-   require a reachable OAuth2 token endpoint (real or mock) that was not available in this
-   implementation session. All code paths are implemented and pass `npm run verify`; these three
-   tasks remain open pending a live/mock provider for final sign-off — see the `<!-- WIP -->` notes
-   on those tasks in tasks.md.
+3. **Manual verification (T017, T023, T029) — completed 2026-07-16 via a local mock OAuth2
+   provider.** A minimal Node HTTP server (form-urlencoded `/token` endpoint supporting both
+   `client_credentials` and `password` grants, plus a bearer-token-protected `/protected` resource
+   and its OpenAPI document) was stood up locally and driven through a real running dev server and
+   browser session. All three tasks passed after one real defect was found and fixed — see note 5
+   below.
 
 4. **Added capability beyond original scope: server-side (`Program.cs`) OAuth configuration for
    `RemoteApiProfile` (2026-07-16, post-implementation).** The original spec explicitly listed
@@ -176,4 +176,28 @@ implement workflow's rule to record rather than silently diverge.*
      rotating test user).
    - `dotnet build ApiTestSpark` and `dotnet test ApiTestSpark.Tests` (49/49) both pass; `npm run
      verify` passes.
+
+5. **CRITICAL defect found and fixed during T023's live end-to-end verification (2026-07-16): the
+   OAuth-acquired token was never attached to the real outgoing request.** `EndpointTester.tsx`
+   correctly acquired the token (`ensureOAuthToken`) and built a `requestHeaders` object containing
+   `Authorization: Bearer <token>` — but that object was used only to populate the UI's
+   `pendingRequest`/cURL-preview state, which is captured *after* `mutate()` succeeds. The actual
+   network call is built entirely inside `useHostApi.ts`'s `mutationFn`, which received
+   `remoteProfile` but never the acquired `oauthToken`, and had no OAuth-aware header logic at
+   all — it only ever applied `remoteProfile.remoteOpenApiBearerToken` (the static field). The
+   practical effect: a profile with "Use environment OAuth token" enabled would successfully
+   acquire a token, show a plausible-looking cURL/headers preview in the debug panel, and still
+   send the real request with no `Authorization` header at all (confirmed via a live 401 against
+   the mock protected API before the fix, and a live 200 with the token correctly echoed back by
+   the mock API after the fix). This could only be caught by an actual live request — a purely
+   code-level review of `EndpointTester.tsx` in isolation looks correct, because the bug is in what
+   `mutate()` is (and isn't) given, not in the header-construction logic itself.
+   - **Fix**: added `oauthToken?: string | null` to `HostApiRequest` (`src/hooks/useHostApi.ts`);
+     `mutationFn` now sets `Authorization: Bearer <req.oauthToken>` when
+     `remoteProfile.remoteUseOAuthToken && req.oauthToken`, falling back to
+     `remoteProfile.remoteOpenApiBearerToken` otherwise — preserving the existing OAuth-over-static
+     precedence rule. `EndpointTester.tsx`'s `mutate(...)` call now passes `oauthToken` through.
+   - Re-verified live after the fix: `npm run verify` clean; live request against the mock
+     protected API returned 200 with the correct `Authorization` header confirmed by the API's own
+     response body.
 

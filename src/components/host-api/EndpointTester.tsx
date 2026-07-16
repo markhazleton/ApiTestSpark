@@ -223,7 +223,7 @@ export function EndpointTester({ endpoint, remoteProfile }: EndpointTesterProps)
     );
 
     mutate(
-      { method: endpoint.method, path: endpoint.path, pathParams: resolvedPathParams, queryParams, body, extraHeaders, remoteProfile },
+      { method: endpoint.method, path: endpoint.path, pathParams: resolvedPathParams, queryParams, body, extraHeaders, remoteProfile, oauthToken },
       {
         onSuccess: () => {
           // Capture at success time so cURL always matches the displayed response.
