@@ -9,6 +9,7 @@ import { buildCurlCommand, generateMarkdown } from '../../utils/generateMarkdown
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { resolveHeaderTokens } from '../../utils/session';
+import { joinUrl } from '../../utils/urlUtils';
 import { getMissingRequiredPathParameters, resolvePathParameters } from '../../utils/endpointParameters';
 import { buildRemoteCallProxyUrl, usesServerRemoteCallProxy } from '../../api/remoteCallProxy';
 import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc } from '../../types';
@@ -67,7 +68,7 @@ function CaptureForm({
         .join('&');
 
       const baseUrl = captureConfig.baseUrl;
-      const url = `${baseUrl}${resolvedPath}${qs ? `?${qs}` : ''}`;
+      const url = `${joinUrl(baseUrl, resolvedPath)}${qs ? `?${qs}` : ''}`;
       const fetchUrl = captureConfig.proxyProfileId
         ? buildRemoteCallProxyUrl(captureConfig.proxyProfileId, url)
         : url;

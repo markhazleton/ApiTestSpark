@@ -8,6 +8,7 @@
 import type { ApiRequest, ApiResponse, ErrorResponse } from "../types";
 import { v4 as uuidv4 } from "uuid";
 import { getRequestIdentityHeaders } from "../utils/session";
+import { joinUrl } from "../utils/urlUtils";
 
 export class RequestAbortedError extends Error {
   readonly url: string;
@@ -229,7 +230,7 @@ export class ApiClient {
     body?: unknown,
     extraHeaders?: Record<string, string>,
   ): Promise<T> {
-    const url = `${this.baseUrl}${path}`;
+    const url = joinUrl(this.baseUrl, path);
     const headers = { ...this.buildHeaders(), ...(extraHeaders ?? {}) };
     this.abortController = new AbortController();
     return executeRequest<T>({
@@ -324,7 +325,7 @@ export function createRestCaller(
   ): Promise<T> {
     return executeRequest<T>({
       method,
-      url: `${base}${path}`,
+      url: joinUrl(base, path),
       body,
       headers: buildHeaders(callHeaders),
       callbacks,

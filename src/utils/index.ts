@@ -8,3 +8,4 @@ export { BRANDING } from './branding';
 export * from './storage';
 export * from './session';
 export * from './curlBuilder';
+export * from './urlUtils';

@@ -6,6 +6,7 @@ import { buildCurlCommand, generateMarkdown } from '../../utils/generateMarkdown
 import { buildJsonScaffold } from '../../utils/openApiParser';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { resolveHeaderTokens } from '../../utils/session';
+import { joinUrl } from '../../utils/urlUtils';
 import { getMissingRequiredPathParameters, resolvePathParameters } from '../../utils/endpointParameters';
 import type { DiscoveredEndpoint, DocEntry, CapturedCall, ApiDoc } from '../../types';
 
@@ -61,7 +62,7 @@ function CaptureForm({
         .join('&');
 
       const baseUrl = config?.baseUrl ?? window.location.origin;
-      const url = `${baseUrl}${resolvedPath}${qs ? `?${qs}` : ''}`;
+      const url = `${joinUrl(baseUrl, resolvedPath)}${qs ? `?${qs}` : ''}`;
 
       // Build headers — resolve {session-guid} and {request-guid} tokens
       const rawHeaders: Record<string, string> = {
