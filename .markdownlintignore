@@ -1,8 +1,7 @@
 
-# DevSpark framework files — boilerplate, not project docs
-.github/agents/**
-.claude/commands/**
-.devspark/**
+# Bold framework files — boilerplate, not project docs
+.bold/**
+.archive/**
 node_modules/**
 build/**
 bin/**

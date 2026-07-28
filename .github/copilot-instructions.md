@@ -1,9 +1,9 @@
 # API Test Spark — AI Coding Agent Instructions
 
-> **Engineering rules live in the constitution.**
+> **Engineering rules live in the backbone.**
 > All MUST/MUST-NOT constraints, quality gates, and architectural principles are defined in
-> `.documentation/memory/constitution.md`. This file covers quick-reference patterns and
-> project-specific context for AI code generation. Do not duplicate constitution content here.
+> `bold-docs/backbone.md`. This file covers quick-reference patterns and
+> project-specific context for AI code generation. Do not duplicate backbone content here.
 
 ## Project Structure
 
@@ -13,9 +13,9 @@
 | .NET NuGet library | `/ApiTestSpark/` |
 | .NET integration tests | `/ApiTestSpark.Tests/` |
 | Demo / promo site | `/SampleApi/` |
-| Feature specs | `/.documentation/specs/` |
-| Constitution | `/.documentation/memory/constitution.md` |
-| DevSpark framework | `/.devspark/` |
+| In-flight features | `/bold-docs/features/{id}/` |
+| Backbone (rules) | `/bold-docs/backbone.md` |
+| Bold framework | `/.bold/` |
 | Build scripts | `/scripts/build/`, `/scripts/lint/` |
 
 ## Development Commands

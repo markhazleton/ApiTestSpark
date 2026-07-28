@@ -1,10 +1,10 @@
 # API Test Spark — Claude Code Instructions
 
-> **Engineering rules live in the constitution.**
+> **Engineering rules live in the backbone.**
 > All architectural decisions, code quality gates, and MUST/MUST-NOT constraints are
-> defined in `.documentation/memory/constitution.md`. This file covers only what is
-> specific to operating Claude Code in this repository: commands, file paths, and
-> task-execution guidance. Do not duplicate constitution content here.
+> defined in `bold-docs/backbone.md`. This file covers only what is specific to
+> operating Claude Code in this repository: commands, file paths, and
+> task-execution guidance. Do not duplicate backbone content here.
 
 ## Project Overview
 
@@ -13,14 +13,14 @@ Dual-artifact repository:
 - **React SPA** (`src/`) — lightweight developer tool for testing and debugging REST APIs
 - **.NET NuGet library** (`ApiTestSpark/`) — embeds the SPA into any .NET 10 Minimal API via `MapApiTestSpark()`
 - **Demo site** (`SampleApi/`) — live at `https://apitest.makeboldspark.com`
-- **DevSpark framework** (`.devspark/`) — spec-driven development workflows; commands resolved via `.documentation/`
+- **Bold framework** (`.bold/`) — spec-driven development workflows; in-flight work lives in `bold-docs/features/`, durable knowledge in `bold-docs/system/`, historical/completed work in `.archive/` (human-only — do not read it for current context)
 
 ## Tech Stack
 
 - React 19 / TypeScript 5.x / Vite 8
 - Zustand 5 (persist), TanStack Query 5, Tailwind CSS 4, React Router DOM 7
 - .NET 10 / ASP.NET Core Minimal API / MSTest
-- No test runner for React SPA (see Constitution VII)
+- No test runner for React SPA (see backbone principle 7)
 
 ## Development Commands
 
@@ -34,28 +34,32 @@ Dual-artifact repository:
 
 ## Quality Gates (run before every merge)
 
-1. `npm run lint` — zero ESLint errors (Constitution II)
-2. `npm run verify` — tsc -b + vite build (Constitution I, canonical gate)
+1. `npm run lint` — zero ESLint errors (backbone principle 2)
+2. `npm run verify` — tsc -b + vite build (backbone principle 1, canonical gate)
 3. `dotnet build ApiTestSpark` — zero C# errors
 4. `dotnet test ApiTestSpark.Tests` — all integration tests pass
 
 ## File Layout
 
-| What              | Where                                                    |
-|-------------------|----------------------------------------------------------|
-| React source      | `src/`                                                   |
-| Types             | `src/types/`                                             |
-| Zustand stores    | `src/store/`                                             |
-| Hooks             | `src/hooks/`                                             |
-| .NET library      | `ApiTestSpark/`                                          |
-| .NET tests        | `ApiTestSpark.Tests/`                                    |
-| Demo/promo site   | `SampleApi/`                                             |
-| Feature specs     | `.documentation/specs/`                                  |
-| Constitution      | `.documentation/memory/constitution.md`                  |
-| DevSpark commands | `.devspark/` (framework) + `.documentation/` (overrides) |
-| Scripts           | `scripts/build/`, `scripts/lint/`                        |
+| What              | Where                                  |
+|-------------------|-----------------------------------------|
+| React source      | `src/`                                 |
+| Types             | `src/types/`                           |
+| Zustand stores    | `src/store/`                           |
+| Hooks             | `src/hooks/`                           |
+| .NET library      | `ApiTestSpark/`                        |
+| .NET tests        | `ApiTestSpark.Tests/`                  |
+| Demo/promo site   | `SampleApi/`                           |
+| In-flight features | `bold-docs/features/{id}/`            |
+| Durable system docs | `bold-docs/system/` (decisions, release history, PR reviews, branding) |
+| Backbone (rules)  | `bold-docs/backbone.md`                |
+| Project genome    | `bold-docs/project.json`               |
+| Bold framework    | `.bold/` (synced, do not hand-edit — see `AGENTS.md`) |
+| Personal overrides | `.bold-user/{git-user}/`              |
+| Historical archive | `.archive/` (human-only, never read for current context) |
+| Scripts           | `scripts/build/`, `scripts/lint/`       |
 
-## Adding a New API (all steps required — see Constitution III)
+## Adding a New API (all steps required — see backbone principle 3)
 
 1. `src/types/my-api.ts` + re-export from `src/types/index.ts`
 2. `src/api/myApiClient.ts` extending `ApiClient` + re-export from `src/api/index.ts`
@@ -70,26 +74,30 @@ Dual-artifact repository:
 - Changes to `MapApiTestSpark`, `ApiTestSparkOptions`, or `ApiTestSparkExtensions` require updating `PublicAPI.Shipped.txt` and a semver decision (`SEMVER: MAJOR` or `SEMVER: MINOR` in the PR title)
 - `VITE_BASE_PATH` unset = standalone build at `/`; set to `/api-test-spark/` = NuGet embedded build
 
-## DevSpark Workflow
+## Bold Workflow
 
-- **Spec**: `/devspark.specify` → `.documentation/specs/###-feature-name/spec.md`
-- **Plan**: `/devspark.plan` → `plan.md` in the same folder
-- **Tasks**: `/devspark.tasks` → `tasks.md`
-- **Implement**: `/devspark.implement`
-- **Audit**: `/devspark.site-audit` — validates compliance against the constitution
-- **Amend constitution**: `/devspark.evolve-constitution` after PR review findings
+- **Plan a feature**: `/bold-plan` → creates/updates `bold-docs/features/{id}/spec.md`, `plan.md`, `tasks.md`
+- **Clarify**: `/bold-plan-clarify` — resolve underspecified areas before planning proceeds
+- **Critic**: `/bold-plan-critic` — adversarial risk review of spec/plan/tasks
+- **Analyze**: `/bold-plan-analyze` — cross-artifact consistency check
+- **Checklist**: `/bold-plan-checklist` — generate a feature-specific checklist
+- **Build**: `/bold-build` — execute the plan's tasks; `/bold-build-status` to check gate status
+- **Ship**: `/bold-ship` — prep for merge; `/bold-ship-review` for PR review, `/bold-ship-address` to address review findings, `/bold-ship-harvest` to harvest a completed feature into `bold-docs/system/` and `.archive/`
+- **Personalize**: `/bold-personalize` — create a personal command override under `.bold-user/{git-user}/`; `/bold-personalize-validate` to check it
+- **Next**: `/bold-next` — surfaces what to do next given current repo state
+- **Upgrade Bold itself**: `/bold-install` — re-syncs `.bold/` from the source manifest
 
-## Constitution Reference
+## Backbone Reference
 
-The following principles from `.documentation/memory/constitution.md` are blocking gates for all work:
+The following principles from `bold-docs/backbone.md` are blocking gates for all work:
 
 | #    | Principle                                                      | Gate              |
 |------|----------------------------------------------------------------|-------------------|
-| I    | TypeScript strict — zero errors                                | `npm run verify`  |
-| II   | ESLint only, no Prettier — zero errors                         | `npm run lint`    |
-| III  | Layer separation + barrel exports                              | Code review       |
-| IV   | API client pattern — extend ApiClient, per-call, UUID          | Code review       |
-| V    | Zustand — one concern, action-gated, FIFO limits               | Code review       |
-| VI   | No `console.log` in `src/` — all observability via debug store | Code review       |
-| VII  | No React test framework without amendment                      | Do not add        |
-| VIII | No PII/PHI in any store, type, log, or test data               | Code review       |
+| 1    | TypeScript strict — zero errors                                | `npm run verify`  |
+| 2    | ESLint only, no Prettier — zero errors                         | `npm run lint`    |
+| 3    | Layer separation + barrel exports                              | Code review       |
+| 4    | API client pattern — extend ApiClient, per-call, UUID          | Code review       |
+| 5    | Zustand — one concern, action-gated, FIFO limits               | Code review       |
+| 6    | No `console.log` in `src/` — all observability via debug store | Code review       |
+| 7    | No React test framework without amendment                      | Do not add        |
+| 8    | No PII/PHI in any store, type, log, or test data               | Code review       |

@@ -1,0 +1,40 @@
+{
+  "repo": {
+    "platform": "github",
+    "organization": "markhazleton",
+    "project": null,
+    "repository": "ApiTestSpark",
+    "source": "discovered"
+  },
+  "core": {
+    "name": "ApiTestSpark",
+    "kind": "dual-artifact",
+    "description": "React SPA developer tool for testing/debugging REST APIs, embedded into .NET Minimal APIs via a NuGet library",
+    "source": "discovered"
+  },
+  "layers": [
+    {
+      "name": "spa",
+      "path": "src/",
+      "stack": { "language": "TypeScript", "framework": "React 19", "buildTool": "Vite 8" },
+      "packageManager": "npm",
+      "source": "discovered"
+    },
+    {
+      "name": "dotnet-library",
+      "path": "ApiTestSpark/",
+      "stack": { "language": "C#", "framework": ".NET 10", "kind": "NuGet package (ASP.NET Core Minimal API extension)" },
+      "testProject": "ApiTestSpark.Tests/",
+      "testFramework": "MSTest",
+      "source": "discovered"
+    },
+    {
+      "name": "demo-site",
+      "path": "SampleApi/",
+      "kind": "live demo",
+      "url": "https://apitest.makeboldspark.com",
+      "source": "discovered"
+    }
+  ],
+  "multiApp": false
+}
