@@ -48,8 +48,8 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
-| **Package Size** | 0.49 MB |
-| **Symbol Package** | 15.7 KB (`.snupkg`) |
+| **Package Size** | 0.50 MB |
+| **Symbol Package** | 19.3 KB (`.snupkg`) |
 | **Dependencies** | None |
 | **Last Updated** | August 10, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
@@ -234,7 +234,7 @@ shown in the browser.
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v2.0.0 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v2.0.1 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|

@@ -224,7 +224,7 @@ public static class HomeEndpoints
                         <div class="pkg-title">
                             <span class="pkg-version">v2.0.1</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.49 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated August 10, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.50 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated August 10, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
@@ -242,7 +242,7 @@ public static class HomeEndpoints
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Package Size</div>
-                            <div class="value">0.49 MB</div>
+                            <div class="value">0.50 MB</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Dependencies</div>
@@ -662,7 +662,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
                         <div class="badge">📦 <strong>ApiTestSpark</strong> v2.0.1 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
-                        <div class="badge">⚖️ <strong>No dependencies</strong> — 0.49 MB</div>
+                        <div class="badge">⚖️ <strong>No dependencies</strong> — 0.50 MB</div>
                     </div>
                 </div>
             </section>
