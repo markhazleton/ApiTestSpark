@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.0.1] - 2026-08-10
+
+### Fixed
+
+- **Double slash in constructed request URLs** — added a `joinUrl(base, path)` helper (`src/utils/urlUtils.ts`) and replaced ad-hoc `` `${baseUrl}${path}` `` string concatenation with it in the request pipeline (`ApiClient.request`, `createRestCaller`) and the API Doc Builder capture forms. A base URL configured with a trailing slash combined with an endpoint path starting with a leading slash — a common shape from OpenAPI-imported paths — previously produced a doubled `//` in the request URL.
+
+### Contributors
+
+- Mark Hazleton
+
 ## [v2.0.0] - 2026-07-16
 
 ### Added
@@ -297,7 +307,8 @@ None. The new `RemoteApiProfiles` collection and `RemoteApiProfile` model are ad
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.0.1...HEAD
+[v2.0.1]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.0.0...v2.0.1
 [v2.0.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.8.0...v2.0.0
 [v1.8.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.6.0...v1.7.0

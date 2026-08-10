@@ -30,11 +30,9 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 
 ---
 
-## Latest Updates (v2.0.0)
+## Latest Updates (v2.0.1)
 
-- Added **OAuth Token Configuration** — configure OAuth2 `client_credentials`/`password` grant token acquisition per Environment on the Config screen; opted-in Remote API profiles use the acquired token automatically instead of a static Bearer token.
-- Added **server-side OAuth** — `RemoteApiProfile.OAuth` lets the server acquire and cache a `client_credentials` token itself; the client secret and token never reach the browser.
-- Every OAuth token request redacts `client_secret`/`password` before it reaches the debug panel or Application Insights.
+- Fixed **double slash in constructed request URLs** — a `joinUrl()` helper now normalizes the seam between a base URL and an endpoint path, so a trailing slash on the base combined with a leading slash on the path (common with OpenAPI-imported paths) no longer produces `//` in the request URL.
 
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 
@@ -45,7 +43,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 2.0.0 |
+| **Version** | 2.0.1 |
 | **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
@@ -53,7 +51,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | **Package Size** | 0.49 MB |
 | **Symbol Package** | 15.7 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | July 16, 2026 |
+| **Last Updated** | August 10, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Product Family** | [Make Bold Spark](https://makeboldspark.com) |
@@ -261,6 +259,10 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 ---
 
 ## Release Notes
+
+### v2.0.1 — August 10, 2026
+
+Fix: request URLs are now built with a `joinUrl()` helper instead of raw string concatenation, so a base URL configured with a trailing slash combined with an endpoint path starting with a leading slash (common with OpenAPI-imported paths) no longer produces a doubled `//` in the constructed request URL. No public API changes.
 
 ### v2.0.0 — July 16, 2026
 

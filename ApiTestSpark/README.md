@@ -42,11 +42,9 @@ Navigate to `https://localhost:{port}/api-test-spark/` — the harness autodisco
 
 ---
 
-## Latest Updates (v2.0.0)
+## Latest Updates (v2.0.1)
 
-- Added **OAuth Token Configuration** — configure OAuth2 `client_credentials`/`password` grant token acquisition per Environment on the Config screen; opted-in Remote API profiles use the acquired token automatically instead of a static Bearer token.
-- Added **server-side OAuth** — `RemoteApiProfile.OAuth` lets the server acquire and cache a `client_credentials` token itself; the client secret and token never reach the browser.
-- Every OAuth token request redacts `client_secret`/`password` before it reaches the debug panel or Application Insights.
+- Fixed **double slash in constructed request URLs** — a `joinUrl()` helper now normalizes the seam between a base URL and an endpoint path, so a trailing slash on the base combined with a leading slash on the path (common with OpenAPI-imported paths) no longer produces `//` in the request URL.
 
 See [../CHANGELOG.md](../CHANGELOG.md) for full details.
 
