@@ -1,6 +1,6 @@
 # Current State of OpenAPI in .NET
 
-> **Last updated:** June 20, 2026 — covers .NET 10 GA (10.0.9), .NET 11 preview (preview.5), and the current NuGet package landscape. Package versions and dependency ranges below were verified directly against NuGet's `.nuspec` manifests, not just package-page summaries.
+> **Last updated:** September 23, 2026 — covers .NET 10 GA (10.0.12), .NET 11 RC (rc.1), and the current NuGet package landscape. Package versions and dependency ranges below were verified directly against NuGet's `.nuspec` manifests, not just package-page summaries. The `Microsoft.OpenApi` v3 incompatibility and the .NET 10 output shape (OAS 3.1, nullable style, `examples`) were verified by building and running `SampleApi`. Download counts, the Swashbuckle issue list, and the NSwag/Kiota notes are carried forward from the June 2026 revision and were not re-verified.
 
 This document explains the OpenAPI package ecosystem for ASP.NET Core: which packages do what, which versions are compatible, which combinations work today, and what is not yet fully supported. It is written for .NET developers choosing or upgrading OpenAPI tooling, and for React SPA developers who consume the JSON output of that tooling.
 
@@ -14,7 +14,7 @@ This document explains the OpenAPI package ecosystem for ASP.NET Core: which pac
 4. [UI / Reference Renderer Packages](#ui--reference-renderer-packages)
 5. [Client Code Generation](#client-code-generation)
 6. [Compatibility Matrix](#compatibility-matrix)
-7. [Known Issues and Gaps (June 2026)](#known-issues-and-gaps-june-2026)
+7. [Known Issues and Gaps (September 2026)](#known-issues-and-gaps-september-2026)
 8. [Recommended Combinations](#recommended-combinations)
 9. [Consuming OpenAPI from a React SPA](#consuming-openapi-from-a-react-spa)
 10. [Relevance to API Test Spark](#relevance-to-api-test-spark)
@@ -60,8 +60,10 @@ The library currently ships **three maintained release lines simultaneously**, w
 | Major | Latest | OpenAPI Spec Support | Key Change | Status |
 |---|---|---|---|---|
 | **v1.x** | 1.6.29 | OAS 2.0 (Swagger) / 3.0 | Original model | Maintenance only |
-| **v2.x** | **2.9.0** | OAS 3.0 / 3.1 | Complete model rewrite | **Active — .NET 10 ecosystem floor** |
-| **v3.x** | **3.7.0** | OAS 3.0 / 3.1 / **3.2** | OAS 3.2 support, `IOpenApiMediaType` interface model | **Active — required by .NET 11 preview** |
+| **v2.x** | **2.12.2** | OAS 3.0 / 3.1 | Complete model rewrite | **Active — the only line supported on .NET 10** |
+| **v3.x** | **3.10.2** | OAS 3.0 / 3.1 / **3.2** | OAS 3.2 support, `IOpenApiMediaType` interface model | **Active — required by .NET 11 (RC)** |
+
+> **Avoid deprecated patches.** Every `Microsoft.OpenApi` release from 2.0.0 through 2.7.4, and from 3.0.0 through 3.5.3, is deprecated on NuGet for a vulnerability in circular-reference resolution (3.3.0 is additionally flagged for binary breaking changes). 2.7.5+ and 3.5.4+ are clean. Note that `Microsoft.AspNetCore.OpenApi` 10.0.0–10.0.10 declares a floor of `>= 2.0.0`, so without an explicit pin NuGet resolves the deprecated 2.0.0 — pin `Microsoft.OpenApi` or move to 10.0.11+, whose floor excludes the vulnerable range.
 
 ### The v1 → v2 Breaking Change
 
@@ -73,22 +75,33 @@ The v2 release was a **complete object model rewrite**. Type names changed, the 
 
 **Symptom:** If you have any package in your solution that still references `Microsoft.OpenApi` v1, and another that requires v2, NuGet will escalate to v2 but the v1-targeting package may break at runtime with `TypeLoadException` or missing type errors.
 
-### The v2 → v3 Change — now confirmed underway in .NET 11
+### The v2 → v3 Change — v3 is .NET 11 only; .NET 10 now formally excludes it
 
-This section was previously speculative ("not yet announced"). It is no longer speculative. Pulling the raw `.nuspec` manifests from NuGet directly shows two different floors depending on which `Microsoft.AspNetCore.OpenApi` line you're on:
+Pulling the raw `.nuspec` manifests from NuGet shows the ASP.NET Core team has drawn a hard line between the two framework versions:
 
-| `Microsoft.AspNetCore.OpenApi` | Target | `Microsoft.OpenApi` dependency (from `.nuspec`) |
-|---|---|---|
-| **10.0.9** (GA) | `net10.0` | `Microsoft.OpenApi >= 2.0.0` |
-| **11.0.0-preview.5.26302.115** | `net11.0` | **`Microsoft.OpenApi >= 3.3.1`** |
+| `Microsoft.AspNetCore.OpenApi` | Released | Target | `Microsoft.OpenApi` dependency (from `.nuspec`) |
+|---|---|---|---|
+| 10.0.0 – **10.0.10** | through 2026-07-14 | `net10.0` | `>= 2.0.0` (no upper bound) |
+| **10.0.11** | 2026-08-11 | `net10.0` | **`[2.7.5, 3.0.0)`** — v3 explicitly excluded |
+| **10.0.12** (current GA) | 2026-09-08 | `net10.0` | **`[2.12.0, 3.0.0)`** |
+| **11.0.0-rc.1.26425.128** | 2026-09-08 | `net11.0` | **`[3.10.0, 4.0.0)`** |
 
-**The .NET 11 preview line has already moved its floor to `Microsoft.OpenApi` v3.** This happened starting around preview.4 and is what enables the new `options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2` setting and OpenAPI 3.2 document generation (the `OpenApi3_2` enum member only exists in v3 — v2.x tops out at OAS 3.1). The .NET 11 generator also now defaults to emitting **OpenAPI 3.1** documents (a change from .NET 10's OAS 3.0 default), with 3.2 available opt-in.
+**Why v3 is excluded on .NET 10:** `Microsoft.OpenApi` 3.0 made `IOpenApiMediaType.Example` read-only. The XML-comment source generator shipped inside `Microsoft.AspNetCore.OpenApi` 10.x still emits `mediaType.Example = ...`, so any project that has `<GenerateDocumentationFile>true</GenerateDocumentationFile>` and resolves `Microsoft.OpenApi` 3.x fails to compile:
 
-`Swashbuckle.AspNetCore.Swagger` 10.2.1 still pins `Microsoft.OpenApi >= 2.7.5` for `net10.0`/`net9.0`/`net8.0` — Swashbuckle has **not** moved to v3, and there's no public signal it will until/unless it ships a net11.0-targeted build.
+```
+OpenApiXmlCommentSupport.generated.cs(545,41): error CS0200:
+  Property or indexer 'IOpenApiMediaType.Example' cannot be assigned to -- it is read only
+```
 
-**Practical read:** v3 is no longer "a future possibility to watch" — it is the dependency `Microsoft.AspNetCore.OpenApi` will require once you target `net11.0`. Until then, on `net8.0`/`net9.0`/`net10.0`, the floor is still v2.x, and that's what every shipped package is tested against.
+This was reported as [dotnet/aspnetcore#64317](https://github.com/dotnet/aspnetcore/issues/64317) (Nov 2025). The ASP.NET Core team chose to **cap the dependency** rather than port .NET 10 to v3 — the fix ([#67772](https://github.com/dotnet/aspnetcore/pull/67772), shipped in 10.0.11) is the `< 3.0.0` upper bound above, and the community PR to move .NET 10 onto v3 ([#64368](https://github.com/dotnet/aspnetcore/pull/64368)) was closed unmerged. There is no signal that .NET 10 will ever support v3. Reproduced against `SampleApi` in September 2026 with both 10.0.10 and 10.0.12 plus `Microsoft.OpenApi` 3.10.2: identical CS0200 failures (10.0.12 additionally warns `NU1608` because 3.x is outside its declared range).
 
-**Current safe floor:** `Microsoft.OpenApi` **2.x** (latest patch **2.9.0**) for any app still targeting .NET 8/9/10. Moving to v3 today only makes sense if you're already on the `net11.0` preview SDK.
+The only workaround seen in the wild is removing the source generator as an analyzer, which also removes XML-comment-driven descriptions from the document — not worth it for a project that relies on them.
+
+**v3 on .NET 11:** the `net11.0` line requires v3, which is what enables `options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2` and OpenAPI 3.2 output (the `OpenApi3_2` enum member only exists in v3 — v2.x tops out at OAS 3.1). The default output version stays **OAS 3.1**, the same as .NET 10.
+
+`Swashbuckle.AspNetCore.Swagger` 10.2.3 still requires `Microsoft.OpenApi >= 2.7.5` for `net10.0`/`net9.0`/`net8.0` — Swashbuckle has **not** moved to v3 and has no `net11.0` build.
+
+**Current floor:** `Microsoft.OpenApi` **2.x** (latest **2.12.2**) for any app targeting .NET 8/9/10 — and on .NET 10 with `Microsoft.AspNetCore.OpenApi` 10.0.11+ it is no longer a recommendation but a declared constraint. Moving to v3 only makes sense together with a move to `net11.0`.
 
 ---
 
@@ -98,7 +111,7 @@ This section was previously speculative ("not yet announced"). It is no longer s
 
 **NuGet:** [`Microsoft.AspNetCore.OpenApi`](https://www.nuget.org/packages/Microsoft.AspNetCore.OpenApi)
 **Maintained by:** Microsoft / ASP.NET Core team
-**Current stable:** 10.0.9 &nbsp;|&nbsp; **Preview:** 11.0.0-preview.5.26302.115 (now depends on `Microsoft.OpenApi >= 3.3.1` — see [The Core Dependency](#the-core-dependency-microsoftopenapi))
+**Current stable:** 10.0.12 (requires `Microsoft.OpenApi [2.12.0, 3.0.0)`) &nbsp;|&nbsp; **RC:** 11.0.0-rc.1.26425.128 (requires `Microsoft.OpenApi [3.10.0, 4.0.0)` — see [The Core Dependency](#the-core-dependency-microsoftopenapi))
 
 This is Microsoft's first-party OpenAPI document generator, built into the ASP.NET Core framework since .NET 9. It introspects Minimal API and controller-based endpoints at runtime and serves the result as JSON.
 
@@ -110,7 +123,7 @@ app.MapOpenApi();                 // serves at /openapi/v1.json
 
 **What it does:**
 
-- Generates an OpenAPI 3.0 document from your endpoint definitions
+- Generates an **OpenAPI 3.1** document from your endpoint definitions by default on .NET 10 (3.0 is available via `options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0`)
 - Supports `IOpenApiDocumentTransformer` for customising the document
 - Supports multiple named documents (`AddOpenApi("v2")`)
 - Runtime generation (document built on first request) and build-time generation (via companion package)
@@ -120,20 +133,19 @@ app.MapOpenApi();                 // serves at /openapi/v1.json
 - It does not include a UI — you must add a renderer separately (Scalar, Swagger UI, etc.)
 - It does not generate client code
 
-**New in .NET 11 preview (preview.4/preview.5):**
+**New in .NET 11 (preview.4 → rc.1):**
 
-- Default generated spec version moves from **OAS 3.0 → OAS 3.1**
-- OAS **3.2** is available opt-in: `builder.Services.AddOpenApi(o => o.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2)`
+- OAS **3.2** is available opt-in: `builder.Services.AddOpenApi(o => o.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2)` (default remains OAS 3.1)
 - HTTP `QUERY` is now a recognized operation — appears inline in 3.2 documents, falls back to an `x-oai-additionalOperations` extension on 3.0/3.1
 - File-streaming endpoints need `.Produces<FileContentHttpResult>()` to document binary responses correctly
-- Underlying `Microsoft.OpenApi` dependency floor jumped from `>= 2.0.0` to **`>= 3.3.1`** (confirmed via `.nuspec`)
+- Underlying `Microsoft.OpenApi` dependency moves to the v3 line: `>= 3.3.1` in preview.5, **`[3.10.0, 4.0.0)`** in rc.1 (confirmed via `.nuspec`)
 
 **Version alignment — always match your .NET SDK version:**
 
-| .NET Version | Package Version | `Microsoft.OpenApi` floor |
+| .NET Version | Package Version | `Microsoft.OpenApi` range |
 |---|---|---|
-| .NET 11 (preview) | `11.0.0-preview.*` | `>= 3.3.1` |
-| .NET 10 | `10.0.*` | `>= 2.0.0` |
+| .NET 11 (RC) | `11.0.0-rc.*` | `[3.10.0, 4.0.0)` |
+| .NET 10 | `10.0.12` | `[2.12.0, 3.0.0)` — v3 excluded since 10.0.11 |
 | .NET 9 | `9.0.*` | `>= 2.0.0` |
 | .NET 8 | Not available — use Swashbuckle or NSwag | — |
 
@@ -142,7 +154,7 @@ app.MapOpenApi();                 // serves at /openapi/v1.json
 ### Microsoft.Extensions.ApiDescription.Server
 
 **NuGet:** [`Microsoft.Extensions.ApiDescription.Server`](https://www.nuget.org/packages/Microsoft.Extensions.ApiDescription.Server)
-**Current stable:** 10.0.9
+**Current stable:** 10.0.12
 
 Build-time companion to `Microsoft.AspNetCore.OpenApi`. Adds MSBuild targets that generate the OpenAPI JSON file during `dotnet build` — useful for committing the spec, running contract tests, or feeding a client generator in CI.
 
@@ -169,7 +181,7 @@ This pair is the **recommended approach** for .NET 10 — Microsoft first-party,
 
 **NuGet:** [`Swashbuckle.AspNetCore`](https://www.nuget.org/packages/Swashbuckle.AspNetCore)
 **Maintained by:** domaindrivendev (community)
-**Current stable:** 10.2.1 &nbsp;|&nbsp; **`Microsoft.OpenApi` dependency:** `>= 2.7.5` (confirmed via `.nuspec` — still v2.x, no net11.0-targeted build yet)
+**Current stable:** 10.2.3 &nbsp;|&nbsp; **`Microsoft.OpenApi` dependency:** `>= 2.7.5` (confirmed via `.nuspec` — still v2.x, no net11.0-targeted build yet)
 **Total downloads:** 1.1 billion+
 
 The most widely-installed OpenAPI package in the .NET ecosystem by a large margin. Swashbuckle generates an OpenAPI document **and** bundles Swagger UI, making it historically the single-package solution for both layers 1 and 2.
@@ -299,24 +311,24 @@ Language-agnostic generator with the broadest output target list (50+ languages)
 
 ## Compatibility Matrix
 
-### Package versions that work together on .NET 10 (verified June 2026)
+### Package versions that work together on .NET 10 (verified September 2026)
 
 | Package | Version | .NET | Microsoft.OpenApi | Notes |
 |---|---|---|---|---|
-| `Microsoft.AspNetCore.OpenApi` | **10.0.9** | 10 only | `>= 2.0.0` | Microsoft first-party |
-| `Microsoft.Extensions.ApiDescription.Server` | **10.0.9** | build-time | none | Companion for build-time gen |
-| `Swashbuckle.AspNetCore` | **10.2.1** | 8 / 9 / 10 | `>= 2.7.5` | v6 → v10 is a breaking upgrade |
+| `Microsoft.AspNetCore.OpenApi` | **10.0.12** | 10 only | `[2.12.0, 3.0.0)` | Microsoft first-party; v3 excluded |
+| `Microsoft.Extensions.ApiDescription.Server` | **10.0.12** | build-time | none | Companion for build-time gen |
+| `Swashbuckle.AspNetCore` | **10.2.3** | 8 / 9 / 10 | `>= 2.7.5` | v6 → v10 is a breaking upgrade |
 | `NSwag.AspNetCore` | **14.7.1** | 8 / 9 / 10 | internal | Brings Newtonsoft.Json |
-| `Scalar.AspNetCore` | **2.16.4** | 8 / 9 / 10 | none (UI only) | Zero dependencies |
-| `Microsoft.OpenApi` | **2.9.0** | net8.0 / netstandard2.0 | — | Safe ecosystem floor for .NET 8/9/10 |
-| `Microsoft.OpenApi` | **3.7.0** | net8.0 / netstandard2.0 | — | OAS 3.2; required by `net11.0` builds, optional elsewhere |
+| `Scalar.AspNetCore` | **2.17.8** | 8 / 9 / 10 | none (UI only) | Zero dependencies |
+| `Microsoft.OpenApi` | **2.12.2** | net8.0 / netstandard2.0 | — | The line for .NET 8/9/10 |
+| `Microsoft.OpenApi` | **3.10.2** | net8.0 / netstandard2.0 | — | OAS 3.2; required by `net11.0`, **incompatible** with `Microsoft.AspNetCore.OpenApi` 10.x |
 
-### Package versions on .NET 11 preview (preview.5)
+### Package versions on .NET 11 (rc.1)
 
 | Package | Version | `Microsoft.OpenApi` dependency |
 |---|---|---|
-| `Microsoft.AspNetCore.OpenApi` | **11.0.0-preview.5.26302.115** | **`>= 3.3.1`** (confirmed — this is the v3 migration) |
-| `Microsoft.Extensions.ApiDescription.Server` | **11.0.0-preview.5.26302.115** | n/a (build-time only) |
+| `Microsoft.AspNetCore.OpenApi` | **11.0.0-rc.1.26425.128** | **`[3.10.0, 4.0.0)`** |
+| `Microsoft.Extensions.ApiDescription.Server` | **11.0.0-rc.1.26425.128** | n/a (build-time only) |
 | `Swashbuckle.AspNetCore` | No `net11.0`-targeted build yet | still `>= 2.7.5` when used on net8/9/10 |
 
 ### What you cannot mix
@@ -326,34 +338,52 @@ Language-agnostic generator with the broadest output target list (50+ languages)
 | Swashbuckle 6.x + `Microsoft.AspNetCore.OpenApi` 10.x | Swashbuckle 6 targets `Microsoft.OpenApi` v1; the ASP.NET Core package requires v2. NuGet resolves to v2, which can break Swashbuckle 6 at runtime. |
 | Swashbuckle 6.x + Swashbuckle 10.x | Cannot have both in the same project — different major, different API surface. |
 | `Swashbuckle.AspNetCore` + `net11.0` TFM | Swashbuckle has no `net11.0` target and still requires `Microsoft.OpenApi` v2.x; the ASP.NET Core `net11.0` framework reference pulls in v3.x. Do not move a Swashbuckle project to `net11.0` until Swashbuckle ships a v3-compatible release. |
-| `Microsoft.OpenApi` v3.x pinned explicitly + `Microsoft.AspNetCore.OpenApi` 10.x (net10.0) | Works today (the dependency is `>= 2.0.0`, not pinned to 2.x), but you are now ahead of what the ASP.NET Core team tests against on net10.0 — treat as experimental, not as the documented floor. |
+| `Microsoft.OpenApi` v3.x + `Microsoft.AspNetCore.OpenApi` 10.x (net10.0) | **Build failure** (`CS0200` in the generated `OpenApiXmlCommentSupport.generated.cs`) whenever XML documentation is enabled. 10.0.11+ also declares `< 3.0.0`, so NuGet warns `NU1608`. See [Known Issue 1](#1-microsoftopenapi-v3-breaks-microsoftaspnetcoreopenapi-10x). |
 | Kiota NuGet package (v0.1.0) + anything | Has a high-severity vulnerability and is non-functional. Use the `dotnet tool` instead — still stuck at 0.1.0 on NuGet as of June 2026. |
 
 ---
 
-## Known Issues and Gaps (June 2026)
+## Known Issues and Gaps (September 2026)
 
-### 1. OpenAPI 3.2 is supported only on the .NET 11 preview track — not yet on GA .NET 10
+### 1. Microsoft.OpenApi v3 breaks Microsoft.AspNetCore.OpenApi 10.x
 
-`Microsoft.OpenApi` v3.x supports OpenAPI 3.2, and as of `Microsoft.AspNetCore.OpenApi` 11.0.0-preview.4/.5 the ASP.NET Core generator can produce 3.2 documents opt-in (`options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2`), with OAS 3.1 as the new default on `net11.0`. **None of this is available on .NET 10 GA** — `Microsoft.AspNetCore.OpenApi` 10.0.9 still targets `Microsoft.OpenApi >= 2.0.0` and tops out at OAS 3.0 output. Swashbuckle 10.2.1 has no `net11.0` build and is also still on the v2.x/OAS 3.0 floor. If your project targets `net10.0` (as SampleApi does today), you remain on OAS 3.0 until you move to `net11.0`.
+`Microsoft.OpenApi` 3.0 made `IOpenApiMediaType.Example` read-only; the .NET 10 XML-comment source generator still assigns to it, so v3 fails to compile on `net10.0` (`CS0200`). Microsoft's resolution was to cap the dependency at `< 3.0.0` from 10.0.11 onward ([dotnet/aspnetcore#64317](https://github.com/dotnet/aspnetcore/issues/64317)), not to port .NET 10 to v3. **Stay on `Microsoft.OpenApi` 2.x until you retarget to `net11.0`.** Full detail in [The v2 → v3 Change](#the-v2--v3-change--v3-is-net-11-only-net-10-now-formally-excludes-it).
 
-### 2. Swashbuckle CLI broken on .NET 10
+### 2. OpenAPI 3.2 is supported only on .NET 11
+
+`Microsoft.OpenApi` v3.x supports OpenAPI 3.2, and on `net11.0` the ASP.NET Core generator can produce 3.2 documents opt-in (`options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2`). **This is not available on .NET 10** — `Microsoft.AspNetCore.OpenApi` 10.x is locked to `Microsoft.OpenApi` 2.x, which tops out at OAS 3.1. Both .NET 10 and .NET 11 default to **OAS 3.1** output. Swashbuckle 10.2.3 has no `net11.0` build and is still on v2.x.
+
+### 3. `OpenApiSchema.Example` is obsolete from Microsoft.OpenApi 2.12
+
+`Microsoft.AspNetCore.OpenApi` 10.0.12 requires `Microsoft.OpenApi >= 2.12.0`, and 2.12 marks the singular `OpenApiSchema.Example` `[Obsolete("Use Examples instead.")]` (`CS0618` — an error under `TreatWarningsAsErrors`). Schema transformers should assign the OAS 3.1 / JSON Schema `examples` array instead:
+
+```csharp
+// before (2.11 and earlier)
+schema.Example = JsonSerializer.SerializeToNode(sample);
+
+// after (2.12+)
+schema.Examples = [JsonSerializer.SerializeToNode(sample)!];
+```
+
+The serialized document changes from `"example": { ... }` to `"examples": [ { ... } ]` — consumers that only read `example` must also read `examples[0]` (ApiTestSpark's parser does as of September 2026).
+
+### 4. Swashbuckle CLI broken on .NET 10
 
 The `dotnet swagger` tool in Swashbuckle 10.1.5 fails to generate a spec file against .NET 10 apps (issue [#3844](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/3844)). **Workaround:** use `Microsoft.Extensions.ApiDescription.Server` for build-time generation — it is the recommended approach for .NET 9/10 regardless.
 
-### 3. Swashbuckle v6 → v10 migration friction
+### 5. Swashbuckle v6 → v10 migration friction
 
 The v6-to-v10 upgrade changes the auth configuration API, breaks `SwaggerSchema` attribute inheritance on `$ref` properties, and changes how endpoints with explicit `GroupName` are discovered. Teams on v6 with customised Swashbuckle setups will need non-trivial migration work.
 
-### 4. nullable handling edge cases in Microsoft.OpenApi v2/v3
+### 6. nullable handling edge cases in Microsoft.OpenApi v2/v3
 
-Several releases of `Microsoft.OpenApi` 2.x and 3.x have been deprecated due to bugs in how `nullable: true` is preserved when it appears before the `type` keyword in the YAML/JSON source. v2.7.6 and v3.5.5 contain the fix. If you are pinned to an older 2.x or 3.x patch, upgrade.
+Some `Microsoft.OpenApi` 2.x and 3.x releases had bugs in how `nullable: true` is preserved when it appears before the `type` keyword in the YAML/JSON source; v2.7.6 and v3.5.5 contain the fix. Separately, every release before 2.7.5 (v2) and 3.5.4 (v3) is now deprecated on NuGet for a circular-reference-resolution vulnerability — see the note under [Three Active Major Versions](#three-active-major-versions). If you are pinned to an older 2.x or 3.x patch, upgrade.
 
-### 5. No built-in UI in Microsoft.AspNetCore.OpenApi
+### 7. No built-in UI in Microsoft.AspNetCore.OpenApi
 
 Unlike Swashbuckle (which bundles Swagger UI) and NSwag (which bundles NSwag Studio / UI), `Microsoft.AspNetCore.OpenApi` only generates the document. You must add a renderer. This is intentional — Microsoft decoupled the concerns — but it surprises developers coming from Swashbuckle.
 
-### 6. Controller-based APIs need extra annotation
+### 8. Controller-based APIs need extra annotation
 
 With `Microsoft.AspNetCore.OpenApi`, controller actions do not automatically produce rich response schemas unless you annotate with `[Produces]`, `[ProducesResponseType]`, or use `TypedResults` in Minimal APIs. Swashbuckle has historically been more aggressive at inferring response types from controller signatures.
 
@@ -365,13 +395,15 @@ With `Microsoft.AspNetCore.OpenApi`, controller actions do not automatically pro
 
 ```xml
 <!-- Document generation -->
-<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+<!-- Optional explicit pin — must stay on 2.x for .NET 10 -->
+<PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
 <!-- Build-time generation (optional but recommended) -->
-<PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
+<PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.12">
   <PrivateAssets>all</PrivateAssets>
 </PackageReference>
 <!-- UI renderer -->
-<PackageReference Include="Scalar.AspNetCore" Version="2.16.4" />
+<PackageReference Include="Scalar.AspNetCore" Version="2.17.8" />
 ```
 
 ```csharp
@@ -389,7 +421,7 @@ If you are on Swashbuckle 6.x and need .NET 10:
 
 ```xml
 <!-- Upgrade in place -->
-<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
 ```
 
 Migration checklist:
@@ -424,9 +456,9 @@ Or use NSwag for C# + TypeScript in a single workflow:
 
 ---
 
-### Trying .NET 11 preview today
+### Trying .NET 11 RC today
 
-If you want to experiment with OAS 3.1/3.2 output ahead of GA:
+If you want to experiment with OAS 3.2 output ahead of GA:
 
 ```xml
 <PropertyGroup>
@@ -434,8 +466,9 @@ If you want to experiment with OAS 3.1/3.2 output ahead of GA:
 </PropertyGroup>
 
 <ItemGroup>
-  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0-preview.5.26302.115" />
-  <PackageReference Include="Scalar.AspNetCore" Version="2.16.4" />
+  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0-rc.1.26425.128" />
+  <!-- If you pin Microsoft.OpenApi explicitly, it must now be 3.10+ (not 2.x) -->
+  <PackageReference Include="Scalar.AspNetCore" Version="2.17.8" />
 </ItemGroup>
 ```
 
@@ -446,7 +479,7 @@ builder.Services.AddOpenApi(options =>
 });
 ```
 
-Do **not** do this if your stack includes Swashbuckle — it has no `net11.0` build and is still pinned to `Microsoft.OpenApi` v2.x, which will conflict with the v3.x floor that `net11.0` requires. This is a preview SDK; treat it as exploratory, not production.
+Do **not** do this if your stack includes Swashbuckle — it has no `net11.0` build and is still pinned to `Microsoft.OpenApi` v2.x, which will conflict with the v3.x floor that `net11.0` requires. This is a release-candidate SDK; treat it as exploratory, not production. Code written against the v2 object model (document/schema transformers) may need source changes when moving to v3 — e.g. `IOpenApiMediaType.Example` is read-only in v3.
 
 ---
 
@@ -468,8 +501,8 @@ React applications that consume `.NET` OpenAPI documents face a distinct set of 
 
 | Generator | OpenAPI version | nullable | Schema references | discriminator |
 |---|---|---|---|---|
-| `Microsoft.AspNetCore.OpenApi` 10.x | 3.0 | `nullable: true` inline | `$ref` | Limited |
-| `Microsoft.AspNetCore.OpenApi` 11.x (preview) | **3.1** (default), 3.2 opt-in | `oneOf: [..., { type: 'null' }]` — **not** inline `nullable` | `$ref` | Limited |
+| `Microsoft.AspNetCore.OpenApi` 10.x | **3.1** (default), 3.0 opt-in | `type: ["null", "string"]` for primitives; `oneOf: [{ type: 'null' }, { $ref }]` for nullable references — **no** inline `nullable` | `$ref` | Limited |
+| `Microsoft.AspNetCore.OpenApi` 11.x (RC) | **3.1** (default), 3.2 opt-in | Same as 10.x | `$ref` | Limited |
 | Swashbuckle 10.x | 3.0 | `nullable: true` inline | `$ref` with `allOf` wrapper | Supported |
 | NSwag 14.x | 3.0 | `x-nullable` extension + `nullable` | Inline or `$ref` | Supported |
 
@@ -477,7 +510,9 @@ React applications that consume `.NET` OpenAPI documents face a distinct set of 
 
 1. **Dereference `$ref` before rendering schemas.** All three generators use `$ref` for shared types. Your parser must follow `$ref` pointers into `components/schemas` before rendering property tables. A schema that is just `{ "$ref": "#/components/schemas/Product" }` has no `properties` — they live at the referenced path.
 
-2. **Handle `nullable` in both locations.** `Microsoft.AspNetCore.OpenApi` places `nullable: true` directly on the schema object. Some generators wrap nullable types in `oneOf: [{ type: ... }, { type: 'null' }]` (the OAS 3.1 pattern). A robust parser checks both.
+2. **Handle all three nullable styles.** OAS 3.0 generators (Swashbuckle, NSwag, or `Microsoft.AspNetCore.OpenApi` with 3.0 opted in) place `nullable: true` directly on the schema object. OAS 3.1 output — the .NET 10 default — uses a type array (`type: ["null", "string"]`) for primitives and wraps nullable references (including request-body schemas) in `oneOf: [{ type: 'null' }, { $ref: ... }]`. A robust parser checks all three.
+
+   **Read `examples` as well as `example`.** OAS 3.1 deprecates the schema-level `example` in favour of the JSON Schema `examples` array. Schema transformers built against `Microsoft.OpenApi` 2.12+ emit `examples: [ ... ]`; take `examples[0]` when `example` is absent.
 
 3. **`allOf` with a single `$ref` is a typed reference, not a composition.** Swashbuckle often wraps `$ref` schemas in `allOf: [{ "$ref": "..." }]`. Treat a single-element `allOf` containing only a `$ref` as equivalent to a direct `$ref`.
 
@@ -498,11 +533,17 @@ function resolveRef(doc: OpenApiDoc, ref: string): OpenApiSchema {
   return path.reduce((obj: any, key) => obj[key], doc);
 }
 
-// Normalise nullable — handles both OAS 3.0 and 3.1 styles
+// Normalise nullable — handles OAS 3.0 and both OAS 3.1 styles
 function isNullable(schema: OpenApiSchema): boolean {
   if (schema.nullable) return true;
+  if (Array.isArray(schema.type) && schema.type.includes('null')) return true;
   if (schema.oneOf?.some(s => s.type === 'null')) return true;
   return false;
+}
+
+// Example value — OAS 3.0 `example` or OAS 3.1 `examples[0]`
+function exampleOf(schema: OpenApiSchema): unknown {
+  return schema.example ?? schema.examples?.[0];
 }
 
 // Unwrap single-entry allOf $ref
@@ -531,22 +572,23 @@ function unwrapAllOf(schema: OpenApiSchema): OpenApiSchema {
 **What the SPA parser handles today:**
 
 - `$ref` resolution into `components/schemas`
-- `nullable: true` on schema objects
+- `nullable: true` on schema objects (OAS 3.0) and `type: ["null", ...]` arrays (OAS 3.1)
+- `oneOf` / `anyOf` wrappers — the first non-null branch is used as the schema, marked `nullable` when a `{ type: 'null' }` branch is present
 - `allOf` with a single `$ref` (Swashbuckle style)
 - Tag-based grouping with `"Namespace: Label"` two-level parsing
 - `operationId`, `summary`, `description` (markdown rendered)
 - Response codes with `content` schemas
-- JSON scaffold from `example / default / enum[0] / type`
+- JSON scaffold from `example` (or OAS 3.1 `examples[0]`) → `default` → `enum[0]` → `type`
 
-**Known parser limitation:** OAS 3.1-style `oneOf: [{ type: ... }, { type: 'null' }]` nullable is not yet normalised. This will matter once `Microsoft.AspNetCore.OpenApi` moves to OAS 3.1 output.
+**OAS 3.1 nullable references:** `oneOf: [{ type: 'null' }, { $ref }]` wrappers resolve to the referenced schema with `nullable` set. `SampleApi` (.NET 10, OAS 3.1) emits this shape for every request body and for `Customer.address`; the `null` branch comes first, so parsers must skip it rather than take `oneOf[0]`.
 
-### Recommendation for this repo (June 2026 revisit)
+### Recommendation for this repo (September 2026 revisit)
 
-`SampleApi.csproj` currently pins `Microsoft.OpenApi` explicitly at `2.7.6` alongside `Microsoft.AspNetCore.OpenApi` `10.0.9`. Revisiting that decision with the data gathered above:
+`SampleApi.csproj` now references `Microsoft.AspNetCore.OpenApi` **10.0.12** with an explicit `Microsoft.OpenApi` pin of **2.12.2** (moved from 10.0.10 / 2.11.0). Its schema transformers were migrated from the obsolete `OpenApiSchema.Example` to `Examples`, and the SPA parser was taught to read `examples[0]`, so the demo's request-body scaffolds are unchanged.
 
-- **Do not move to `Microsoft.OpenApi` v3.x yet.** `Microsoft.AspNetCore.OpenApi` 10.0.9 (the version SampleApi uses, targeting `net10.0`) still requires `>= 2.0.0` and is only tested by the ASP.NET Core team against the v2.x line. v3 only becomes the *required* floor once a project moves to `net11.0`, which is still preview.
-- **Do bump the explicit pin from `2.7.6` to `2.9.0`.** It's the latest v2.x patch, stays within the same major, and there's no reason to sit on an older patch — `Microsoft.AspNetCore.OpenApi`'s own floor (`>= 2.0.0`) already allows it.
-- **Re-evaluate this whole document when .NET 11 GAs** (expected ~November 2026). At that point `Microsoft.OpenApi` v3 stops being "the preview-only floor" and becomes "the floor for any project targeting net11.0," and the SPA's `openApiParser.ts` will need the OAS 3.1 `oneOf`-nullable handling noted above before SampleApi could safely retarget to `net11.0`.
+- **Do not move to `Microsoft.OpenApi` v3.x on `net10.0`.** This is no longer a judgement call: it fails to compile (`CS0200`), and `Microsoft.AspNetCore.OpenApi` 10.0.11+ declares `< 3.0.0`.
+- **Keep the explicit 2.x pin** and advance it with each `Microsoft.AspNetCore.OpenApi` servicing release — 10.0.12's floor is 2.12.0, and older 2.x patches below 2.7.5 are deprecated for a vulnerability.
+- **v3 arrives with the move to `net11.0`** (GA expected ~November 2026; rc.1 requires `Microsoft.OpenApi [3.10.0, 4.0.0)`). Retargeting SampleApi will mean bumping the pin to 3.x in the same change and re-checking the document/schema transformers in `SampleApi/OpenApi/OpenApiExtensions.cs` against the v3 object model. The OAS output version does not change (3.1 on both), so the SPA parser needs no additional work for that move.
 
 **Install ApiTestSpark:**
 
@@ -566,13 +608,14 @@ app.MapApiTestSpark();  // harness at /api-test-spark/
 
 | Item | Tracking | Status |
 |---|---|---|
-| `Microsoft.AspNetCore.OpenApi` → OAS 3.1 default output | .NET 11 preview | **Done in preview** — net11.0 defaults to OAS 3.1; ships GA with .NET 11 (~Nov 2026) |
-| `Microsoft.AspNetCore.OpenApi` → `Microsoft.OpenApi` v3 | `.nuspec` for 11.0.0-preview.5 | **Confirmed** — dependency is now `>= 3.3.1` on `net11.0`. No longer speculative. |
-| OAS 3.2 generation (opt-in) | `options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2` | **Done in preview** — HTTP `QUERY` method support included |
-| Swashbuckle `net11.0` build / v3 migration | [#3804](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/3804) | No timeline — still v2.x-only as of 10.2.1 |
+| `Microsoft.AspNetCore.OpenApi` → OAS 3.1 default output | .NET 10 GA | **Done** — .NET 10 already defaults to OAS 3.1 (verified against SampleApi output); unchanged in .NET 11 |
+| `Microsoft.AspNetCore.OpenApi` → `Microsoft.OpenApi` v3 | `.nuspec` for 11.0.0-rc.1 | **Confirmed for .NET 11 only** — `[3.10.0, 4.0.0)` on `net11.0`; GA expected ~Nov 2026 |
+| `Microsoft.OpenApi` v3 on .NET 10 | [dotnet/aspnetcore#64317](https://github.com/dotnet/aspnetcore/issues/64317) | **Won't happen** — closed Jul 2026 by capping 10.x at `< 3.0.0` (shipped in 10.0.11) |
+| OAS 3.2 generation (opt-in) | `options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_2` | **Done in .NET 11 RC** — HTTP `QUERY` method support included |
+| Swashbuckle `net11.0` build / v3 migration | [#3804](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/3804) | No timeline — still v2.x-only as of 10.2.3 |
 | Swashbuckle CLI `.NET 10` fix | [#3844](https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/3844) | Unresolved |
 | Kiota GA NuGet package (not tool) | [microsoft/kiota](https://github.com/microsoft/kiota) | Still 0.1.0, unchanged |
-| `nullable` OAS 3.1 in ApiTestSpark parser | Internal backlog | Planned — now more urgent once `net11.0` defaults to OAS 3.1 |
+| `nullable` OAS 3.1 in ApiTestSpark parser | Internal backlog | **Done** (September 2026) — `type` arrays, `oneOf`/`anyOf` null branches, and `examples` all handled |
 
 ---
 

@@ -4,6 +4,7 @@ using SampleApi.Customers;
 using SampleApi.Orders;
 using SampleApi.Products;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace SampleApi.OpenApi;
 
@@ -227,7 +228,7 @@ internal static class OpenApiExtensions
 
             if (type == typeof(Product))
             {
-                schema.Example = JsonSerializer.SerializeToNode(new
+                schema.Examples = AsExamples(new
                 {
                     id            = 2,
                     name          = "Gadget",
@@ -239,7 +240,7 @@ internal static class OpenApiExtensions
             }
             else if (type == typeof(Customer))
             {
-                schema.Example = JsonSerializer.SerializeToNode(new
+                schema.Examples = AsExamples(new
                 {
                     id      = 1,
                     name    = "Alice Johnson",
@@ -258,7 +259,7 @@ internal static class OpenApiExtensions
             }
             else if (type == typeof(Address))
             {
-                schema.Example = JsonSerializer.SerializeToNode(new
+                schema.Examples = AsExamples(new
                 {
                     street     = "123 Main St",
                     city       = "Springfield",
@@ -269,7 +270,7 @@ internal static class OpenApiExtensions
             }
             else if (type == typeof(Order))
             {
-                schema.Example = JsonSerializer.SerializeToNode(new
+                schema.Examples = AsExamples(new
                 {
                     id         = 1,
                     customerId = 1,
@@ -285,7 +286,7 @@ internal static class OpenApiExtensions
             }
             else if (type == typeof(OrderLine))
             {
-                schema.Example = JsonSerializer.SerializeToNode(new
+                schema.Examples = AsExamples(new
                 {
                     productId   = 1,
                     productName = "Widget",
@@ -296,7 +297,7 @@ internal static class OpenApiExtensions
             }
             else if (type == typeof(CreateOrderRequest))
             {
-                schema.Example = JsonSerializer.SerializeToNode(new
+                schema.Examples = AsExamples(new
                 {
                     customerId = 1,
                     lines      = new[]
@@ -308,7 +309,7 @@ internal static class OpenApiExtensions
             }
             else if (type == typeof(OrderLineRequest))
             {
-                schema.Example = JsonSerializer.SerializeToNode(new
+                schema.Examples = AsExamples(new
                 {
                     productId = 1,
                     quantity  = 2,
@@ -318,5 +319,10 @@ internal static class OpenApiExtensions
             return Task.CompletedTask;
         });
     }
+
+    // OAS 3.1 / JSON Schema `examples` array — replaces the singular `example`,
+    // which is obsolete as of Microsoft.OpenApi 2.12.
+    private static List<JsonNode> AsExamples(object value) =>
+        [JsonSerializer.SerializeToNode(value)!];
 }
 
