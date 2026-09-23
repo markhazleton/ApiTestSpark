@@ -210,7 +210,7 @@ Files packed at the `.nupkg` root:
 Source Link lets consumers step into the library's source code from within Visual Studio or Rider without manually downloading anything.
 
 ```xml
-<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+<PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.401" PrivateAssets="All" />
 
 <PublishRepositoryUrl>true</PublishRepositoryUrl>
 <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -341,7 +341,7 @@ dotnet test ApiTestSpark.Tests
 The canonical pack script enforces a 7-step quality gate before any artifact is produced:
 
 ```
-[1/7] npm audit          — fail on critical CVEs, warn on high
+[1/7] npm audit          — fail on high or critical CVEs (matches CI)
 [2/7] npm run lint       — ESLint, zero errors required
 [3/7] npm run build      — Vite build → build/ (base=/api-test-spark/)
 [4/7] Read version       — from package.json, validate as NuGet SemVer

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Library build broken by NuGet audit** — bumped `Microsoft.SourceLink.GitHub` from `10.0.301` to `10.0.401`. The transitive `Microsoft.Build.Tasks.Git` 10.0.301 is affected by CVE-2026-62900 ([GHSA-23fw-v26w-5fgq](https://github.com/advisories/GHSA-23fw-v26w-5fgq)), which failed `dotnet build ApiTestSpark` with `NU1902` under `TreatWarningsAsErrors`. Build-time only; no change to the shipped package contents.
+- **npm audit alerts blocking CI** — lockfile-only updates (`npm audit fix`, `autoprefixer` 10.5.0 → 10.6.1 within its existing range) resolve Dependabot alerts #11, #13 and #14: `browserslist` 4.28.x → 4.29.0 (high, GHSA-73wf-gq98-2v4g / GHSA-c83g-rgw3-j3cx), `baseline-browser-mapping` → 2.11.25, `@humanfs/node` → 0.16.8. The high-severity `browserslist` advisory was failing the CI `npm audit --audit-level=high` step on every run. All affected packages are build/lint tooling; none ship in the SPA bundle.
+- **Nullable object properties from OAS 3.1 documents** — `openApiParser` now sets `nullable` when a schema is wrapped in `oneOf`/`anyOf` with a `{ type: 'null' }` branch (the .NET 10 shape for nullable references, e.g. SampleApi `Customer.address`), so the schema table shows the "nullable" tag for them.
+- **SPA parser reads OAS 3.1 `examples`** — `openApiParser` now falls back to `examples[0]` when a schema has no singular `example`, so request-body scaffolds keep their example values for OAS 3.1 documents (including SampleApi after the change below).
+
+### Changed
+
+- **`pack.ps1` audit gate** — now fails on high-severity `npm audit` findings (previously warned), matching `ci.yml` and `publish-nuget.yml`. `-SkipAudit` still bypasses it.
+- **CodeQL code scanning** — new `.github/workflows/codeql.yml` analyzes C#, JavaScript/TypeScript and GitHub Actions workflows (`security-and-quality` queries, build-mode none) on PRs and pushes to `main` and weekly.
+- **SampleApi OpenAPI packages** — `Microsoft.AspNetCore.OpenApi` `10.0.10` → `10.0.12` and `Microsoft.OpenApi` `2.11.0` → `2.12.2`. Schema transformers migrated from the obsolete `OpenApiSchema.Example` to `Examples`. `Microsoft.OpenApi` stays on 2.x: 3.x still breaks the .NET 10 XML-comment source generator (`CS0200`), and `Microsoft.AspNetCore.OpenApi` 10.0.11+ now declares `< 3.0.0` ([dotnet/aspnetcore#64317](https://github.com/dotnet/aspnetcore/issues/64317)).
+- **Test dependencies** — `Microsoft.AspNetCore.Mvc.Testing` 10.0.10 → 10.0.12, `Microsoft.NET.Test.Sdk` 18.8.1 → 18.10.1, `MSTest.TestAdapter` / `MSTest.TestFramework` 4.3.3 → 4.4.1.
+- **`OPENAPI-DOTNET.md`** — September 2026 revision: .NET 10 → 10.0.12, .NET 11 → rc.1, the v3 incompatibility and upstream dependency cap documented, and corrections to the .NET 10 output description (it emits OAS 3.1 with `type`-array / `oneOf` nullables, not OAS 3.0 with `nullable: true`).
+
 ## [v2.0.1] - 2026-08-10
 
 ### Fixed

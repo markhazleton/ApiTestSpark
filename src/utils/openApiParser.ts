@@ -35,9 +35,16 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
   const combiner = node['oneOf'] ?? node['anyOf'];
   if (Array.isArray(combiner)) {
     // For oneOf/anyOf, pick the first non-null branch (handles .NET 10 nullable wrappers)
+    const hasNullBranch = combiner.some(
+      (b) => b != null && typeof b === 'object' && (b as Record<string, unknown>)['type'] === 'null',
+    );
     for (const branch of combiner) {
       const resolved = resolveSchema(branch, doc, depth + 1);
-      if (resolved !== null) return resolved;
+      if (resolved !== null) {
+        // OAS 3.1 nullable reference: oneOf: [{ type: 'null' }, { $ref }]
+        if (hasNullBranch) resolved.nullable = true;
+        return resolved;
+      }
     }
     return null;
   }
@@ -58,6 +65,8 @@ function resolveSchema(raw: unknown, doc: OpenApiV3Doc, depth = 0): ResolvedSche
   if (typeof node['format'] === 'string')      result.format      = node['format'];
   if (typeof node['description'] === 'string') result.description = node['description'];
   if (node['example'] !== undefined)           result.example     = node['example'];
+  // OAS 3.1 / JSON Schema form: `examples` array — .NET 10 + Microsoft.OpenApi 2.12+ emits this
+  else if (Array.isArray(node['examples']) && node['examples'].length > 0) result.example = node['examples'][0];
   if (node['default'] !== undefined)           result.default     = node['default'];
   if (node['nullable'] === true)               result.nullable    = true;
   if (Array.isArray(node['enum']))             result.enum        = node['enum'] as string[];

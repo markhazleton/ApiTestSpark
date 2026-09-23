@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 # Pack script for ApiTestSpark NuGet package.
 # Pipeline:
-#   1. npm audit           — security gate (fail on critical, warn on high)
+#   1. npm audit           — security gate (fail on high or critical, matches CI)
 #   2. npm run lint        — ESLint gate (zero errors required)
 #   3. npm run build       — React SPA → build/ (base=/api-test-spark/)
 #   4. Read + validate version from package.json
@@ -19,21 +19,15 @@ $ErrorActionPreference = 'Stop'
 
 Write-Host "ApiTestSpark — NuGet Pack Pipeline" -ForegroundColor Cyan
 
-# 1. npm audit (warn on high, fail on critical only — avoids false-positive dev-dep blocks)
+# 1. npm audit (fail on high or critical — same threshold as ci.yml and publish-nuget.yml)
 if (-not $SkipAudit) {
     Write-Host "`n[1/7] Running npm audit..." -ForegroundColor Blue
-    npm audit --audit-level=critical --json 2>&1 | Out-Null
-    $auditExitCode = $LASTEXITCODE
-    if ($auditExitCode -ne 0) {
-        Write-Error "npm audit found CRITICAL vulnerabilities. Fix before packing. Run 'npm audit' for details."
-        exit 1
-    }
-    # Warn on high but do not block
     npm audit --audit-level=high --json 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "npm audit found HIGH vulnerabilities. Review 'npm audit' output — not blocking for now."
+        Write-Error "npm audit found HIGH or CRITICAL vulnerabilities. Fix before packing (CI would reject this build). Run 'npm audit' for details."
+        exit 1
     }
-    Write-Host "  npm audit passed (no critical vulnerabilities)" -ForegroundColor Green
+    Write-Host "  npm audit passed (no high or critical vulnerabilities)" -ForegroundColor Green
 }
 else {
     Write-Host "`n[1/7] Skipping npm audit (--SkipAudit flag set)" -ForegroundColor Yellow
