@@ -9,7 +9,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>ApiTestSpark</PackageId>
-    <Version>2.0.1</Version>
+    <Version>2.1.0</Version>
     <Authors>Make Bold Solutions; Mark Hazleton</Authors>
     <Company>Make Bold Solutions</Company>
     <Copyright>Copyright © Make Bold Solutions 2026</Copyright>
@@ -35,11 +35,11 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>2.0.1 — Fix: request URLs are now built with a joinUrl() helper instead of
-      raw string concatenation, so a base URL configured with a trailing slash combined with an
-      endpoint path starting with a leading slash (common with OpenAPI-imported paths) no longer
-      produces a doubled // in the constructed request URL. No public API changes. See CHANGELOG.md
-      for full history.</PackageReleaseNotes>
+    <PackageReleaseNotes>2.1.0 — Package and security maintenance. Clears high-severity npm audit
+      and NuGet audit findings (browserslist, Microsoft.Build.Tasks.Git via SourceLink 10.0.401), updates
+      .NET test and OpenAPI dependencies, and improves OAS 3.1 support in the SPA: schema examples[0] is
+      used when example is absent, and oneOf/anyOf null wrappers are shown as nullable. No public API
+      changes. See CHANGELOG.md for full history.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Build quality -->

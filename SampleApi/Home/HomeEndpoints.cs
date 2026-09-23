@@ -222,15 +222,15 @@ public static class HomeEndpoints
                     <div class="pkg-header">
                         <div class="pkg-icon">📦</div>
                         <div class="pkg-title">
-                            <span class="pkg-version">v2.0.1</span>
+                            <span class="pkg-version">v2.1.0</span>
                             <h2>ApiTestSpark</h2>
-                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.50 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated August 10, 2026</p>
+                            <p>MIT license &nbsp;·&nbsp; net10.0 &nbsp;·&nbsp; 0.50 MB &nbsp;·&nbsp; No dependencies &nbsp;·&nbsp; Last updated September 23, 2026</p>
                         </div>
                     </div>
                     <div class="pkg-meta-grid">
                         <div class="pkg-meta-item">
                             <div class="label">Version</div>
-                            <div class="value">2.0.1</div>
+                            <div class="value">2.1.0</div>
                         </div>
                         <div class="pkg-meta-item">
                             <div class="label">Framework</div>
@@ -660,7 +660,7 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
                     <div class="badges" style="justify-content:center;margin-top:1.75rem;">
                         <div class="badge">⚡ <strong>Running</strong> .NET 10 Minimal API</div>
                         <div class="badge">📖 <strong>OpenAPI v3</strong> — full schema + descriptions</div>
-                        <div class="badge">📦 <strong>ApiTestSpark</strong> v2.0.1 — MIT</div>
+                        <div class="badge">📦 <strong>ApiTestSpark</strong> v2.1.0 — MIT</div>
                         <div class="badge">🔗 <strong>16 endpoints</strong> across 3 resource groups</div>
                         <div class="badge">⚖️ <strong>No dependencies</strong> — 0.50 MB</div>
                     </div>
@@ -711,8 +711,8 @@ app.<span class="cm">MapApiTestSpark</span>();</pre>
       "proxyMode": "server"
     }
   ],
-    "harnessVersion": "2.0.1",
-    "harnessBuiltAt": "2026-08-10T23:30:00Z"
+    "harnessVersion": "2.1.0",
+    "harnessBuiltAt": "2026-09-23T23:30:00Z"
 }</pre>
                         </div>
                     </div>
@@ -996,9 +996,17 @@ GetById(<span class="kw">int</span> id, ProductCache cache) =>
 
                     <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
                         <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                            <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v2.1.0</span>
+                            <span style="color:#94a3b8;font-size:0.85rem;">September 23, 2026</span>
+                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
+                        </div>
+                        <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Security &amp; package maintenance.</strong> Cleared high-severity npm and NuGet audit findings, updated .NET test and OpenAPI dependencies, added CodeQL code scanning, and eliminated all demo build warnings. Improved OAS 3.1 support: schema <code class="inline">examples[0]</code> is used when <code class="inline">example</code> is absent, and <code class="inline">oneOf</code>/<code class="inline">anyOf</code> null wrappers are shown as nullable. No public API changes.</p>
+                    </div>
+
+                    <div style="background:white;border:1px solid #e2e8f0;border-left:4px solid #982407;border-radius:8px;padding:1.25rem 1.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
                             <span style="background:#982407;color:white;border-radius:6px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;">v2.0.1</span>
                             <span style="color:#94a3b8;font-size:0.85rem;">August 10, 2026</span>
-                            <span style="background:#dcfce7;color:#15803d;border-radius:4px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">Latest</span>
                         </div>
                         <p style="color:#475569;font-size:0.9rem;margin-bottom:0.5rem;"><strong>Double-slash URL fix.</strong> Request URLs are now built with a <code class="inline">joinUrl()</code> helper instead of raw string concatenation, so a base URL configured with a trailing slash combined with an endpoint path starting with a leading slash — common with OpenAPI-imported paths — no longer produces a doubled <code class="inline">//</code> in the constructed request URL. No public API changes.</p>
                     </div>

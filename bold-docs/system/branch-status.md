@@ -1,32 +1,34 @@
 # Branch Status Report
 
-**Last validated**: 2026-07-28
+**Last validated**: 2026-09-23
 
 ## Summary
 
 | Branch | Location | Status |
 |---|---|---|
-| `main` | local + `origin/main` | In sync — local SHA matches `origin/main` exactly (verified via `git rev-list --left-right --count` and an independent GitHub API check of `origin/main`'s actual ref, bypassing local fetch cache) |
+| `main` | local + `origin/main` | In sync |
 
 Only one branch exists in this repository, locally or remotely: `main`.
 
 ## History
 
-As of this validation:
+### 2026-09-23 (v2.1.0 release)
 
-- **Current SHA**: `ffe2528a1350ebce2fb41913589812096e0e7fc6` ("Migrate from DevSpark to Bold framework")
-- Two stale remote feature branches were found and removed:
-  - `origin/001-oauth-token-config` — fully merged into `main` via PR #7 (merged 2026-07-16); no local counterpart existed
-  - `origin/002-remote-openapi-config` — fully merged into `main` via PR #2 (merged 2026-06-06); no local counterpart existed
-  - Both deleted from `origin` after confirming full merge (`git merge-base --is-ancestor` + `gh pr list --state all`)
+- `fix/deps-security-2026-09` — fully merged via PR #10 (2026-09-23); deleted local and remote.
+- `0001-tauri-desktop-build` — **abandoned**. A Tauri desktop wrapper for the standalone SPA (spec only, no code, no PR). Decision: the feature will not move forward. Deleted local and remote without merging; the spec was not carried to `main`. Tip was `62d3e94`.
+- Dependabot branches from PRs #8 and #9 had already been removed by GitHub.
+
+### 2026-07-28
+
+- `origin/001-oauth-token-config` — fully merged via PR #7 (2026-07-16); deleted.
+- `origin/002-remote-openapi-config` — fully merged via PR #2 (2026-06-06); deleted.
 
 ## How to re-validate
 
 ```sh
 git fetch --all --prune
 git branch -vv                                  # local branches vs. their upstream
+git branch -r --no-merged origin/main           # remote branches not yet merged
 git rev-list --left-right --count main...origin/main   # 0 0 == fully in sync
-gh api repos/markhazleton/ApiTestSpark/git/refs/heads/main --jq '.object.sha'  # ground truth, bypasses local cache
+gh pr list --state all --limit 20               # map branches to PRs
 ```
-
-A merged remote branch is safe to delete once `git merge-base --is-ancestor <branch> main` succeeds and (if applicable) its PR shows `MERGED` via `gh pr list --state all --search "head:<branch>"`.

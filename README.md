@@ -30,9 +30,10 @@ See it live at **[https://apitest.makeboldspark.com](https://apitest.makeboldspa
 
 ---
 
-## Latest Updates (v2.0.1)
+## Latest Updates (v2.1.0)
 
-- Fixed **double slash in constructed request URLs** — a `joinUrl()` helper now normalizes the seam between a base URL and an endpoint path, so a trailing slash on the base combined with a leading slash on the path (common with OpenAPI-imported paths) no longer produces `//` in the request URL.
+- **Security and package maintenance** — cleared high-severity npm and NuGet audit findings, updated .NET test and OpenAPI dependencies, and added CodeQL code scanning.
+- **Better OAS 3.1 support** — the SPA reads schema `examples[0]` when `example` is absent, and shows `oneOf`/`anyOf` wrappers with a `null` branch as nullable (the .NET 10 default output).
 
 See [CHANGELOG.md](CHANGELOG.md) for full details.
 
@@ -43,15 +44,15 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 | Property | Value |
 |---|---|
 | **Package ID** | `ApiTestSpark` |
-| **Version** | 2.0.1 |
+| **Version** | 2.1.0 |
 | **Authors** | [Make Bold Solutions](https://makeboldsolutions.com); [Mark Hazleton](https://markhazleton.com) |
 | **Company** | Make Bold Solutions |
 | **License** | MIT |
 | **Target Framework** | net10.0 |
 | **Package Size** | 0.50 MB |
-| **Symbol Package** | 19.3 KB (`.snupkg`) |
+| **Symbol Package** | 19.4 KB (`.snupkg`) |
 | **Dependencies** | None |
-| **Last Updated** | August 10, 2026 |
+| **Last Updated** | September 23, 2026 |
 | **NuGet** | [nuget.org/packages/ApiTestSpark](https://www.nuget.org/packages/ApiTestSpark) |
 | **Live Demo** | [apitest.makeboldspark.com](https://apitest.makeboldspark.com) |
 | **Product Family** | [Make Bold Spark](https://makeboldspark.com) |
@@ -234,7 +235,7 @@ shown in the browser.
 
 ## Live Demo
 
-**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v2.0.1 installed and exposes 16 real endpoints:
+**[https://apitest.makeboldspark.com](https://apitest.makeboldspark.com)** is the official demo and product site for API Test Spark. It runs on .NET 10 with ApiTestSpark v2.1.0 installed and exposes 16 real endpoints:
 
 | Group | Endpoints |
 |---|---|
@@ -259,6 +260,10 @@ Open the harness directly: **[https://apitest.makeboldspark.com/api-test-spark/]
 ---
 
 ## Release Notes
+
+### v2.1.0 — September 23, 2026
+
+Package and security maintenance: cleared high-severity npm audit (`browserslist`) and NuGet audit (`Microsoft.Build.Tasks.Git`, via SourceLink 10.0.401) findings, updated .NET test and SampleApi OpenAPI dependencies (`Microsoft.OpenApi` stays on 2.x), added CodeQL code scanning, and eliminated all SampleApi build warnings. Improved OAS 3.1 support in the SPA: schema `examples[0]` is used when `example` is absent, and `oneOf`/`anyOf` null wrappers are shown as nullable. No public API changes.
 
 ### v2.0.1 — August 10, 2026
 

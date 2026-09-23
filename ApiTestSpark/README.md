@@ -42,9 +42,10 @@ Navigate to `https://localhost:{port}/api-test-spark/` — the harness autodisco
 
 ---
 
-## Latest Updates (v2.0.1)
+## Latest Updates (v2.1.0)
 
-- Fixed **double slash in constructed request URLs** — a `joinUrl()` helper now normalizes the seam between a base URL and an endpoint path, so a trailing slash on the base combined with a leading slash on the path (common with OpenAPI-imported paths) no longer produces `//` in the request URL.
+- **Security and package maintenance** — cleared high-severity npm and NuGet audit findings and updated .NET dependencies. No public API changes.
+- **Better OAS 3.1 support** — the harness reads schema `examples[0]` when `example` is absent, and shows `oneOf`/`anyOf` wrappers with a `null` branch as nullable (the .NET 10 default output).
 
 See [../CHANGELOG.md](../CHANGELOG.md) for full details.
 

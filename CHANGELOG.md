@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2.1.0] - 2026-09-23
+
+Package and security maintenance release. No public API changes to the `ApiTestSpark` package; `PublicAPI.Unshipped.txt` is empty.
+
 ### Fixed
 
 - **Library build broken by NuGet audit** — bumped `Microsoft.SourceLink.GitHub` from `10.0.301` to `10.0.401`. The transitive `Microsoft.Build.Tasks.Git` 10.0.301 is affected by CVE-2026-62900 ([GHSA-23fw-v26w-5fgq](https://github.com/advisories/GHSA-23fw-v26w-5fgq)), which failed `dotnet build ApiTestSpark` with `NU1902` under `TreatWarningsAsErrors`. Build-time only; no change to the shipped package contents.
@@ -21,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SampleApi OpenAPI packages** — `Microsoft.AspNetCore.OpenApi` `10.0.10` → `10.0.12` and `Microsoft.OpenApi` `2.11.0` → `2.12.2`. Schema transformers migrated from the obsolete `OpenApiSchema.Example` to `Examples`. `Microsoft.OpenApi` stays on 2.x: 3.x still breaks the .NET 10 XML-comment source generator (`CS0200`), and `Microsoft.AspNetCore.OpenApi` 10.0.11+ now declares `< 3.0.0` ([dotnet/aspnetcore#64317](https://github.com/dotnet/aspnetcore/issues/64317)).
 - **Test dependencies** — `Microsoft.AspNetCore.Mvc.Testing` 10.0.10 → 10.0.12, `Microsoft.NET.Test.Sdk` 18.8.1 → 18.10.1, `MSTest.TestAdapter` / `MSTest.TestFramework` 4.3.3 → 4.4.1.
 - **`OPENAPI-DOTNET.md`** — September 2026 revision: .NET 10 → 10.0.12, .NET 11 → rc.1, the v3 incompatibility and upstream dependency cap documented, and corrections to the .NET 10 output description (it emits OAS 3.1 with `type`-array / `oneOf` nullables, not OAS 3.0 with `nullable: true`).
+- **SampleApi build warnings eliminated** — deprecated `.WithOpenApi(op => ...)` parameter-description calls (`ASPDEPR002`) in the Customer, Product and Order endpoints replaced with `[Description]` attributes on the handler parameters, which also removes the related `CS8602` warnings. All three .NET projects build with 0 warnings.
+
+### Contributors
+
+- Mark Hazleton
 
 ## [v2.0.1] - 2026-08-10
 
@@ -322,7 +331,8 @@ None. The new `RemoteApiProfiles` collection and `RemoteApiProfile` model are ad
 
 - Mark Hazleton
 
-[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.1.0...HEAD
+[v2.1.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.0.1...v2.1.0
 [v2.0.1]: https://github.com/MarkHazleton/ApiTestSpark/compare/v2.0.0...v2.0.1
 [v2.0.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.8.0...v2.0.0
 [v1.8.0]: https://github.com/MarkHazleton/ApiTestSpark/compare/v1.7.0...v1.8.0
