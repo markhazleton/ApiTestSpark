@@ -281,6 +281,10 @@ Auth gate + proxy hardening: new `RequireAuthenticatedUser` option enforces auth
 
 Remote call proxy + identity-aware headers: server-configured remote API profiles can now route endpoint calls through the host app with `EnableRemoteCallProxy`, avoiding browser CORS issues while keeping server-held credentials off the client. The config payload now exposes resolved `userName`, `userEmail`, and `userId` values for `{user-name}`, `{user-email}`, and `{user-id}` header templates. Browser customization no longer overrides Program.cs profiles; it creates separate browser-local copies so proxied server profiles remain authoritative.
 
+### v1.6.0 — June 20, 2026
+
+Bug fixes and enhancements: user-name token expansion in profiles and headers, CSP logo rendering fixes, base-path build-info fetch fixes, and updated package references for `Microsoft.AspNetCore.OpenApi` and `Microsoft.OpenApi`. Backwards-compatible release.
+
 ### v1.5.0 — June 12, 2026
 
 Make Bold Solutions brand alignment: API Test Spark now presents as a Make Bold Spark product across the embedded React UI, favicon set, package icon, NuGet metadata, package README, and public documentation. The app uses Make Bold Solutions colors, logo assets, and Inter Tight typography. No public .NET API changes.
@@ -325,12 +329,12 @@ ApiTestSpark.Tests/    # .NET MSTest integration tests
 SampleApi/             # Demo + product site (live at apitest.makeboldspark.com)
 src/                   # React 19 / TypeScript SPA source
 scripts/               # PowerShell build, lint, and pack helpers
-.documentation/        # Feature specs, plan, constitution
+bold-docs/             # Backbone rules, in-flight feature specs, system docs
 ```
 
 ### React SPA Stack
 
-- **React 19** / TypeScript 5.x / Vite 8
+- **React 19** / TypeScript 6 / Vite 8
 - **Zustand 5** (persist) — config, auth, harness, debug stores
 - **TanStack Query 5** — mutation-based API calls
 - **Tailwind CSS 4** — utility-first styles
@@ -553,7 +557,7 @@ The [SampleApi source](SampleApi/) is the live reference implementation — ever
 | [Current State of OpenAPI in .NET](OPENAPI-DOTNET.md) | Complete ecosystem guide — package versions, compatibility matrix, known issues, recommended combinations, React SPA parsing tips |
 | [NuGet Package Walkthrough](NUGET-PACKAGE-WALKTHROUGH.md) | How ApiTestSpark is built and packed — MSBuild/Vite bridge, embedded resources, Source Link, public API tracking, CI/CD |
 | [Package README](ApiTestSpark/README.md) | Consumer-facing reference — all `ApiTestSparkOptions`, quickstart snippets, semver policy |
-| [Repo Story (2026-06-06)](.documentation/repo-story/repo-story-2026-06-06.md) | Evidence-based narrative of this repository's development history, contributor patterns, and architecture — updated with the v1.5.0 release state |
+| [Repo Story (2026-06-06)](.archive/repo-story/repo-story-2026-06-06.md) | Archived narrative of this repository's early development history, contributor patterns, and architecture, as of the v1.5.0 release |
 | [Live Demo](https://apitest.makeboldspark.com) | Running SampleApi on .NET 10 with 16 endpoints and ApiTestSpark installed |
 | [NuGet Package](https://www.nuget.org/packages/ApiTestSpark) | Package page, download stats, version history |
 
@@ -563,10 +567,10 @@ ApiTestSpark works with any OpenAPI v3 generator. The recommended stack for a ne
 
 ```xml
 <!-- Document generation — Microsoft first-party -->
-<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
 
 <!-- UI renderer — modern Swagger UI alternative, zero dependencies -->
-<PackageReference Include="Scalar.AspNetCore" Version="2.14.14" />
+<PackageReference Include="Scalar.AspNetCore" Version="2.17.8" />
 ```
 
 ```csharp

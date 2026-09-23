@@ -17,7 +17,7 @@ Dual-artifact repository:
 
 ## Tech Stack
 
-- React 19 / TypeScript 5.x / Vite 8
+- React 19 / TypeScript 6 / Vite 8
 - Zustand 5 (persist), TanStack Query 5, Tailwind CSS 4, React Router DOM 7
 - .NET 10 / ASP.NET Core Minimal API / MSTest
 - No test runner for React SPA (see backbone principle 7)
